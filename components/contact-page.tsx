@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,6 +21,9 @@ import {
   Twitter,
   Instagram,
   Linkedin,
+  Check,
+  X,
+  AlertTriangle,
 } from "lucide-react"
 
 export function ContactPage() {
@@ -33,17 +36,253 @@ export function ContactPage() {
     contactReason: "",
   })
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }))
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+    contactReason: "",
+  })
+
+  const [generalError, setGeneralError] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showValidationErrors, setShowValidationErrors] = useState(false)
+
+  // Check if all required fields are filled (email is optional)
+  const isFormValid = useMemo(() => {
+    const phoneValid = formData.phone.trim() !== "" && /^\d{10}$/.test(formData.phone.trim())
+    // Email validation only if provided (optional)
+    const emailValid = formData.email.trim() === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+
+    return (
+      formData.name.trim() !== "" &&
+      emailValid &&
+      phoneValid &&
+      formData.subject.trim() !== "" &&
+      formData.message.trim() !== "" &&
+      formData.contactReason.trim() !== ""
+    )
+  }, [formData])
+
+  const clearMessages = () => {
+    setErrors({
+      name: "",
+      email: "",
+      phone: "",
+      subject: "",
+      message: "",
+      contactReason: "",
+    })
+    setGeneralError("")
+    setSuccessMessage("")
+    setShowValidationErrors(false)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Contact form submitted:", formData)
-    // Handle form submission
+  const validateRequiredFields = () => {
+    const newErrors = { ...errors }
+    let hasErrors = false
+
+    if (!formData.name.trim()) {
+      newErrors.name = "الاسم مطلوب"
+      hasErrors = true
+    }
+
+    // Email validation only if provided (since it's optional)
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "صيغة البريد الإلكتروني غير صحيحة"
+      hasErrors = true
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = "رقم الهاتف مطلوب"
+      hasErrors = true
+    } else if (!/^\d{10}$/.test(formData.phone.trim())) {
+      newErrors.phone = "رقم الهاتف يجب أن يتكون من 10 أرقام بالضبط"
+      hasErrors = true
+    }
+
+    if (!formData.subject.trim()) {
+      newErrors.subject = "الموضوع مطلوب"
+      hasErrors = true
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = "الرسالة مطلوبة"
+      hasErrors = true
+    }
+
+    if (!formData.contactReason.trim()) {
+      newErrors.contactReason = "سبب التواصل مطلوب"
+      hasErrors = true
+    }
+
+    setErrors(newErrors)
+    return !hasErrors
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    
+    // For phone field, only allow digits and limit to 10 characters
+    if (name === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '')
+      if (digitsOnly.length <= 10) {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: digitsOnly,
+        }))
+      }
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }))
+    }
+    
+    // Clear error for this field when user starts typing
+    if (errors[name as keyof typeof errors]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }))
+    }
+
+    // Real-time validation for email (only if provided since it's optional)
+    if (name === 'email' && value.trim()) {
+      setTimeout(() => {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          setErrors((prev) => ({
+            ...prev,
+            email: "صيغة البريد الإلكتروني غير صحيحة",
+          }))
+        }
+      }, 500)
+    }
+    
+    // Real-time validation for phone
+    if (name === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '')
+      if (digitsOnly.length > 0) {
+        setTimeout(() => {
+          const currentPhone = formData.phone
+          if (currentPhone.length > 0 && currentPhone.length < 10) {
+            setErrors((prev) => ({
+              ...prev,
+              phone: "رقم الهاتف يجب أن يتكون من 10 أرقام بالضبط",
+            }))
+          }
+        }, 1000)
+      }
+    }
+
+    // Clear general validation error state when user starts filling fields
+    if (showValidationErrors) {
+      setShowValidationErrors(false)
+    }
+  }
+
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+    }
+
+    // If form is not valid, show validation errors
+    if (!isFormValid) {
+      setShowValidationErrors(true)
+      validateRequiredFields()
+      setGeneralError("يرجى ملء جميع الحقول المطلوبة قبل الإرسال")
+      return
+    }
+
+    setIsSubmitting(true)
+    clearMessages()
+
+    const formDataToSend = new FormData()
+    formDataToSend.append("name", formData.name)
+    formDataToSend.append("email", formData.email)
+    formDataToSend.append("phone", formData.phone)
+    formDataToSend.append("subject", formData.subject)
+    formDataToSend.append("message", formData.message)
+    formDataToSend.append("contactReason", formData.contactReason)
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/contact/", {
+        method: "POST",
+        body: formDataToSend,
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setSuccessMessage("تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.")
+        console.log("Server response:", data)
+        
+        // Reset form after successful submission
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: "",
+          contactReason: "",
+        })
+      } else {
+        const errorData = await response.json()
+        console.error("خطأ في الإرسال:", errorData)
+
+        // Handle validation errors for specific fields
+        if (errorData.errors) {
+          const newErrors = { ...errors }
+          
+          Object.keys(errorData.errors).forEach((field) => {
+            const fieldErrors = errorData.errors[field]
+            if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+              const errorMessage = fieldErrors[0]
+              
+              // Check for duplicate/existing data errors
+              if (errorMessage.includes("already exists") || 
+                  errorMessage.includes("موجود") || 
+                  errorMessage.includes("مستخدم") ||
+                  errorMessage.includes("email") ||
+                  errorMessage.includes("phone")) {
+                
+                if (field === "email") {
+                  newErrors.email = "هذا البريد الإلكتروني مستخدم مسبقاً"
+                } else if (field === "phone") {
+                  newErrors.phone = "رقم الهاتف هذا مستخدم مسبقاً"
+                } else if (field === "name") {
+                  newErrors.name = "هذا الاسم مسجل مسبقاً"
+                } else {
+                  newErrors[field as keyof typeof errors] = "هذه البيانات مستخدمة مسبقاً"
+                }
+              } else {
+                // Other validation errors
+                newErrors[field as keyof typeof errors] = errorMessage
+              }
+            }
+          })
+          
+          setErrors(newErrors)
+        } else if (errorData.message) {
+          // Handle general server messages
+          if (errorData.message.includes("duplicate") || 
+              errorData.message.includes("exists") ||
+              errorData.message.includes("موجود")) {
+            setGeneralError("بعض البيانات المدخلة مستخدمة مسبقاً. يرجى التحقق من البيانات.")
+          } else {
+            setGeneralError(errorData.message)
+          }
+        } else {
+          setGeneralError("حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.")
+        }
+      }
+    } catch (error) {
+      console.error("خطأ في الشبكة:", error)
+      setGeneralError("تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const contactInfo = [
@@ -115,7 +354,7 @@ export function ContactPage() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-right block">
-                        الاسم الكامل
+                        الاسم الكامل <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="name"
@@ -123,13 +362,18 @@ export function ContactPage() {
                         value={formData.name}
                         onChange={handleInputChange}
                         placeholder="أدخل اسمك الكامل"
-                        className="text-right"
-                        required
+                        className={`text-right ${(errors.name || (showValidationErrors && !formData.name.trim())) ? 'border-red-300 focus:border-red-500' : ''}`}
                       />
+                      {(errors.name || (showValidationErrors && !formData.name.trim())) && (
+                        <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1">
+                          <X className="w-4 h-4" />
+                          {errors.name || "الاسم الكامل مطلوب"}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-right block">
-                        البريد الإلكتروني
+                        البريد الإلكتروني (اختياري)
                       </Label>
                       <Input
                         id="email"
@@ -138,9 +382,14 @@ export function ContactPage() {
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder="example@email.com"
-                        className="text-right"
-                        required
+                        className={`text-right ${errors.email ? 'border-red-300 focus:border-red-500' : ''}`}
                       />
+                      {errors.email && (
+                        <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1">
+                          <X className="w-4 h-4" />
+                          {errors.email}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -148,20 +397,28 @@ export function ContactPage() {
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-right block">
-                        رقم الهاتف
+                        رقم الهاتف <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="phone"
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        placeholder="+966 50 123 4567"
-                        className="text-right"
+                        placeholder="0501234567"
+                        className={`text-right ${(errors.phone || (showValidationErrors && (!formData.phone.trim() || !/^\d{10}$/.test(formData.phone.trim())))) ? 'border-red-300 focus:border-red-500' : ''}`}
+                        maxLength={10}
+                        inputMode="numeric"
                       />
+                      {(errors.phone || (showValidationErrors && !formData.phone.trim())) && (
+                        <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1">
+                          <X className="w-4 h-4" />
+                          {errors.phone || "رقم الهاتف مطلوب"}
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="subject" className="text-right block">
-                        الموضوع
+                        الموضوع <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="subject"
@@ -169,24 +426,28 @@ export function ContactPage() {
                         value={formData.subject}
                         onChange={handleInputChange}
                         placeholder="موضوع الرسالة"
-                        className="text-right"
-                        required
+                        className={`text-right ${(errors.subject || (showValidationErrors && !formData.subject.trim())) ? 'border-red-300 focus:border-red-500' : ''}`}
                       />
+                      {(errors.subject || (showValidationErrors && !formData.subject.trim())) && (
+                        <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1">
+                          <X className="w-4 h-4" />
+                          {errors.subject || "الموضوع مطلوب"}
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   {/* Contact Reason */}
                   <div className="space-y-2">
                     <Label htmlFor="contactReason" className="text-right block">
-                      سبب التواصل
+                      سبب التواصل <span className="text-red-500">*</span>
                     </Label>
                     <select
                       id="contactReason"
                       name="contactReason"
                       value={formData.contactReason}
                       onChange={handleInputChange}
-                      className="w-full p-3 border border-border rounded-md text-right bg-background"
-                      required
+                      className={`w-full p-3 border border-border rounded-md text-right bg-background ${(errors.contactReason || (showValidationErrors && !formData.contactReason.trim())) ? 'border-red-300 focus:border-red-500' : ''}`}
                     >
                       <option value="">اختر سبب التواصل</option>
                       <option value="membership">استفسار عن العضوية</option>
@@ -195,12 +456,18 @@ export function ContactPage() {
                       <option value="complaint">شكوى أو اقتراح</option>
                       <option value="other">أخرى</option>
                     </select>
+                    {(errors.contactReason || (showValidationErrors && !formData.contactReason.trim())) && (
+                      <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1">
+                        <X className="w-4 h-4" />
+                        {errors.contactReason || "سبب التواصل مطلوب"}
+                      </p>
+                    )}
                   </div>
 
                   {/* Message */}
                   <div className="space-y-2">
                     <Label htmlFor="message" className="text-right block">
-                      الرسالة
+                      الرسالة <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
                       id="message"
@@ -208,15 +475,67 @@ export function ContactPage() {
                       value={formData.message}
                       onChange={handleInputChange}
                       placeholder="اكتب رسالتك هنا..."
-                      className="text-right min-h-32"
-                      required
+                      className={`text-right min-h-32 ${(errors.message || (showValidationErrors && !formData.message.trim())) ? 'border-red-300 focus:border-red-500' : ''}`}
                     />
+                    {(errors.message || (showValidationErrors && !formData.message.trim())) && (
+                      <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1">
+                        <X className="w-4 h-4" />
+                        {errors.message || "الرسالة مطلوبة"}
+                      </p>
+                    )}
                   </div>
 
-                  <Button type="submit" className="w-full animate-pulse-glow">
-                    <Send className="w-4 h-4 ml-2" />
-                    إرسال الرسالة
+                  {/* Submit Button */}
+                  <Button 
+                    onClick={handleSubmit}
+                    className={`w-full transition-all duration-300 ${
+                      !isFormValid && !isSubmitting 
+                        ? 'opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400' 
+                        : 'opacity-100 cursor-pointer'
+                    }`}
+                    disabled={!isFormValid || isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        جارٍ الإرسال...
+                      </div>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 ml-2" />
+                        إرسال الرسالة
+                      </>
+                    )}
                   </Button>
+
+                  {/* Form completion indicator */}
+                  {!isFormValid && (
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">
+                        يرجى ملء جميع الحقول المطلوبة (المميزة بـ <span className="text-red-500">*</span>) لتمكين زر الإرسال
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Success Message */}
+                  {successMessage && (
+                    <div className="p-4 border border-green-200 bg-green-50 text-green-800 rounded-lg flex items-start gap-3">
+                      <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-right flex-1">
+                        <p className="text-sm font-medium">{successMessage}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* General Error Message */}
+                  {generalError && (
+                    <div className="p-4 border border-red-200 bg-red-50 text-red-800 rounded-lg flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-right flex-1">
+                        <p className="text-sm font-medium">{generalError}</p>
+                      </div>
+                    </div>
+                  )}
                 </form>
               </CardContent>
             </Card>
@@ -313,5 +632,4 @@ export function ContactPage() {
         </div>
       </div>
     </div>
-  )
-}
+  )}
