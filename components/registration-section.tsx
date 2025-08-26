@@ -2,298 +2,185 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { UserPlus, Mail, Phone, User, FileText, Upload, CheckCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Target, Eye, Heart, Users, Award, Lightbulb, Play } from "lucide-react"
 
 export function RegistrationSection() {
-  const [formData, setFormData] = useState({
-    applicationId: "",
-    name: "",
-    age: "",
-    phone: "",
-    email: "",
-    reason: "",
-    interests: "",
-    personalPhoto: null as File | null,
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    setIsSubmitting(false)
-    setIsSubmitted(true)
-  }
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
-    setFormData((prev) => ({ ...prev, personalPhoto: file }))
-  }
-
-  if (isSubmitted) {
-    return (
-      <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="animate-bounce-gentle mb-8">
-            <CheckCircle className="w-24 h-24 text-secondary mx-auto" />
-          </div>
-          <h2 className="text-4xl font-bold text-foreground mb-6">تم التسجيل بنجاح!</h2>
-          <p className="text-xl text-muted-foreground mb-8">شكراً لانضمامك إلى عائلة المنار. سنتواصل معك قريباً</p>
-          <Button
-            onClick={() => {
-              setIsSubmitted(false)
-              setFormData({
-                applicationId: "",
-                name: "",
-                age: "",
-                phone: "",
-                email: "",
-                reason: "",
-                interests: "",
-                personalPhoto: null,
-              })
-            }}
-            className="animate-pulse-glow"
-          >
-            تسجيل عضو جديد
-          </Button>
-        </div>
-      </div>
-    )
-  }
+  const features = [
+    {
+      icon: Target,
+      title: "أهدافنا",
+      description: "تمكين الشباب وتطوير قدراتهم في جميع المجالات الحياتية والمهنية",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+    },
+    {
+      icon: Users,
+      title: "مجتمعنا",
+      description: "بناء جيل واعي ومتفاعل يساهم في التنمية المجتمعية المستدامة",
+      color: "text-secondary",
+      bgColor: "bg-secondary/10",
+    },
+    {
+      icon: Award,
+      title: "إنجازاتنا",
+      description: "أكثر من 500 عضو نشط و 100+ فعالية ناجحة على مدار السنوات الماضية",
+      color: "text-accent",
+      bgColor: "bg-accent/10",
+    },
+    {
+      icon: Lightbulb,
+      title: "برامجنا",
+      description: "ورش تطوير الذات، دورات تدريبية، مشاريع تطوعية، وفعاليات ثقافية متنوعة",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+    },
+  ]
 
   return (
     <div className="container mx-auto px-4">
       <div className="text-center mb-16">
-        <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">انضم إلى عائلة المنار</h2>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          كن جزءاً من مجتمع شبابي نشط ومتفاعل واستمتع بتجارب لا تُنسى
+        <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">تعرف على جمعية المنار</h2>
+        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          منارة الشباب للتنمية والتطوير - جمعية شبابية تهدف إلى بناء جيل واعي ومبدع يساهم في نهضة المجتمع
         </p>
         <div className="w-24 h-1 bg-accent mx-auto mt-6 rounded-full" />
       </div>
 
-      <div className="max-w-4xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-12 items-start">
-          {/* Registration Benefits */}
-          <div className="space-y-8">
-            <h3 className="text-2xl font-bold text-foreground mb-6">لماذا تنضم إلينا؟</h3>
-
-            <div className="space-y-6">
-              {[
-                {
-                  icon: UserPlus,
-                  title: "مجتمع شبابي متنوع",
-                  description: "انضم إلى مجتمع من الشباب المتحمس والطموح",
-                  color: "text-primary",
-                  bgColor: "bg-primary/10",
-                },
-                {
-                  icon: FileText,
-                  title: "أنشطة متنوعة ومفيدة",
-                  description: "شارك في ورش عمل وفعاليات تطور مهاراتك",
-                  color: "text-secondary",
-                  bgColor: "bg-secondary/10",
-                },
-                {
-                  icon: Mail,
-                  title: "شبكة علاقات قوية",
-                  description: "اكتسب صداقات جديدة وعلاقات مهنية مثمرة",
-                  color: "text-accent",
-                  bgColor: "bg-accent/10",
-                },
-              ].map((benefit, index) => {
-                const Icon = benefit.icon
-                return (
-                  <div
-                    key={index}
-                    className="flex items-start gap-4 p-4 rounded-xl hover:bg-muted/30 transition-colors duration-300 animate-fade-in"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <div className={`${benefit.bgColor} p-3 rounded-full`}>
-                      <Icon className={`w-6 h-6 ${benefit.color}`} />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-2">{benefit.title}</h4>
-                      <p className="text-muted-foreground">{benefit.description}</p>
-                    </div>
-                  </div>
-                )
-              })}
+      <div className="max-w-6xl mx-auto">
+        {/* الرؤية والرسالة والأهداف */}
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          {/* الرؤية */}
+          <Card className="p-8 text-center hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Eye className="w-8 h-8 text-primary" />
             </div>
+            <h3 className="text-2xl font-bold text-foreground mb-4">رؤيتنا</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              أن نكون الجمعية الرائدة في تمكين الشباب وإعدادهم ليكونوا قادة المستقبل في جميع المجالات
+            </p>
+          </Card>
+
+          {/* الرسالة */}
+          <Card className="p-8 text-center hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <div className="bg-secondary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Heart className="w-8 h-8 text-secondary" />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-4">رسالتنا</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              نسعى لتطوير قدرات الشباب من خلال برامج تدريبية متنوعة وأنشطة تطوعية هادفة تخدم المجتمع
+            </p>
+          </Card>
+
+          {/* الأهداف */}
+          <Card className="p-8 text-center hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <div className="bg-accent/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Target className="w-8 h-8 text-accent" />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-4">أهدافنا</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              بناء شخصية الشاب المسلم، تطوير المهارات القيادية، وتعزيز روح العمل الجماعي والتطوعي
+            </p>
+          </Card>
+        </div>
+
+        {/* قسم الفيديو التعريفي والمحتوى */}
+        <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+          {/* الفيديو التعريفي */}
+          <div className="relative">
+            <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <div className="relative bg-gradient-to-br from-primary/20 to-secondary/20 aspect-video flex items-center justify-center">
+                <div className="text-center">
+                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-full mb-4 mx-auto w-fit">
+                    <Play className="w-12 h-12 text-white" />
+                  </div>
+                  <h4 className="text-white text-xl font-semibold mb-2">فيديو تعريفي بالجمعية</h4>
+                  <p className="text-white/80">شاهد رحلتنا وإنجازاتنا</p>
+                </div>
+                <Button 
+                  className="absolute inset-0 bg-transparent hover:bg-black/20 transition-colors duration-300"
+                  onClick={() => {
+                    // يمكن إضافة رابط الفيديو هنا
+                    console.log("تشغيل الفيديو التعريفي")
+                  }}
+                >
+                  <span className="sr-only">تشغيل الفيديو</span>
+                </Button>
+              </div>
+            </Card>
           </div>
 
-          {/* Registration Form */}
-          <Card className="p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="text-center mb-6">
-                <UserPlus className="w-12 h-12 text-primary mx-auto mb-3" />
-                <h3 className="text-2xl font-bold text-foreground">نموذج التسجيل</h3>
-              </div>
-
-              {/* Application ID field */}
-              <div className="space-y-2">
-                <Label htmlFor="applicationId" className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  رقم الطلب (اختياري)
-                </Label>
-                <Input
-                  id="applicationId"
-                  value={formData.applicationId}
-                  onChange={(e) => handleInputChange("applicationId", e.target.value)}
-                  placeholder="سيتم إنشاؤه تلقائياً إذا ترك فارغاً"
-                  className="transition-all duration-300 focus:scale-105"
-                />
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    الاسم الكامل
-                  </Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="أدخل اسمك الكامل"
-                    required
-                    className="transition-all duration-300 focus:scale-105"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="age">العمر</Label>
-                  <Select onValueChange={(value) => handleInputChange("age", value)}>
-                    <SelectTrigger className="transition-all duration-300 focus:scale-105">
-                      <SelectValue placeholder="اختر عمرك" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="16-20">16-20 سنة</SelectItem>
-                      <SelectItem value="21-25">21-25 سنة</SelectItem>
-                      <SelectItem value="26-30">26-30 سنة</SelectItem>
-                      <SelectItem value="30+">أكثر من 30 سنة</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    رقم الهاتف
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    placeholder="+966 5X XXX XXXX"
-                    required
-                    className="transition-all duration-300 focus:scale-105"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    البريد الإلكتروني
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    placeholder="example@email.com"
-                    required
-                    className="transition-all duration-300 focus:scale-105"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="interests">اهتماماتك</Label>
-                <Select onValueChange={(value) => handleInputChange("interests", value)}>
-                  <SelectTrigger className="transition-all duration-300 focus:scale-105">
-                    <SelectValue placeholder="اختر مجال اهتمامك" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sports">الرياضة</SelectItem>
-                    <SelectItem value="arts">الفنون</SelectItem>
-                    <SelectItem value="technology">التكنولوجيا</SelectItem>
-                    <SelectItem value="volunteering">العمل التطوعي</SelectItem>
-                    <SelectItem value="education">التعليم</SelectItem>
-                    <SelectItem value="culture">الثقافة</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="reason">لماذا تريد الانضمام؟</Label>
-                <Textarea
-                  id="reason"
-                  value={formData.reason}
-                  onChange={(e) => handleInputChange("reason", e.target.value)}
-                  placeholder="أخبرنا عن دوافعك للانضمام إلى الجمعية..."
-                  rows={4}
-                  className="transition-all duration-300 focus:scale-105"
-                />
-              </div>
-
-              {/* Personal Photo field with preview */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Upload className="w-4 h-4" />
-                  الصورة الشخصية (مطلوبة)
-                </Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  required
-                  className="transition-all duration-300 focus:scale-105"
-                />
-                {formData.personalPhoto && (
-                  <div className="mt-2 p-2 bg-muted rounded-lg">
-                    <p className="text-sm text-muted-foreground">تم اختيار: {formData.personalPhoto.name}</p>
-                  </div>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full text-lg py-6 rounded-full transition-all duration-300 hover:scale-105"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    جاري التسجيل...
-                  </div>
-                ) : (
-                  <>
-                    انضم الآن
-                    <UserPlus className="w-5 h-5 mr-2" />
-                  </>
-                )}
+          {/* نبذة مختصرة */}
+          <div className="space-y-6">
+            <h3 className="text-3xl font-bold text-foreground">نبذة عن جمعية المنار</h3>
+            <div className="space-y-4 text-muted-foreground leading-relaxed">
+              <p>
+                تأسست جمعية المنار للشباب في عام 2015 بهدف خلق بيئة محفزة للشباب لتطوير قدراتهم 
+                وإمكانياتهم في شتى المجالات. نؤمن بأن الشباب هم عماد المستقبل وقادة التغيير.
+              </p>
+              <p>
+                نقدم برامج متنوعة تشمل التدريب المهني، ورش تطوير الذات، الأنشطة الثقافية والرياضية، 
+                بالإضافة إلى المشاريع التطوعية التي تخدم المجتمع المحلي.
+              </p>
+              <p>
+                انضم إلى عائلتنا الكبيرة واكتشف إمكانياتك الحقيقية مع مجتمع من الشباب المتحمس والطموح.
+              </p>
+            </div>
+            
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Button className="bg-primary hover:bg-primary/90">
+                انضم إلينا الآن
               </Button>
-            </form>
-          </Card>
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+                تعرف أكثر
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* الميزات والخدمات */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {features.map((feature, index) => {
+            const Icon = feature.icon
+            return (
+              <div
+                key={index}
+                className="flex items-start gap-4 p-6 rounded-xl hover:bg-muted/30 transition-all duration-300 animate-fade-in group"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className={`${feature.bgColor} p-3 rounded-full group-hover:scale-110 transition-transform duration-300`}>
+                  <Icon className={`w-6 h-6 ${feature.color}`} />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-2 text-lg">{feature.title}</h4>
+                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* إحصائيات سريعة */}
+        <div className="mt-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+              <h4 className="text-3xl font-bold text-primary mb-2">500+</h4>
+              <p className="text-muted-foreground">عضو نشط</p>
+            </div>
+            <div>
+              <h4 className="text-3xl font-bold text-secondary mb-2">100+</h4>
+              <p className="text-muted-foreground">فعالية منجزة</p>
+            </div>
+            <div>
+              <h4 className="text-3xl font-bold text-accent mb-2">50+</h4>
+              <p className="text-muted-foreground">برنامج تدريبي</p>
+            </div>
+            <div>
+              <h4 className="text-3xl font-bold text-primary mb-2">9</h4>
+              <p className="text-muted-foreground">سنوات من العطاء</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

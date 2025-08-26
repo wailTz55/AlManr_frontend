@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   Calendar,
@@ -63,6 +64,8 @@ type NewsWithRandomProps = News & {
 };
 
 export function NewsPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   // حالات البيانات من API
   const [news, setNews] = useState<NewsWithRandomProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,32 +82,46 @@ export function NewsPage() {
 
   // جلب البيانات من API
   useEffect(() => {
-    const loadNews = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await fetchAllData();
+      const loadNews = async () => {
+        try {
+          setIsLoading(true);
+          setError(null);
+          const data = await fetchAllData();
 
-        if (data && data.news && Array.isArray(data.news)) {
-          // إضافة الخصائص العشوائية لكل خبر
-          const newsWithRandomProps = data.news.map(newsItem => generateRandomProps(newsItem));
-          setNews(newsWithRandomProps);
-        } else {
-          throw new Error('البيانات المستلمة غير صحيحة');
+          if (data && data.news && Array.isArray(data.news)) {
+            // إضافة الخصائص العشوائية لكل خبر
+            const newsWithRandomProps = data.news.map(newsItem => generateRandomProps(newsItem));
+            setNews(newsWithRandomProps);
+          } else {
+            throw new Error('البيانات المستلمة غير صحيحة');
+          }
+        } catch (err) {
+          console.error('خطأ في جلب البيانات:', err);
+          setError('حدث خطأ في تحميل البيانات');
+          setNews([]);
+        } finally {
+          setIsLoading(false);
+          setMounted(true);
         }
-      } catch (err) {
-        console.error('خطأ في جلب البيانات:', err);
-        setError('حدث خطأ في تحميل البيانات');
-        setNews([]);
-      } finally {
-        setIsLoading(false);
-        setMounted(true);
+      };
+
+      loadNews();
+    }, []);
+  useEffect(() => {
+    if (mounted && news.length > 0) {
+      const articleId = searchParams.get('articleId');
+      if (articleId) {
+        const article = news.find(item => item.id === parseInt(articleId));
+        if (article) {
+          setSelectedArticle(article);
+          // تنظيف الرابط
+          const url = new URL(window.location.href);
+          url.searchParams.delete('articleId');
+          window.history.replaceState({}, '', url.toString());
+        }
       }
-    };
-
-    loadNews();
-  }, []);
-
+    }
+  }, [mounted, news, searchParams]);
   // تصفية الأخبار
   const filteredNews = news.filter((article) => {
     const matchesSearch =

@@ -1,51 +1,176 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { fetchAllData } from "../app/api/api"
+import { News } from "../app/api/type"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, ArrowLeft, Bell, Megaphone, Trophy } from "lucide-react"
+import { Calendar, Clock, ArrowLeft, Bell, Megaphone, Trophy, Users, Star } from "lucide-react"
 
-const newsItems = [
-  {
-    id: 1,
-    title: "إطلاق برنامج المنح الدراسية للشباب المتميز",
-    excerpt: "نعلن عن إطلاق برنامج جديد لدعم الشباب الموهوب في مجال التعليم العالي",
-    date: "2024-08-01",
-    time: "10:00 ص",
-    type: "إعلان",
-    icon: Megaphone,
-    color: "text-primary",
-    bgColor: "bg-primary/10",
-  },
-  {
-    id: 2,
-    title: "فوز فريق الجمعية في مسابقة الإبداع الشبابي",
-    excerpt: "حقق فريقنا المركز الأول في المسابقة الوطنية للإبداع والابتكار",
-    date: "2024-07-28",
-    time: "2:30 م",
-    type: "إنجاز",
-    icon: Trophy,
-    color: "text-secondary",
-    bgColor: "bg-secondary/10",
-  },
-  {
-    id: 3,
-    title: "تذكير: اجتماع الجمعية العمومية القادم",
-    excerpt: "ندعو جميع الأعضاء لحضور الاجتماع الشهري المقرر الأسبوع القادم",
-    date: "2024-08-05",
-    time: "6:00 م",
-    type: "تذكير",
-    icon: Bell,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
-  },
-]
+// مصفوفات القيم العشوائية للأيقونات والألوان
+const colorOptions = [
+  "text-primary",
+  "text-secondary", 
+  "text-accent",
+  "text-chart-3",
+  "text-chart-4"
+];
+
+const bgColorOptions = [
+  "bg-primary/10",
+  "bg-secondary/10",
+  "bg-accent/10", 
+  "bg-chart-3/10",
+  "bg-chart-4/10"
+];
+
+const iconOptions = [Megaphone, Users, Star, Bell, Trophy];
+
+// دوال للحصول على قيم عشوائية
+const getRandomColor = () => colorOptions[Math.floor(Math.random() * colorOptions.length)];
+const getRandomBgColor = () => bgColorOptions[Math.floor(Math.random() * bgColorOptions.length)];
+const getRandomIcon = () => iconOptions[Math.floor(Math.random() * iconOptions.length)];
+
+// دالة لتوليد خصائص عشوائية للخبر
+const generateRandomProps = (newsItem: News) => ({
+  ...newsItem,
+  randomColor: getRandomColor(),
+  randomBgColor: getRandomBgColor(),
+  randomIcon: getRandomIcon()
+});
+
+// نوع محدث للأخبار مع الخصائص العشوائية
+type NewsWithRandomProps = News & {
+  randomColor: string;
+  randomBgColor: string;
+  randomIcon: React.ComponentType<{ className?: string }>;
+};
 
 export function NewsSection() {
+  const router = useRouter()
   const [expandedNews, setExpandedNews] = useState<number | null>(null)
+  const [latestNews, setLatestNews] = useState<NewsWithRandomProps[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // جلب أحدث 3 أخبار من API
+  useEffect(() => {
+    const loadLatestNews = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const data = await fetchAllData()
+
+        if (data && data.news && Array.isArray(data.news)) {
+          // أخذ أول 3 أخبار (الأحدث) مع إضافة الخصائص العشوائية
+          const latest3News = data.news
+            .slice(0, 3)
+            .map(newsItem => generateRandomProps(newsItem))
+          
+          setLatestNews(latest3News)
+        } else {
+          throw new Error('البيانات المستلمة غير صحيحة')
+        }
+      } catch (err) {
+        console.error('خطأ في جلب البيانات:', err)
+        setError('حدث خطأ في تحميل الأخبار')
+        setLatestNews([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadLatestNews()
+  }, [])
+
+  // دالة للانتقال إلى صفحة الأخبار مع تمرير معرف الخبر
+  const navigateToNewsPage = (newsId?: number) => {
+    if (newsId) {
+      router.push(`/news?articleId=${newsId}`)
+    } else {
+      router.push('/news')
+    }
+  }
+
+  // دالة للتعامل مع النقر على البطاقة
+  const handleCardClick = (item: NewsWithRandomProps) => {
+    const isCurrentlyExpanded = expandedNews === item.id
+    
+    if (isCurrentlyExpanded) {
+      // إذا كان الخبر موسعاً، انتقل إلى صفحة الأخبار مع تفاصيل الخبر
+      navigateToNewsPage(item.id)
+    } else {
+      // وسع الخبر أولاً
+      setExpandedNews(item.id)
+    }
+  }
+
+  // دالة للتعامل مع النقر على زر "المزيد"
+  const handleMoreClick = (e: React.MouseEvent, item: NewsWithRandomProps) => {
+    e.stopPropagation() // منع تفعيل النقر على البطاقة
+    navigateToNewsPage(item.id)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">الأخبار والإعلانات</h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            ابق على اطلاع بآخر أخبار الجمعية وفعالياتها القادمة
+          </p>
+          <div className="w-24 h-1 bg-secondary mx-auto mt-6 rounded-full" />
+        </div>
+        
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">جاري تحميل الأخبار...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">الأخبار والإعلانات</h2>
+        </div>
+        
+        <div className="text-center py-12">
+          <p className="text-lg text-red-500 mb-4">{error}</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline"
+          >
+            إعادة المحاولة
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (latestNews.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">الأخبار والإعلانات</h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            ابق على اطلاع بآخر أخبار الجمعية وفعالياتها القادمة
+          </p>
+          <div className="w-24 h-1 bg-secondary mx-auto mt-6 rounded-full" />
+        </div>
+        
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">لا توجد أخبار متاحة حالياً</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto px-4 py-12">
       <div className="text-center mb-16">
         <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">الأخبار والإعلانات</h2>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -60,8 +185,8 @@ export function NewsSection() {
         <div className="absolute right-1/2 transform translate-x-1/2 w-1 h-full bg-gradient-to-b from-primary via-secondary to-accent rounded-full" />
 
         <div className="space-y-12">
-          {newsItems.map((item, index) => {
-            const Icon = item.icon
+          {latestNews.map((item, index) => {
+            const Icon = item.randomIcon
             const isExpanded = expandedNews === item.id
 
             return (
@@ -73,20 +198,22 @@ export function NewsSection() {
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 {/* Timeline Node */}
-                
+                <div className="absolute right-1/2 transform translate-x-1/2 w-8 h-8 bg-background border-4 border-primary rounded-full flex items-center justify-center z-10">
+                  <Icon className="w-4 h-4 text-primary" />
+                </div>
 
                 {/* News Card */}
                 <Card
                   className={`w-80 transition-all duration-500 cursor-pointer hover:shadow-xl ${
                     index % 2 === 0 ? "ml-8" : "mr-8"
                   } ${isExpanded ? "scale-105" : "hover:scale-102"}`}
-                  onClick={() => setExpandedNews(isExpanded ? null : item.id)}
+                  onClick={() => handleCardClick(item)}
                 >
                   <div className="p-6">
                     <div
-                      className={`inline-block px-3 py-1 ${item.bgColor} ${item.color} rounded-full text-sm font-medium mb-3`}
+                      className={`inline-block px-3 py-1 ${item.randomBgColor} ${item.randomColor} rounded-full text-sm font-medium mb-3`}
                     >
-                      {item.type}
+                      {item.category}
                     </div>
 
                     <h3 className="text-lg font-bold text-foreground mb-3 hover:text-primary transition-colors">
@@ -98,23 +225,28 @@ export function NewsSection() {
                         isExpanded ? "line-clamp-none" : "line-clamp-2"
                       }`}
                     >
-                      {item.excerpt}
+                      {isExpanded ? item.content : item.excerpt}
                     </p>
 
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {new Date(item.date).toLocaleDateString("ar-SA")}
+                          {item.date ? new Date(item.date).toLocaleDateString("ar-SA") : ""}
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          {item.time}
+                          {item.time || ""}
                         </div>
                       </div>
 
-                      <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10">
-                        {isExpanded ? "أقل" : "المزيد"}
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-primary hover:bg-primary/10"
+                        onClick={(e) => handleMoreClick(e, item)}
+                      >
+                        {isExpanded ? "التفاصيل الكاملة" : "المزيد"}
                         <ArrowLeft className="w-4 h-4 mr-1" />
                       </Button>
                     </div>
@@ -128,7 +260,12 @@ export function NewsSection() {
 
       {/* Call to Action */}
       <div className="text-center mt-16">
-        <Button size="lg" variant="outline" className="text-lg px-8 py-4 rounded-full bg-transparent">
+        <Button 
+          size="lg" 
+          variant="outline" 
+          className="text-lg px-8 py-4 rounded-full bg-transparent"
+          onClick={() => navigateToNewsPage()}
+        >
           عرض جميع الأخبار
           <ArrowLeft className="w-5 h-5 mr-2" />
         </Button>

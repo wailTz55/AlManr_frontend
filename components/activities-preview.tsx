@@ -1,106 +1,78 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { fetchAllData } from "../app/api/api"
+import { Activity } from "../app/api/type"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Calendar, MapPin, Users, ArrowLeft, Camera, Video, ChevronLeft, ChevronRight } from "lucide-react"
 
-const activities = [
-  {
-    id: 1,
-    title: "مخيم الصيف الشبابي",
-    date: "15-20 يوليو 2024",
-    location: "جبال الأطلس",
-    participants: 45,
-    image: "/summer-camp-mountains.png",
-    description: "مخيم صيفي مليء بالأنشطة الترفيهية والتعليمية",
-    type: "مخيم",
-    color: "bg-primary",
-  },
-  {
-    id: 2,
-    title: "ورشة الإبداع والابتكار",
-    date: "5 أغسطس 2024",
-    location: "مركز الشباب",
-    participants: 30,
-    image: "/creative-workshop-innovation.png",
-    description: "ورشة تفاعلية لتنمية مهارات الإبداع",
-    type: "ورشة",
-    color: "bg-secondary",
-  },
-  {
-    id: 3,
-    title: "بطولة كرة القدم",
-    date: "12 أغسطس 2024",
-    location: "الملعب الرياضي",
-    participants: 60,
-    image: "/youth-football-tournament.png",
-    description: "بطولة رياضية ممتعة بين فرق الشباب",
-    type: "رياضة",
-    color: "bg-accent",
-  },
-  {
-    id: 4,
-    title: "معرض الفنون الشبابية",
-    date: "20 أغسطس 2024",
-    location: "قاعة المعارض",
-    participants: 25,
-    image: "/art-exhibition-youth.png",
-    description: "معرض فني يعرض إبداعات الشباب",
-    type: "فنون",
-    color: "bg-chart-3",
-  },
-  {
-    id: 5,
-    title: "رحلة استكشافية بحرية",
-    date: "1 سبتمبر 2024",
-    location: "الساحل الشرقي",
-    participants: 35,
-    image: "/marine-exploration.png",
-    description: "رحلة استكشافية بحرية مثيرة",
-    type: "استكشاف",
-    color: "bg-chart-4",
-  },
-]
-
 export function ActivitiesPreview() {
+  const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
   const [showControls, setShowControls] = useState(false)
-  // // * start api**************************
-  // const [activities, setActivities] = useState([
-  //   {
-  //     id: 0,
-  //     title: "جاري التحميل...",
-  //     date: "",
-  //     location: "",
-  //     participants: 0,
-  //     image: "/placeholder.svg",
-  //     description: "انتظر تحميل البيانات من السيرفر",
-  //     type: "",
-  //     color: "bg-gray-200",
-  //   },
-  // ])
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  //   // 🔹 جلب البيانات من API عند تحميل الكومبوننت
-  //   useEffect(() => {
-  //     fetch(" http://127.0.0.1:8000/api/activities/") // رابط Django API
-  //       .then((response) => response.json())
-  //       .then((data) => setActivities(data)) // نخزن البيانات
-  //       .catch((error) => console.error("خطأ في جلب البيانات:", error))
-  //   }, [])
-  // // * End api**************************
+  // جلب البيانات من API عند تحميل الكومبوننت
+  useEffect(() => {
+    const loadActivities = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const data = await fetchAllData()
+        
+        if (data && data.activities && Array.isArray(data.activities)) {
+          // أخذ أول 5 أنشطة
+          const firstFiveActivities = data.activities.slice(0, 5)
+          setActivities(firstFiveActivities)
+        } else {
+          throw new Error('البيانات المستلمة غير صحيحة')
+        }
+      } catch (err) {
+        console.error('خطأ في جلب البيانات:', err)
+        setError('حدث خطأ في تحميل الأنشطة')
+        setActivities([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
+    loadActivities()
+  }, [])
 
   useEffect(() => {
-    if (!isAutoPlaying) return
+    if (!isAutoPlaying || activities.length === 0) return
 
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % activities.length)
     }, 4000)
 
     return () => clearInterval(timer)
-  }, [isAutoPlaying])
+  }, [isAutoPlaying, activities.length])
+
+  // دالة للانتقال إلى صفحة الأنشطة مع تمرير معرف النشاط
+  const navigateToActivityPage = (activityId?: number) => {
+    if (activityId) {
+      router.push(`/activities?activityId=${activityId}`)
+    } else {
+      router.push('/activities')
+    }
+  }
+
+  // دالة للتعامل مع النقر على البطاقة
+  const handleCardClick = (activity: Activity) => {
+    navigateToActivityPage(activity.id)
+  }
+
+  // دالة للتعامل مع النقر على زر "اعرف المزيد"
+  const handleMoreClick = (e: React.MouseEvent, activity: Activity) => {
+    e.stopPropagation()
+    navigateToActivityPage(activity.id)
+  }
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % activities.length)
@@ -115,6 +87,66 @@ export function ActivitiesPreview() {
   const goToSlide = (index: number) => {
     setCurrentSlide(index)
     setIsAutoPlaying(false)
+  }
+
+  // معالجة حالة التحميل
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">أنشطتنا المميزة</h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            اكتشف عالماً من الأنشطة الشبابية المثيرة والتجارب التي لا تُنسى
+          </p>
+          <div className="w-24 h-1 bg-primary mx-auto mt-6 rounded-full" />
+        </div>
+        
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">جاري تحميل الأنشطة...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // معالجة حالة الخطأ
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">أنشطتنا المميزة</h2>
+        </div>
+        
+        <div className="text-center py-12">
+          <p className="text-lg text-red-500 mb-4">{error}</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline"
+          >
+            إعادة المحاولة
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // معالجة حالة عدم وجود أنشطة
+  if (activities.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">أنشطتنا المميزة</h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            اكتشف عالماً من الأنشطة الشبابية المثيرة والتجارب التي لا تُنسى
+          </p>
+          <div className="w-24 h-1 bg-primary mx-auto mt-6 rounded-full" />
+        </div>
+        
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">لا توجد أنشطة متاحة حالياً</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -141,10 +173,13 @@ export function ActivitiesPreview() {
           >
             {activities.map((activity, index) => (
               <div key={activity.id} className="w-full flex-shrink-0">
-                <Card className="relative overflow-hidden h-96 group">
+                <Card 
+                  className="relative overflow-hidden h-96 group cursor-pointer"
+                  onClick={() => handleCardClick(activity)}
+                >
                   <div className="absolute inset-0">
                     <img
-                      src={activity.image || "/placeholder.svg"}
+                      src={activity.images && activity.images[0] ? activity.images[0] : "/placeholder.svg"}
                       alt={activity.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
@@ -152,17 +187,15 @@ export function ActivitiesPreview() {
                   </div>
 
                   <div className="relative z-10 h-full flex flex-col justify-end p-8">
-                    <div
-                      className={`${activity.color} text-white px-4 py-2 rounded-full text-sm font-medium w-fit mb-4`}
-                    >
-                      {activity.type}
+                    <div className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium w-fit mb-4">
+                      {activity.category}
                     </div>
 
                     <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-primary transition-colors">
                       {activity.title}
                     </h3>
 
-                    <p className="text-white/90 mb-6 text-lg">{activity.description}</p>
+                    <p className="text-white/90 mb-6 text-lg line-clamp-3">{activity.description}</p>
 
                     <div className="flex items-center gap-6 text-white/80 mb-6">
                       <div className="flex items-center gap-2">
@@ -179,7 +212,11 @@ export function ActivitiesPreview() {
                       </div>
                     </div>
 
-                    <Button size="lg" className="w-fit animate-pulse-glow">
+                    <Button 
+                      size="lg" 
+                      className="w-fit animate-pulse-glow"
+                      onClick={(e) => handleMoreClick(e, activity)}
+                    >
                       اعرف المزيد
                       <ArrowLeft className="w-5 h-5 mr-2" />
                     </Button>
@@ -254,7 +291,11 @@ export function ActivitiesPreview() {
 
       {/* Call to Action */}
       <div className="text-center mt-20">
-        <Button size="lg" className="text-lg px-8 py-4 rounded-full animate-bounce-gentle">
+        <Button 
+          size="lg" 
+          className="text-lg px-8 py-4 rounded-full animate-bounce-gentle"
+          onClick={() => navigateToActivityPage()}
+        >
           شاهد جميع الأنشطة
           <ArrowLeft className="w-5 h-5 mr-2" />
         </Button>
