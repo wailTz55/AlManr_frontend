@@ -66,6 +66,8 @@ type NewsWithRandomProps = News & {
 export function NewsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
   // حالات البيانات من API
   const [news, setNews] = useState<NewsWithRandomProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -225,7 +227,7 @@ export function NewsPage() {
                 >
                   <div className="relative">
                     <img
-                      src={article.image || "/placeholder.svg"}
+                      src={`${baseURL}${article.image || "/placeholder.svg"}`}
                       alt={article.title}
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
                     />
@@ -282,7 +284,7 @@ export function NewsPage() {
                 >
                   <div className="flex flex-col md:flex-row">
                     <img
-                      src={article.image || "/placeholder.svg"}
+                      src={`${baseURL}${article.image || "/placeholder.svg"}`}
                       alt={article.title}
                       className="w-full md:w-48 h-32 md:h-auto object-cover"
                     />
@@ -376,7 +378,7 @@ export function NewsPage() {
 
               <div className="space-y-6">
                 <img
-                  src={selectedArticle.image || "/placeholder.svg"}
+                  src={`${baseURL}${selectedArticle.image || "/placeholder.svg"}`}
                   alt={selectedArticle.title}
                   className="w-full h-64 object-cover rounded-lg"
                 />

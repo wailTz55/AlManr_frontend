@@ -16,7 +16,7 @@ export function ActivitiesPreview() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
   // جلب البيانات من API عند تحميل الكومبوننت
   useEffect(() => {
     const loadActivities = async () => {
@@ -179,7 +179,7 @@ export function ActivitiesPreview() {
                 >
                   <div className="absolute inset-0">
                     <img
-                      src={activity.images && activity.images[0] ? activity.images[0] : "/placeholder.svg"}
+                      src={activity.images && activity.images[0] ? `${baseURL}${activity.images[0]}` : "/placeholder.svg"}
                       alt={activity.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />

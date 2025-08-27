@@ -1,220 +1,303 @@
 "use client"
 
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, Crown, Star, Award, Filter } from "lucide-react"
+import { Building2, Handshake, Award, Star, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
 
-const members = [
+const partners = [
   {
     id: 1,
-    name: "أحمد محمد العلي",
-    role: "رئيس الجمعية",
-    image: "/young-arab-president.png",
-    bio: "قائد شاب متحمس يسعى لتطوير المجتمع الشبابي",
-    achievements: ["جائزة القيادة الشبابية", "شهادة في إدارة المشاريع"],
-    type: "board",
-    color: "bg-primary",
-    icon: Crown,
+    name: "مؤسسة الأمير محمد بن سلمان",
+    type: "استراتيجي",
+    logo: "/misk-foundation.png",
+    description: "شراكة استراتيجية في برامج تطوير الشباب والقيادة",
+    partnership_since: "2021",
+    projects: ["برنامج القيادة الشبابية", "مبادرة الابتكار الاجتماعي"],
+    category: "government",
+    website: "https://misk.org.sa",
+    color: "from-purple-600 to-blue-600"
   },
   {
     id: 2,
-    name: "فاطمة سالم الزهراني",
-    role: "نائب الرئيس",
-    image: "/young-arab-woman-leader.png",
-    bio: "متخصصة في تنظيم الفعاليات والأنشطة الثقافية",
-    achievements: ["جائزة التميز في التنظيم", "دبلوم في العلاقات العامة"],
-    type: "board",
-    color: "bg-secondary",
-    icon: Star,
+    name: "شركة أرامكو السعودية",
+    type: "ذهبي",
+    logo: "/aramco-logo.png",
+    description: "دعم برامج التدريب التقني والتطوير المهني",
+    partnership_since: "2020",
+    projects: ["برنامج المهارات التقنية", "ورش الطاقة المتجددة"],
+    category: "corporate",
+    website: "https://aramco.com",
+    color: "from-green-600 to-teal-600"
   },
   {
     id: 3,
-    name: "خالد عبدالله الشمري",
-    role: "مسؤول الأنشطة الرياضية",
-    image: "/young-arab-man-sports.png",
-    bio: "مدرب رياضي معتمد ومنظم البطولات الشبابية",
-    achievements: ["شهادة تدريب رياضي", "جائزة أفضل منظم رياضي"],
-    type: "volunteer",
-    color: "bg-accent",
-    icon: Award,
+    name: "جامعة الملك سعود",
+    type: "أكاديمي",
+    logo: "/ksu-logo.png",
+    description: "تعاون في البحث العلمي والبرامج الأكاديمية",
+    partnership_since: "2019",
+    projects: ["برنامج البحث الطلابي", "المؤتمر السنوي للشباب"],
+    category: "academic",
+    website: "https://ksu.edu.sa",
+    color: "from-blue-600 to-indigo-600"
   },
   {
     id: 4,
-    name: "نورا أحمد القحطاني",
-    role: "منسقة الورش التعليمية",
-    image: "/young-arab-teacher.png",
-    bio: "معلمة شابة متخصصة في التطوير المهني",
-    achievements: ["ماجستير في التربية", "جائزة المعلم المبدع"],
-    type: "volunteer",
-    color: "bg-chart-3",
-    icon: Users,
+    name: "بنك الراجحي",
+    type: "فضي",
+    logo: "/rajhi-bank.png",
+    description: "دعم مبادرات ريادة الأعمال والتمويل الشبابي",
+    partnership_since: "2022",
+    projects: ["صندوق دعم المشاريع الشبابية", "برنامج التثقيف المالي"],
+    category: "corporate",
+    website: "https://alrajhibank.com.sa",
+    color: "from-orange-600 to-red-600"
   },
   {
     id: 5,
-    name: "محمد سعد الغامدي",
-    role: "مصمم جرافيك",
-    image: "/young-arab-designer.png",
-    bio: "مصمم مبدع يساهم في الهوية البصرية للجمعية",
-    achievements: ["جائزة التصميم الإبداعي", "شهادة في التصميم الرقمي"],
-    type: "volunteer",
-    color: "bg-chart-4",
-    icon: Star,
+    name: "وزارة الرياضة",
+    type: "حكومي",
+    logo: "/ministry-sports.png",
+    description: "شراكة في تنظيم الفعاليات الرياضية والبطولات",
+    partnership_since: "2021",
+    projects: ["بطولة الشباب السعودي", "برنامج اللياقة المجتمعية"],
+    category: "government",
+    website: "https://mosa.gov.sa",
+    color: "from-teal-600 to-cyan-600"
   },
   {
     id: 6,
-    name: "ريم عبدالرحمن الدوسري",
-    role: "مسؤولة التواصل الاجتماعي",
-    image: "/young-arab-woman-social-media.png",
-    bio: "خبيرة في التسويق الرقمي وإدارة المحتوى",
-    achievements: ["شهادة في التسويق الرقمي", "جائزة أفضل محتوى"],
-    type: "volunteer",
-    color: "bg-chart-5",
-    icon: Users,
-  },
+    name: "شركة سابك",
+    type: "ذهبي",
+    logo: "/sabic-logo.png",
+    description: "دعم مشاريع الاستدامة والابتكار التكنولوجي",
+    partnership_since: "2020",
+    projects: ["مبادرة البيئة النظيفة", "برنامج الابتكار الصناعي"],
+    category: "corporate",
+    website: "https://sabic.com",
+    color: "from-emerald-600 to-green-600"
+  }
 ]
 
-export function MembersSection() {
-  const [filter, setFilter] = useState<"all" | "board" | "volunteer">("all")
-  const [hoveredMember, setHoveredMember] = useState<number | null>(null)
+const categories = [
+  { id: "all", name: "جميع الشركاء", icon: Handshake },
+  { id: "government", name: "حكومي", icon: Building2 },
+  { id: "corporate", name: "شركات", icon: Award },
+  { id: "academic", name: "أكاديمي", icon: Star },
+]
 
-  const filteredMembers = members.filter((member) => filter === "all" || member.type === filter)
+export function PartnersSection() {
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+
+  const filteredPartners = partners.filter(
+    partner => selectedCategory === "all" || partner.category === selectedCategory
+  )
+
+  // Auto-play carousel
+  useEffect(() => {
+    if (!isAutoPlaying) return
+    const interval = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % filteredPartners.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [filteredPartners.length, isAutoPlaying])
+
+  const nextSlide = () => {
+    setCurrentSlide(prev => (prev + 1) % filteredPartners.length)
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide(prev => (prev - 1 + filteredPartners.length) % filteredPartners.length)
+  }
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto px-4 py-16">
+      {/* Header */}
       <div className="text-center mb-16">
-        <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">أعضاء الجمعية</h2>
+        <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
+          <Handshake className="w-5 h-5" />
+          <span className="font-semibold">شركاؤنا في النجاح</span>
+        </div>
+        <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+          شراكات استراتيجية
+          <span className="text-primary"> متميزة</span>
+        </h2>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          تعرف على الفريق المتميز الذي يقود رحلة التطوير والإبداع
+          نفتخر بشراكاتنا مع المؤسسات الرائدة التي تساهم في تحقيق رؤيتنا وأهدافنا
         </p>
-        <div className="w-24 h-1 bg-chart-1 mx-auto mt-6 rounded-full" />
+        <div className="w-24 h-1 bg-gradient-to-r from-primary to-secondary mx-auto mt-6 rounded-full" />
       </div>
 
-      {/* Filter Buttons */}
-      <div className="flex justify-center gap-4 mb-12">
-        <Button
-          variant={filter === "all" ? "default" : "outline"}
-          onClick={() => setFilter("all")}
-          className="rounded-full"
-        >
-          <Filter className="w-4 h-4 ml-2" />
-          جميع الأعضاء
-        </Button>
-        <Button
-          variant={filter === "board" ? "default" : "outline"}
-          onClick={() => setFilter("board")}
-          className="rounded-full"
-        >
-          <Crown className="w-4 h-4 ml-2" />
-          مجلس الإدارة
-        </Button>
-        <Button
-          variant={filter === "volunteer" ? "default" : "outline"}
-          onClick={() => setFilter("volunteer")}
-          className="rounded-full"
-        >
-          <Users className="w-4 h-4 ml-2" />
-          المتطوعون
-        </Button>
-      </div>
-
-      {/* Members Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {filteredMembers.map((member, index) => {
-          const Icon = member.icon
-          const isHovered = hoveredMember === member.id
-
+      {/* Category Filter */}
+      <div className="flex justify-center gap-4 mb-12 flex-wrap">
+        {categories.map((category) => {
+          const Icon = category.icon
           return (
-            <Card
-              key={member.id}
-              className={`relative overflow-hidden transition-all duration-500 cursor-pointer group ${
-                isHovered ? "scale-105 shadow-2xl" : "hover:scale-102 hover:shadow-xl"
-              } animate-fade-in`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-              onMouseEnter={() => setHoveredMember(member.id)}
-              onMouseLeave={() => setHoveredMember(null)}
+            <Button
+              key={category.id}
+              variant={selectedCategory === category.id ? "default" : "outline"}
+              onClick={() => {
+                setSelectedCategory(category.id)
+                setCurrentSlide(0)
+              }}
+              className="rounded-full transition-all duration-300 hover:scale-105"
             >
-              {/* Background Pattern */}
-              <div className="absolute inset-0 opacity-5">
-                <div className="w-full h-full bg-gradient-to-br from-primary to-secondary" />
-              </div>
-
-              <div className="relative p-6 text-center">
-                {/* Member Image */}
-                <div className="relative mb-6">
-                  <div
-                    className={`w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-background shadow-lg transition-transform duration-300 ${
-                      isHovered ? "scale-110" : ""
-                    }`}
-                  >
-                    <img
-                      src={member.image || "/placeholder.svg"}
-                      alt={member.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {/* Role Icon */}
-                  <div
-                    className={`absolute -bottom-2 right-1/2 transform translate-x-1/2 w-10 h-10 ${member.color} rounded-full flex items-center justify-center border-4 border-background shadow-lg`}
-                  >
-                    <Icon className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-
-                {/* Member Info */}
-                <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  {member.name}
-                </h3>
-
-                <Badge variant="secondary" className="mb-4">
-                  {member.role}
-                </Badge>
-
-                <p
-                  className={`text-muted-foreground mb-4 transition-all duration-300 ${
-                    isHovered ? "line-clamp-none" : "line-clamp-2"
-                  }`}
-                >
-                  {member.bio}
-                </p>
-
-                {/* Achievements */}
-                {isHovered && (
-                  <div className="space-y-2 animate-fade-in">
-                    <h4 className="font-semibold text-foreground text-sm">الإنجازات:</h4>
-                    {member.achievements.map((achievement, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs">
-                        {achievement}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Hover Overlay */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent transition-opacity duration-300 ${
-                  isHovered ? "opacity-100" : "opacity-0"
-                }`}
-              />
-            </Card>
+              <Icon className="w-4 h-4 ml-2" />
+              {category.name}
+            </Button>
           )
         })}
       </div>
 
-      {/* Join Team CTA */}
-      <div className="text-center mt-16">
-        <Card className="max-w-2xl mx-auto p-8 bg-gradient-to-r from-primary/5 to-secondary/5">
-          <Users className="w-16 h-16 text-primary mx-auto mb-4 animate-bounce-gentle" />
-          <h3 className="text-2xl font-bold text-foreground mb-4">انضم إلى فريقنا</h3>
-          <p className="text-muted-foreground mb-6">هل تريد أن تكون جزءاً من فريق العمل؟ نحن نبحث عن شباب متحمس ومبدع</p>
-          <Button size="lg" className="rounded-full animate-pulse-glow">
-            تطوع معنا
-            <Users className="w-5 h-5 mr-2" />
-          </Button>
-        </Card>
+      {/* Partners Showcase */}
+      <div className="relative max-w-6xl mx-auto">
+        {/* Main Featured Partner */}
+        <div 
+          className="relative overflow-hidden rounded-3xl mb-8"
+          onMouseEnter={() => setIsAutoPlaying(false)}
+          onMouseLeave={() => setIsAutoPlaying(true)}
+        >
+          {filteredPartners.map((partner, index) => (
+            <div
+              key={partner.id}
+              className={`transition-all duration-700 ${
+                index === currentSlide 
+                  ? "opacity-100 translate-x-0" 
+                  : "opacity-0 translate-x-full absolute inset-0"
+              }`}
+            >
+              <div className={`bg-gradient-to-br ${partner.color} p-1 rounded-3xl`}>
+                <div className="bg-background rounded-3xl p-8 md:p-12">
+                  <div className="grid md:grid-cols-2 gap-8 items-center">
+                    {/* Partner Logo & Info */}
+                    <div className="text-center md:text-right">
+                      <div className="relative mb-6">
+                        <div className="w-32 h-32 mx-auto md:mx-0 bg-white rounded-2xl p-4 shadow-lg">
+                          <img
+                            src={partner.logo || "/placeholder.svg"}
+                            alt={partner.name}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <Badge 
+                          className={`absolute -top-2 -right-2 bg-gradient-to-r ${partner.color} text-white border-0`}
+                        >
+                          {partner.type}
+                        </Badge>
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+                        {partner.name}
+                      </h3>
+                      <p className="text-muted-foreground mb-6 text-lg">
+                        {partner.description}
+                      </p>
+                      <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+                        <div className="text-sm text-muted-foreground">
+                          <span className="font-semibold">شراكة منذ:</span> {partner.partnership_since}
+                        </div>
+                        <Button variant="outline" size="sm" className="rounded-full">
+                          زيارة الموقع
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Projects */}
+                    <div>
+                      <h4 className="text-xl font-bold text-foreground mb-4 flex items-center">
+                        <Award className="w-5 h-5 ml-2 text-primary" />
+                        المشاريع المشتركة
+                      </h4>
+                      <div className="space-y-3">
+                        {partner.projects.map((project, idx) => (
+                          <div 
+                            key={idx}
+                            className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl hover:bg-muted transition-colors"
+                          >
+                            <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${partner.color}`} />
+                            <span className="text-foreground">{project}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Navigation Buttons */}
+          <button
+            onClick={prevSlide}
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-background/90 hover:bg-background p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+          >
+            <ChevronLeft className="w-6 h-6 text-foreground" />
+          </button>
+          <button
+            onClick={nextSlide}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-background/90 hover:bg-background p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+          >
+            <ChevronRight className="w-6 h-6 text-foreground" />
+          </button>
+        </div>
+
+        {/* Dots Indicator */}
+        <div className="flex justify-center gap-2 mb-8">
+          {filteredPartners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                index === currentSlide 
+                  ? "bg-primary scale-125" 
+                  : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Partner Logos Grid */}
+        <div className="bg-muted/30 rounded-2xl p-8">
+          <h4 className="text-xl font-bold text-foreground text-center mb-6">جميع شركائنا</h4>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {partners.map((partner, index) => (
+              <div
+                key={partner.id}
+                className="group relative bg-white rounded-xl p-4 hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1"
+                style={{ animationDelay: `${index * 0.1}s` }}
+                onClick={() => {
+                  const partnerIndex = filteredPartners.findIndex(p => p.id === partner.id)
+                  if (partnerIndex !== -1) setCurrentSlide(partnerIndex)
+                }}
+              >
+                <img
+                  src={partner.logo || "/placeholder.svg"}
+                  alt={partner.name}
+                  className="w-full h-16 object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/0 to-black/0 group-hover:from-black/10 group-hover:to-transparent rounded-xl transition-all duration-300" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Partnership CTA */}
+        <div className="text-center mt-16">
+          <div className="max-w-2xl mx-auto p-8 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl">
+            <Handshake className="w-16 h-16 text-primary mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-foreground mb-4">كن شريكاً لنا</h3>
+            <p className="text-muted-foreground mb-6">
+              انضم إلى شبكة شركائنا المتميزين وساهم في بناء مستقبل أفضل للشباب
+            </p>
+            <Button size="lg" className="rounded-full bg-gradient-to-r from-primary to-secondary hover:scale-105 transition-transform">
+              تواصل للشراكة
+              <Handshake className="w-5 h-5 mr-2" />
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   )

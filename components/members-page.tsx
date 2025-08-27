@@ -23,6 +23,7 @@ import {
   MessageCircle,
   User,
 } from "lucide-react"
+const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // مصفوفات القيم العشوائية للألوان والأيقونات
 const colorOptions = [
@@ -170,7 +171,7 @@ const MemberCard = ({
             }`}
           >
             <img
-              src={member.image || "/placeholder.svg"}
+              src={member.image ? `${baseURL}${member.image}` : "/placeholder.svg"}
               alt={member.name || "عضو"}
               className="w-full h-full object-cover"
             />
@@ -517,7 +518,7 @@ export function MembersPage() {
                 <div className="space-y-4">
                   <div className="relative">
                     <img
-                      src={selectedMember.image || "/placeholder.svg"}
+                      src={selectedMember.image ? `${baseURL}${selectedMember.image}` : "/placeholder.svg"}
                       alt={selectedMember.name || "عضو"}
                       className="w-full aspect-square object-cover rounded-lg"
                     />

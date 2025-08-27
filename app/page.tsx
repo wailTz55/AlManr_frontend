@@ -3,7 +3,7 @@ import { HeroSection } from "@/components/hero-section"
 import { ActivitiesPreview } from "@/components/activities-preview"
 import { NewsSection } from "@/components/news-section"
 import { RegistrationSection } from "@/components/registration-section"
-import { MembersSection } from "@/components/members-section"
+import { PartnersSection } from "@/components/members-section"
 import { ScrollAnimation } from "@/components/scroll-animations"
 
 export default function HomePage() {
@@ -35,7 +35,7 @@ export default function HomePage() {
 
       <ScrollAnimation animation="fade-in" delay={600}>
         <section id="members" className="py-20 bg-muted/30">
-          <MembersSection />
+          <PartnersSection />
         </section>
       </ScrollAnimation>
 

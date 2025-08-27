@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Calendar, MapPin, Users, Camera, Video, Award, Clock, Star, ChevronLeft, ChevronRight, Play, Heart, Bookmark, Share } from "lucide-react"
 
 export function TreasureMapActivities() {
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
   const searchParams = useSearchParams()
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
@@ -221,7 +223,7 @@ export function TreasureMapActivities() {
                   {/* الصورة الرئيسية */}
                   <div className={`relative w-full ${randomHeight} overflow-hidden`}>
                     <img
-                      src={activity.images && activity.images[0] ? activity.images[0] : "/placeholder.svg"}
+                      src={activity.images && activity.images[0] ? `${baseURL}${activity.images[0]}` : "/placeholder.svg"}
                       alt={activity.title}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
@@ -291,7 +293,7 @@ export function TreasureMapActivities() {
                     <img
                       src={
                         selectedActivity.images && selectedActivity.images[currentImageIndex]
-                          ? selectedActivity.images[currentImageIndex]
+                          ? `${baseURL}${selectedActivity.images[currentImageIndex]}`
                           : "/placeholder.svg"
                       }
                       alt={selectedActivity.title}
