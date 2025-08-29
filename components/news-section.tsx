@@ -7,6 +7,7 @@ import { News } from "../app/api/type"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, Clock, ArrowLeft, Bell, Megaphone, Trophy, Users, Star } from "lucide-react"
+import Image from "next/image"
 
 // مصفوفات القيم العشوائية للأيقونات والألوان
 const colorOptions = [
@@ -25,7 +26,17 @@ const bgColorOptions = [
   "bg-chart-4/10"
 ];
 
+const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const iconOptions = [Megaphone, Users, Star, Bell, Trophy];
+
+// صور افتراضية للأخبار
+const defaultImages = [
+  "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop&crop=entropy&auto=format&q=80",
+  "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop&crop=entropy&auto=format&q=80",
+  "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800&h=600&fit=crop&crop=entropy&auto=format&q=80",
+  "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=600&fit=crop&crop=entropy&auto=format&q=80",
+  "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=600&fit=crop&crop=entropy&auto=format&q=80"
+];
 
 // دوال للحصول على قيم عشوائية
 const getRandomColor = () => colorOptions[Math.floor(Math.random() * colorOptions.length)];
@@ -33,11 +44,12 @@ const getRandomBgColor = () => bgColorOptions[Math.floor(Math.random() * bgColor
 const getRandomIcon = () => iconOptions[Math.floor(Math.random() * iconOptions.length)];
 
 // دالة لتوليد خصائص عشوائية للخبر
-const generateRandomProps = (newsItem: News) => ({
+const generateRandomProps = (newsItem: News, index: number) => ({
   ...newsItem,
   randomColor: getRandomColor(),
   randomBgColor: getRandomBgColor(),
-  randomIcon: getRandomIcon()
+  randomIcon: getRandomIcon(),
+  randomImage: newsItem.image || defaultImages[index % defaultImages.length]
 });
 
 // نوع محدث للأخبار مع الخصائص العشوائية
@@ -45,6 +57,7 @@ type NewsWithRandomProps = News & {
   randomColor: string;
   randomBgColor: string;
   randomIcon: React.ComponentType<{ className?: string }>;
+  randomImage: string;
 };
 
 export function NewsSection() {
@@ -66,7 +79,7 @@ export function NewsSection() {
           // أخذ أول 3 أخبار (الأحدث) مع إضافة الخصائص العشوائية
           const latest3News = data.news
             .slice(0, 3)
-            .map(newsItem => generateRandomProps(newsItem))
+            .map((newsItem, index) => generateRandomProps(newsItem, index))
           
           setLatestNews(latest3News)
         } else {
@@ -204,18 +217,31 @@ export function NewsSection() {
 
                 {/* News Card */}
                 <Card
-                  className={`w-80 transition-all duration-500 cursor-pointer hover:shadow-xl ${
+                  className={`w-96 transition-all duration-500 cursor-pointer hover:shadow-xl ${
                     index % 2 === 0 ? "ml-8" : "mr-8"
-                  } ${isExpanded ? "scale-105" : "hover:scale-102"}`}
+                  } ${isExpanded ? "scale-105" : "hover:scale-102"} overflow-hidden`}
                   onClick={() => handleCardClick(item)}
                 >
-                  <div className="p-6">
+                  {/* Image Section */}
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src={item.image ? `${baseURL}${item.image}` : item.randomImage}
+                      alt={item.title}
+                      width={320}
+                      height={192}
+                      className="w-full h-full object-cover"
+                    />
+                    
+                    {/* Category Badge */}
                     <div
-                      className={`inline-block px-3 py-1 ${item.randomBgColor} ${item.randomColor} rounded-full text-sm font-medium mb-3`}
+                      className={`absolute top-3 right-3 px-3 py-1 ${item.randomBgColor} ${item.randomColor} rounded-full text-sm font-medium backdrop-blur-sm`}
                     >
                       {item.category}
                     </div>
+                  </div>
 
+                  {/* Content Section */}
+                  <div className="p-6">
                     <h3 className="text-lg font-bold text-foreground mb-3 hover:text-primary transition-colors">
                       {item.title}
                     </h3>
@@ -232,7 +258,7 @@ export function NewsSection() {
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {item.date ? new Date(item.date).toLocaleDateString("ar-SA") : ""}
+                          {item.date ? new Date(item.date).toLocaleDateString("en-US") : ""}
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
@@ -243,7 +269,7 @@ export function NewsSection() {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="text-primary hover:bg-primary/10"
+                        className="text-primary hover:bg-primary/10 !cursor-pointer"
                         onClick={(e) => handleMoreClick(e, item)}
                       >
                         {isExpanded ? "التفاصيل الكاملة" : "المزيد"}
@@ -263,7 +289,7 @@ export function NewsSection() {
         <Button 
           size="lg" 
           variant="outline" 
-          className="text-lg px-8 py-4 rounded-full bg-transparent"
+          className="text-lg px-8 py-4 rounded-full bg-transparent !cursor-pointer"
           onClick={() => navigateToNewsPage()}
         >
           عرض جميع الأخبار

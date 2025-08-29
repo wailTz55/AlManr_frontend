@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Star, Users, Calendar, Award } from "lucide-react"
+import { useRouter } from "next/navigation";
 
 export function HeroSection() {
+  const router = useRouter();
+
   const [currentSlide, setCurrentSlide] = useState(0)
 
   const slides = [
@@ -70,11 +73,14 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button size="lg" className="text-lg px-8 py-4 rounded-full animate-pulse-glow">
+            <Button size="lg" 
+            className="text-lg px-8 py-4 rounded-full animate-pulse-glow !cursor-pointer"
+            onClick={() => router.push("/register")}
+            >
               انضم الآن
               <ArrowLeft className="w-5 h-5 mr-2" />
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-4 rounded-full bg-transparent">
+            <Button variant="outline" size="lg" className="text-lg px-8 py-4 rounded-full bg-transparent !cursor-pointer">
               اكتشف المزيد
             </Button>
           </div>

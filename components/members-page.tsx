@@ -1,11 +1,13 @@
 "use client"
 import { fetchAllData } from "../app/api/api";
 import { Member } from "../app/api/type";
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { useRouter } from "next/navigation";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   Users,
@@ -253,6 +255,8 @@ const MemberCard = ({
 };
 
 export function MembersPage() {
+  const router = useRouter();
+
   // حالات البيانات من API
   const [members, setMembers] = useState<MemberWithRandomProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -264,6 +268,13 @@ export function MembersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all")
   const [hoveredMember, setHoveredMember] = useState<number | null>(null)
+  const number_normal_members = 9;
+  // إعدادات التمرير اللامتناهي للأعضاء العاديين
+  const [displayedNormalMembers, setDisplayedNormalMembers] = useState(number_normal_members); // البطاقات المعروضة للأعضاء العاديين
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreNormal, setHasMoreNormal] = useState(true);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const NORMAL_MEMBERS_PER_LOAD = number_normal_members; // عدد الأعضاء العاديين في كل تحميل
 
   const departments = ["all", "admin", "normal"]
 
@@ -312,6 +323,53 @@ export function MembersPage() {
   const adminMembers = filteredMembers.filter(member => !isPresident(member) && member.type === 'admin');
   const normalMembers = filteredMembers.filter(member => !isPresident(member) && member.type === 'normal');
 
+  // تحديث حالة "يوجد المزيد" للأعضاء العاديين
+  useEffect(() => {
+    setHasMoreNormal(displayedNormalMembers < normalMembers.length);
+  }, [displayedNormalMembers, normalMembers.length]);
+
+  // التمرير اللامتناهي للأعضاء العاديين
+  useEffect(() => {
+    if (!mounted || !hasMoreNormal || isLoadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreNormalMembers();
+        }
+      },
+      { 
+        threshold: 0.1,
+        rootMargin: '100px'
+      }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [mounted, hasMoreNormal, isLoadingMore, displayedNormalMembers]);
+
+  // دالة تحميل المزيد من الأعضاء العاديين
+  const loadMoreNormalMembers = async () => {
+    if (isLoadingMore || !hasMoreNormal) return;
+    
+    setIsLoadingMore(true);
+    
+    // محاكاة تأخير التحميل
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    const newDisplayedCount = Math.min(displayedNormalMembers + NORMAL_MEMBERS_PER_LOAD, normalMembers.length);
+    setDisplayedNormalMembers(newDisplayedCount);
+    setIsLoadingMore(false);
+  };
+
+  // إعادة تعيين عدد الأعضاء المعروضة عند تغيير الفلتر
+  useEffect(() => {
+    setDisplayedNormalMembers(NORMAL_MEMBERS_PER_LOAD);
+  }, [searchTerm, selectedDepartment]);
+
   // دالة للتعامل مع النقر على العضو
   const handleMemberClick = (member: MemberWithRandomProps) => {
     // فقط الرئيس والأعضاء الإداريين يمكن النقر عليهم
@@ -320,6 +378,9 @@ export function MembersPage() {
     }
     // الأعضاء العاديين لا يحدث شيء عند النقر عليهم
   };
+
+  // الأعضاء العاديين المعروضين حالياً
+  const currentNormalMembers = normalMembers.slice(0, displayedNormalMembers);
 
   if (!mounted) {
     return (
@@ -375,7 +436,7 @@ export function MembersPage() {
             <Button
               variant={selectedDepartment === "all" ? "default" : "outline"}
               onClick={() => setSelectedDepartment("all")}
-              className="rounded-full"
+              className="rounded-full !cursor-pointer"
             >
               <Filter className="w-4 h-4 ml-2" />
               جميع الأعضاء
@@ -383,7 +444,7 @@ export function MembersPage() {
             <Button
               variant={selectedDepartment === "admin" ? "default" : "outline"}
               onClick={() => setSelectedDepartment("admin")}
-              className="rounded-full"
+              className="rounded-full !cursor-pointer"
             >
               <Crown className="w-4 h-4 ml-2" />
               مجلس الإدارة
@@ -391,7 +452,7 @@ export function MembersPage() {
             <Button
               variant={selectedDepartment === "normal" ? "default" : "outline"}
               onClick={() => setSelectedDepartment("normal")}
-              className="rounded-full"
+              className="rounded-full !cursor-pointer"
             >
               <Users className="w-4 h-4 ml-2" />
               المتطوعون
@@ -464,18 +525,24 @@ export function MembersPage() {
         </div>
       )}
 
-      {/* Normal Members Section */}
+      {/* Normal Members Section مع التحميل الذكي */}
       {normalMembers.length > 0 && (
         <div className="mb-16">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center justify-center gap-2">
-              <User className="w-6 h-6 text-secondary" />
-              المتطوعون
-            </h2>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <User className="w-6 h-6 text-secondary" />
+                المتطوعون
+              </h2>
+              <Badge variant="secondary" className="text-sm px-3 py-1">
+                عرض {currentNormalMembers.length} من {normalMembers.length}
+              </Badge>
+            </div>
             <div className="w-24 h-1 bg-secondary mx-auto rounded-full" />
           </div>
+          
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {normalMembers.map((member, index) => (
+            {currentNormalMembers.map((member, index) => (
               <MemberCard
                 key={member.id}
                 member={member}
@@ -489,6 +556,43 @@ export function MembersPage() {
               />
             ))}
           </div>
+
+          {/* مؤشر التحميل للأعضاء العاديين */}
+          {hasMoreNormal && normalMembers.length > 0 && (
+            <div 
+              ref={loadMoreRef} 
+              className="flex justify-center py-12"
+            >
+              {isLoadingMore ? (
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
+                  <span className="text-lg text-muted-foreground">جاري تحميل المزيد من المتطوعين...</span>
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  <div className="animate-pulse">
+                    <div className="w-2 h-2 bg-secondary rounded-full inline-block mx-1"></div>
+                    <div className="w-2 h-2 bg-secondary rounded-full inline-block mx-1 animation-delay-200"></div>
+                    <div className="w-2 h-2 bg-secondary rounded-full inline-block mx-1 animation-delay-400"></div>
+                  </div>
+                  <p className="mt-2">مرر لأسفل لرؤية المزيد من المتطوعين</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* رسالة انتهاء قائمة الأعضاء العاديين */}
+          {!hasMoreNormal && normalMembers.length > NORMAL_MEMBERS_PER_LOAD && (
+            <div className="flex justify-center py-8">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-secondary/20 to-primary/20 rounded-full flex items-center justify-center">
+                  <Users className="w-8 h-8 text-secondary" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">تم عرض جميع المتطوعين</h3>
+                <p className="text-muted-foreground">لقد اطلعت على جميع الـ {normalMembers.length} متطوع!</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -604,8 +708,10 @@ export function MembersPage() {
 
                   {/* Action Buttons */}
                   <div className="flex gap-3 pt-4">
-                    <Button className="flex-1">
-                      <MessageCircle className="w-4 h-4 ml-2" />
+                    <Button className="flex-1" onClick={() => router.push("/contact")}>
+                      <MessageCircle className="w-4 h-4 ml-2" 
+                      
+                      />
                       إرسال رسالة
                     </Button>
                     <Button variant="outline" className="flex-1 bg-transparent">
@@ -621,7 +727,7 @@ export function MembersPage() {
       </Dialog>
 
       {/* Join Team CTA */}
-      <div className="text-center mt-16">
+      {/* <div className="text-center mt-16">
         <Card className="max-w-2xl mx-auto p-8 bg-gradient-to-r from-primary/5 to-secondary/5">
           <Users className="w-16 h-16 text-primary mx-auto mb-4 animate-bounce-gentle" />
           <h3 className="text-2xl font-bold text-foreground mb-4">انضم إلى فريقنا</h3>
@@ -631,7 +737,7 @@ export function MembersPage() {
             <Users className="w-5 h-5 mr-2" />
           </Button>
         </Card>
-      </div>
+      </div> */}
     </div>
   )
 }

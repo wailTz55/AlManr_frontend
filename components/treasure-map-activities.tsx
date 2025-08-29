@@ -2,7 +2,7 @@
 
 import { fetchAllData } from "../app/api/api";
 import { Activity } from "../app/api/type";
-import { useState, useEffect, useLayoutEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,13 @@ export function TreasureMapActivities() {
   const [error, setError] = useState<string | null>(null);
   const [likedActivities, setLikedActivities] = useState<Set<number>>(new Set());
   const [savedActivities, setSavedActivities] = useState<Set<number>>(new Set());
+  const card_number = 20;
+  // إعدادات التمرير اللامتهي
+  const [displayedItems, setDisplayedItems] = useState(card_number); // البطاقات المعروضة حالياً
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const loadMoreRef = useRef<HTMLDivElement>(null); // مرجع لنقطة التحميل
+  const ITEMS_PER_LOAD = card_number; // عدد البطاقات التي تُحمل في كل مرة
 
   // جلب البيانات من API مع معالجة الأخطاء
   useEffect(() => {
@@ -35,6 +42,8 @@ export function TreasureMapActivities() {
         
         if (data && data.activities && Array.isArray(data.activities)) {
           setActivities(data.activities);
+          // تحديث حالة "يوجد المزيد" بناءً على البيانات المحملة
+          setHasMore(data.activities.length > displayedItems);
         } else {
           throw new Error('البيانات المستلمة غير صحيحة');
         }
@@ -65,6 +74,7 @@ export function TreasureMapActivities() {
     }
   }, [searchParams, activities, mounted]);
 
+  // مراقبة العناصر المرئية (للرسوم المتحركة)
   useEffect(() => {
     if (!mounted || activities.length === 0) return;
 
@@ -84,8 +94,49 @@ export function TreasureMapActivities() {
     activityElements.forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
-  }, [mounted, activities]);
+  }, [mounted, activities, displayedItems]); // إضافة displayedItems للتبعيات
 
+  // التمرير اللامتهي - مراقبة نقطة التحميل
+  useEffect(() => {
+    if (!mounted || !hasMore || isLoadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreItems();
+        }
+      },
+      { 
+        threshold: 0.1,
+        rootMargin: '100px' // بدء التحميل قبل 100px من الوصول للنهاية
+      }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [mounted, hasMore, isLoadingMore, displayedItems, activities.length]);
+
+  // دالة تحميل المزيد من البطاقات
+  const loadMoreItems = async () => {
+    if (isLoadingMore || !hasMore) return;
+    
+    setIsLoadingMore(true);
+    
+    // محاكاة تأخير التحميل لتجربة أفضل
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    const newDisplayedItems = Math.min(displayedItems + ITEMS_PER_LOAD, activities.length);
+    setDisplayedItems(newDisplayedItems);
+    
+    // تحديث حالة "يوجد المزيد"
+    setHasMore(newDisplayedItems < activities.length);
+    setIsLoadingMore(false);
+  };
+
+  // باقي الدوال كما هي
   const nextImage = () => {
     if (selectedActivity && selectedActivity.images && selectedActivity.images.length > 0) {
       setCurrentImageIndex((prev) => (prev + 1) % selectedActivity.images.length);
@@ -174,6 +225,9 @@ export function TreasureMapActivities() {
     );
   }
 
+  // البطاقات المعروضة حالياً
+  const currentActivities = activities.slice(0, displayedItems);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-slate-900">
       {/* Header */}
@@ -192,12 +246,15 @@ export function TreasureMapActivities() {
             <Badge variant="outline" className="text-sm px-3 py-1">
               {activities.filter((a) => a.status === "قادم").length} أنشطة قادمة
             </Badge>
+            <Badge variant="default" className="text-sm px-3 py-1">
+              عرض {displayedItems} من {activities.length}
+            </Badge>
           </div>
         </div>
 
         {/* Pinterest-style Masonry Grid */}
         <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
-          {activities.map((activity, index) => {
+          {currentActivities.map((activity, index) => {
             // تحديد أطوال مختلفة للبطاقات مثل Pinterest
             const heights = [
               'h-64', 'h-80', 'h-96', 'h-72', 'h-60', 'h-88'
@@ -212,10 +269,10 @@ export function TreasureMapActivities() {
                   visibleActivities.has(activity.id)
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-8"
-                }`}
+                } `}
               >
                 <Card
-                  className={`relative overflow-hidden cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl group rounded-2xl ${
+                  className={`relative overflow-hidden cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl group rounded-2xl !pb-0 ${
                     activity.status === "قادم" ? "opacity-80" : ""
                   }`}
                   onClick={() => handleActivityCardClick(activity)}
@@ -226,10 +283,16 @@ export function TreasureMapActivities() {
                       src={activity.images && activity.images[0] ? `${baseURL}${activity.images[0]}` : "/placeholder.svg"}
                       alt={activity.title}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      loading={index < card_number ? "eager" : "lazy"} // تحسين الأداء
                     />
                     
                     {/* طبقة التمويه عند التمرير */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+                      <Button size="lg" className="animate-bounce-gentle text-lg px-6 py-3 !cursor-pointer">
+                        اكتشف الكنز
+                      </Button>
+                    </div>
                     
                     {/* شارة الحالة */}
                     <Badge
@@ -274,9 +337,46 @@ export function TreasureMapActivities() {
             );
           })}
         </div>
+
+        {/* مؤشر التحميل للتمرير اللامتهي */}
+        {hasMore && (
+          <div 
+            ref={loadMoreRef} 
+            className="flex justify-center py-12"
+          >
+            {isLoadingMore ? (
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="text-lg text-muted-foreground">جاري تحميل المزيد من الأنشطة...</span>
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground">
+                <div className="animate-pulse">
+                  <div className="w-2 h-2 bg-primary rounded-full inline-block mx-1"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full inline-block mx-1 animation-delay-200"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full inline-block mx-1 animation-delay-400"></div>
+                </div>
+                <p className="mt-2">مرر لأسفل لرؤية المزيد</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* رسالة انتهاء القائمة */}
+        {!hasMore && activities.length > ITEMS_PER_LOAD && (
+          <div className="flex justify-center py-8">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full flex items-center justify-center">
+                <Award className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2">تم عرض جميع الأنشطة</h3>
+              <p className="text-muted-foreground">لقد استكشفت جميع الـ {activities.length} نشاطاً المتاحين!</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Activity Detail Modal */}
+      {/* Activity Detail Modal - نفس الكود السابق */}
       <Dialog open={!!selectedActivity} onOpenChange={handleCloseDialog}>
         <DialogContent className="w-[95vw] sm:max-w-[95vw] md:max-w-[85vw] lg:max-w-[75vw] xl:max-w-[1200px] max-h-[95vh] overflow-y-auto overflow-x-hidden">
           {selectedActivity && (

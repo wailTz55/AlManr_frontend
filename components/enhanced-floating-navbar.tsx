@@ -170,7 +170,7 @@ export function EnhancedFloatingNavbar() {
               variant="ghost"
               size="sm"
               onMouseDown={handleDragStart}
-              className="cursor-grab hover:cursor-grab active:cursor-grabbing p-2"
+              className="cursor-grab hover:cursor-grab active:cursor-grabbing p-2 "
               title="اسحب لتحريك الشريط"
             >
               <Move className="w-4 h-4 text-muted-foreground" />
@@ -185,7 +185,7 @@ export function EnhancedFloatingNavbar() {
                   variant={isActive ? "default" : "ghost"}
                   size="sm"
                   onClick={() => scrollToSection(item.id, item.href)}
-                  className={`relative rounded-full transition-all duration-300 hover-lift ${
+                  className={`relative rounded-full transition-all duration-300 hover-lift !cursor-pointer ${
                     isActive
                       ? "bg-primary text-primary-foreground animate-pulse-glow"
                       : "hover:bg-accent hover:text-accent-foreground"
@@ -220,7 +220,7 @@ export function EnhancedFloatingNavbar() {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="absolute top-16 right-0 bg-card/95 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-2xl animate-scale-in min-w-48">
-            <div className="space-y-2">
+            <div className="space-y-2 ">
               {navItems.map((item, index) => {
                 const Icon = item.icon
                 const isActive = activeSection === item.id
@@ -230,7 +230,7 @@ export function EnhancedFloatingNavbar() {
                     variant={isActive ? "default" : "ghost"}
                     size="sm"
                     onClick={() => scrollToSection(item.id, item.href)}
-                    className={`w-full justify-start rounded-xl transition-all duration-300 ${
+                    className={`w-full justify-start rounded-xl transition-all duration-300  ${
                       isActive ? "animate-pulse-glow" : ""
                     }`}
                     style={{

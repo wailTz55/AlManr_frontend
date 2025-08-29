@@ -5,8 +5,11 @@ import type React from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Target, Eye, Heart, Users, Award, Lightbulb, Play } from "lucide-react"
+import { useRouter } from "next/navigation";
 
 export function RegistrationSection() {
+  const router = useRouter();
+
   const features = [
     {
       icon: Target,
@@ -116,7 +119,7 @@ export function RegistrationSection() {
             <h3 className="text-3xl font-bold text-foreground">نبذة عن جمعية المنار</h3>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
-                تأسست جمعية المنار للشباب في عام 2015 بهدف خلق بيئة محفزة للشباب لتطوير قدراتهم 
+                تأسست جمعية المنار للشباب في عام 2023 بهدف خلق بيئة محفزة للشباب لتطوير قدراتهم 
                 وإمكانياتهم في شتى المجالات. نؤمن بأن الشباب هم عماد المستقبل وقادة التغيير.
               </p>
               <p>
@@ -129,10 +132,12 @@ export function RegistrationSection() {
             </div>
             
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button className="bg-primary hover:bg-primary/90 !cursor-pointer"
+              onClick={() => router.push("/register")}
+              >
                 انضم إلينا الآن
               </Button>
-              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white !cursor-pointer">
                 تعرف أكثر
               </Button>
             </div>

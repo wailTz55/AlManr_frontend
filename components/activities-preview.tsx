@@ -214,7 +214,7 @@ export function ActivitiesPreview() {
 
                     <Button 
                       size="lg" 
-                      className="w-fit animate-pulse-glow"
+                      className="w-fit animate-pulse-glow !cursor-pointer"
                       onClick={(e) => handleMoreClick(e, activity)}
                     >
                       اعرف المزيد
@@ -245,9 +245,9 @@ export function ActivitiesPreview() {
             variant="ghost"
             size="lg"
             onClick={prevSlide}
-            className="bg-black/50 text-white hover:bg-black/70 rounded-full p-3"
+            className="bg-black/50 text-white hover:bg-black/70 rounded-full p-3 !cursor-pointer"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </Button>
         </div>
 
@@ -258,9 +258,9 @@ export function ActivitiesPreview() {
             variant="ghost"
             size="lg"
             onClick={nextSlide}
-            className="bg-black/50 text-white hover:bg-black/70 rounded-full p-3"
+            className="bg-black/50 text-white hover:bg-black/70 rounded-full p-3 !cursor-pointer"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronRight className="w-6 h-6" />
           </Button>
         </div>
 
@@ -277,12 +277,12 @@ export function ActivitiesPreview() {
           ))}
         </div>
 
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-6 ">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            className={`transition-all duration-300 ${isAutoPlaying ? "bg-primary text-primary-foreground" : ""}`}
+            className={`transition-all duration-300 ${isAutoPlaying ? "bg-primary text-primary-foreground !cursor-pointer" : ""}`}
           >
             {isAutoPlaying ? "إيقاف التشغيل التلقائي" : "تشغيل تلقائي"}
           </Button>
@@ -290,10 +290,10 @@ export function ActivitiesPreview() {
       </div>
 
       {/* Call to Action */}
-      <div className="text-center mt-20">
+      <div className="text-center mt-20 ">
         <Button 
           size="lg" 
-          className="text-lg px-8 py-4 rounded-full animate-bounce-gentle"
+          className="text-lg px-8 py-4 rounded-full animate-bounce-gentle !cursor-pointer"
           onClick={() => navigateToActivityPage()}
         >
           شاهد جميع الأنشطة

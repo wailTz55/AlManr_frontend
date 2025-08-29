@@ -341,7 +341,7 @@ export function ContactPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card className="animate-slide-up hover-lift">
+            <Card className="animate-slide-up hover-lift pt-6">
               <CardHeader>
                 <CardTitle className="text-2xl text-right">أرسل لنا رسالة</CardTitle>
                 <CardDescription className="text-right">
@@ -544,7 +544,7 @@ export function ContactPage() {
           {/* Contact Information */}
           <div className="space-y-6">
             {/* Contact Details */}
-            <Card className="animate-slide-up hover-lift" style={{ animationDelay: "0.2s" }}>
+            <Card className="animate-slide-up hover-lift pt-6" style={{ animationDelay: "0.2s" }}>
               <CardHeader>
                 <CardTitle className="text-xl text-right">معلومات التواصل</CardTitle>
               </CardHeader>
@@ -577,7 +577,7 @@ export function ContactPage() {
             </Card>
 
             {/* Departments */}
-            <Card className="animate-slide-up hover-lift" style={{ animationDelay: "0.4s" }}>
+            <Card className="animate-slide-up hover-lift pt-6" style={{ animationDelay: "0.4s" }}>
               <CardHeader>
                 <CardTitle className="text-xl text-right">الأقسام</CardTitle>
               </CardHeader>
@@ -604,7 +604,7 @@ export function ContactPage() {
             </Card>
 
             {/* Social Media */}
-            <Card className="animate-slide-up hover-lift" style={{ animationDelay: "0.6s" }}>
+            <Card className="animate-slide-up hover-lift pt-6" style={{ animationDelay: "0.6s" }}>
               <CardHeader>
                 <CardTitle className="text-xl text-right">تابعنا على</CardTitle>
               </CardHeader>
@@ -617,7 +617,7 @@ export function ContactPage() {
                         key={index}
                         variant="outline"
                         size="sm"
-                        className="justify-start hover-lift animate-fade-in bg-transparent"
+                        className="justify-start hover-lift animate-fade-in bg-transparent !cursor-pointer"
                         style={{ animationDelay: `${0.7 + index * 0.1}s` }}
                       >
                         <Icon className={`w-4 h-4 ml-2 ${social.color}`} />

@@ -363,9 +363,9 @@ export function RegistrationPage() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8 ">
           {/* Registration Form */}
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-lg transition-shadow pt-6">
             <CardHeader>
               <CardTitle className="text-2xl text-right">نموذج التسجيل</CardTitle>
               <CardDescription className="text-right">
@@ -676,7 +676,7 @@ export function RegistrationPage() {
             </Card>
 
             {/* Success Stories */}
-            <Card className="hover:shadow-lg transition-shadow ">
+            <Card className="hover:shadow-lg transition-shadow pt-6">
               <CardHeader>
                 <CardTitle className="text-2xl text-right">قصص نجاح</CardTitle>
               </CardHeader>

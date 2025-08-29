@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Building2, Handshake, Award, Star, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
+import { useRouter } from "next/navigation";
 
 const partners = [
   {
@@ -88,6 +89,7 @@ const categories = [
 ]
 
 export function PartnersSection() {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
@@ -143,7 +145,7 @@ export function PartnersSection() {
                 setSelectedCategory(category.id)
                 setCurrentSlide(0)
               }}
-              className="rounded-full transition-all duration-300 hover:scale-105"
+              className="rounded-full transition-all duration-300 hover:scale-105 !cursor-pointer"
             >
               <Icon className="w-4 h-4 ml-2" />
               {category.name}
@@ -232,13 +234,13 @@ export function PartnersSection() {
           {/* Navigation Buttons */}
           <button
             onClick={prevSlide}
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-background/90 hover:bg-background p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-background/90 hover:bg-background p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 !cursor-pointer"
           >
             <ChevronLeft className="w-6 h-6 text-foreground" />
           </button>
           <button
             onClick={nextSlide}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-background/90 hover:bg-background p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-background/90 hover:bg-background p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 !cursor-pointer"
           >
             <ChevronRight className="w-6 h-6 text-foreground" />
           </button>
@@ -292,7 +294,10 @@ export function PartnersSection() {
             <p className="text-muted-foreground mb-6">
               انضم إلى شبكة شركائنا المتميزين وساهم في بناء مستقبل أفضل للشباب
             </p>
-            <Button size="lg" className="rounded-full bg-gradient-to-r from-primary to-secondary hover:scale-105 transition-transform">
+            <Button size="lg" 
+            className="rounded-full bg-gradient-to-r from-primary to-secondary hover:scale-105 transition-transform !cursor-pointer"
+            onClick={() => router.push("/contact")}
+            >
               تواصل للشراكة
               <Handshake className="w-5 h-5 mr-2" />
             </Button>
