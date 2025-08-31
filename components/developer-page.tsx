@@ -48,7 +48,7 @@ export function DeveloperPage() {
           <div className="relative inline-block mb-8">
             <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-primary shadow-2xl hover-lift">
               <img
-                src="/developer-avatar.png"
+                src="/277912365_645761856522174_7895635452227310020_n (2).jpg"
                 alt="المطور"
                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
               />

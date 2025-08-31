@@ -9,76 +9,40 @@ import { useRouter } from "next/navigation";
 const partners = [
   {
     id: 1,
-    name: "مؤسسة الأمير محمد بن سلمان",
-    type: "استراتيجي",
-    logo: "/misk-foundation.png",
-    description: "شراكة استراتيجية في برامج تطوير الشباب والقيادة",
-    partnership_since: "2021",
-    projects: ["برنامج القيادة الشبابية", "مبادرة الابتكار الاجتماعي"],
-    category: "government",
-    website: "https://misk.org.sa",
-    color: "from-purple-600 to-blue-600"
-  },
-  {
-    id: 2,
-    name: "شركة أرامكو السعودية",
+    name: "زياد وائل طارق",
     type: "ذهبي",
     logo: "/aramco-logo.png",
-    description: "دعم برامج التدريب التقني والتطوير المهني",
-    partnership_since: "2020",
-    projects: ["برنامج المهارات التقنية", "ورش الطاقة المتجددة"],
+    description: "برمجة الموقع و تصميم كامل الهوية البصرية للجمعية",
+    partnership_since: "2025",
+    projects: ["تصميم الهوية البصرية", "برمجة الموقع"],
     category: "corporate",
-    website: "https://aramco.com",
+    website: "#",
     color: "from-green-600 to-teal-600"
   },
   {
+    id: 2,
+    name: "وزارة الشباب و الرياضة",
+    type: "استراتيجي",
+    logo: "/وزرة الشباب.jpg",
+    description: "شراكة استراتيجية في برامج تطوير الشباب والقيادة",
+    partnership_since: "2023",
+    projects: ["البرامج الشبابية", "رخصة الجمعية و التمويل"],
+    category: "government",
+    website: "https://www.facebook.com/ministryofyouthalgeria",
+    color: "from-purple-600 to-blue-600"
+  },
+  {
     id: 3,
-    name: "جامعة الملك سعود",
+    name: "مركز التكوين المهني سعو زروق عين الكبيرة",
     type: "أكاديمي",
-    logo: "/ksu-logo.png",
-    description: "تعاون في البحث العلمي والبرامج الأكاديمية",
-    partnership_since: "2019",
-    projects: ["برنامج البحث الطلابي", "المؤتمر السنوي للشباب"],
+    logo: "/مركز التكوين.jpg",
+    description: "تعاون في التدريب المهني والبرامج الأكاديمية",
+    partnership_since: "2024",
+    projects: [ "مبادرة التدريب المهني"],
     category: "academic",
-    website: "https://ksu.edu.sa",
+    website: "https://www.facebook.com/CFPAAinElkebiraSETIF",
     color: "from-blue-600 to-indigo-600"
   },
-  {
-    id: 4,
-    name: "بنك الراجحي",
-    type: "فضي",
-    logo: "/rajhi-bank.png",
-    description: "دعم مبادرات ريادة الأعمال والتمويل الشبابي",
-    partnership_since: "2022",
-    projects: ["صندوق دعم المشاريع الشبابية", "برنامج التثقيف المالي"],
-    category: "corporate",
-    website: "https://alrajhibank.com.sa",
-    color: "from-orange-600 to-red-600"
-  },
-  {
-    id: 5,
-    name: "وزارة الرياضة",
-    type: "حكومي",
-    logo: "/ministry-sports.png",
-    description: "شراكة في تنظيم الفعاليات الرياضية والبطولات",
-    partnership_since: "2021",
-    projects: ["بطولة الشباب السعودي", "برنامج اللياقة المجتمعية"],
-    category: "government",
-    website: "https://mosa.gov.sa",
-    color: "from-teal-600 to-cyan-600"
-  },
-  {
-    id: 6,
-    name: "شركة سابك",
-    type: "ذهبي",
-    logo: "/sabic-logo.png",
-    description: "دعم مشاريع الاستدامة والابتكار التكنولوجي",
-    partnership_since: "2020",
-    projects: ["مبادرة البيئة النظيفة", "برنامج الابتكار الصناعي"],
-    category: "corporate",
-    website: "https://sabic.com",
-    color: "from-emerald-600 to-green-600"
-  }
 ]
 
 const categories = [
@@ -200,7 +164,11 @@ export function PartnersSection() {
                         <div className="text-sm text-muted-foreground">
                           <span className="font-semibold">شراكة منذ:</span> {partner.partnership_since}
                         </div>
-                        <Button variant="outline" size="sm" className="rounded-full">
+                        <Button variant="outline" 
+                        size="sm"
+                        className="rounded-full !cursor-pointer"
+                        onClick={() => window.open(`${partner.website}`, "_blank")}
+                        >
                           زيارة الموقع
                           <ExternalLink className="w-4 h-4 mr-2" />
                         </Button>

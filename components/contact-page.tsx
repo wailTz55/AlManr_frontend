@@ -289,25 +289,25 @@ export function ContactPage() {
     {
       icon: Phone,
       title: "الهاتف",
-      details: ["+966 11 123 4567", "+966 50 987 6543"],
+      details: ["+213 676 99 23 13"],
       color: "text-green-500",
     },
     {
       icon: Mail,
       title: "البريد الإلكتروني",
-      details: ["info@almanar-youth.org", "contact@almanar-youth.org"],
+      details: ["asso.almanar2024@gmail.com"],
       color: "text-blue-500",
     },
     {
       icon: MapPin,
       title: "العنوان",
-      details: ["شارع الملك فهد، الرياض", "المملكة العربية السعودية"],
+      details: ["حي 300 مسكن عين الكبيرة", "سطيف - عين الكبيرة"],
       color: "text-red-500",
     },
     {
       icon: Clock,
       title: "ساعات العمل",
-      details: ["الأحد - الخميس: 9:00 ص - 6:00 م", "الجمعة - السبت: مغلق"],
+      details: ["-"],
       color: "text-amber-500",
     },
   ]
@@ -319,7 +319,7 @@ export function ContactPage() {
   ]
 
   const socialLinks = [
-    { name: "Facebook", icon: Facebook, url: "#", color: "text-blue-600" },
+    { name: "Facebook", icon: Facebook, url: "https://www.facebook.com/profile.php?id=61554488265556", color: "text-blue-600" },
     { name: "Twitter", icon: Twitter, url: "#", color: "text-sky-500" },
     { name: "Instagram", icon: Instagram, url: "#", color: "text-pink-500" },
     { name: "LinkedIn", icon: Linkedin, url: "#", color: "text-blue-700" },
@@ -577,7 +577,7 @@ export function ContactPage() {
             </Card>
 
             {/* Departments */}
-            <Card className="animate-slide-up hover-lift pt-6" style={{ animationDelay: "0.4s" }}>
+            {/* <Card className="animate-slide-up hover-lift pt-6" style={{ animationDelay: "0.4s" }}>
               <CardHeader>
                 <CardTitle className="text-xl text-right">الأقسام</CardTitle>
               </CardHeader>
@@ -601,7 +601,7 @@ export function ContactPage() {
                   })}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Social Media */}
             <Card className="animate-slide-up hover-lift pt-6" style={{ animationDelay: "0.6s" }}>
@@ -619,6 +619,7 @@ export function ContactPage() {
                         size="sm"
                         className="justify-start hover-lift animate-fade-in bg-transparent !cursor-pointer"
                         style={{ animationDelay: `${0.7 + index * 0.1}s` }}
+                        onClick={() => window.open(social.url, "_blank")}
                       >
                         <Icon className={`w-4 h-4 ml-2 ${social.color}`} />
                         <span className="text-sm">{social.name}</span>

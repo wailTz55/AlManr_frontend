@@ -1,11 +1,9 @@
----------Problem Fixed
-problem one:
---- in dilog element in treasur-map-activities.tsx the element no chow all element becase have maximem width
---- the solition
-before:<DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
-after:<DialogContent className="w-[95vw] sm:max-w-[95vw] md:max-w-[85vw] lg:max-w-[75vw] xl:max-w-[1200px] max-h-[95vh] overflow-y-auto overflow-x-hidden">
-----------------------------:
-problem two:
----
----------Problem not Fixed
-
+next update V2-----------------------:
+1-Make the partnership section linked to Janghua and have a database
+2-Make the number of event and Members and prizes linked to django like this:
+    -the member : take length of normal members the member table and send him with api
+    -the event: take length of event from the event table and send him to api
+    -prizes ?????
+3-add new pages like :
+    -manage the compition of football or any sport
+4- add the like , partage and number of wath in news

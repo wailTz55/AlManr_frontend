@@ -170,19 +170,19 @@ export function RegistrationSection() {
         <div className="mt-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
-              <h4 className="text-3xl font-bold text-primary mb-2">500+</h4>
+              <h4 className="text-3xl font-bold text-primary mb-2">45+</h4>
               <p className="text-muted-foreground">عضو نشط</p>
             </div>
             <div>
-              <h4 className="text-3xl font-bold text-secondary mb-2">100+</h4>
+              <h4 className="text-3xl font-bold text-secondary mb-2">60+</h4>
               <p className="text-muted-foreground">فعالية منجزة</p>
             </div>
             <div>
-              <h4 className="text-3xl font-bold text-accent mb-2">50+</h4>
+              <h4 className="text-3xl font-bold text-accent mb-2">11+</h4>
               <p className="text-muted-foreground">برنامج تدريبي</p>
             </div>
             <div>
-              <h4 className="text-3xl font-bold text-primary mb-2">9</h4>
+              <h4 className="text-3xl font-bold text-primary mb-2">2</h4>
               <p className="text-muted-foreground">سنوات من العطاء</p>
             </div>
           </div>

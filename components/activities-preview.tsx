@@ -17,6 +17,7 @@ export function ActivitiesPreview() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  
   // جلب البيانات من API عند تحميل الكومبوننت
   useEffect(() => {
     const loadActivities = async () => {
@@ -166,80 +167,81 @@ export function ActivitiesPreview() {
         onMouseLeave={() => setShowControls(false)}
       >
         {/* Main Slider Container */}
-        <div className="relative overflow-hidden rounded-2xl">
-          <div
-            className="flex transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateX(${currentSlide * -100}%)` }}
-          >
-            {activities.map((activity, index) => (
-              <div key={activity.id} className="w-full flex-shrink-0">
-                <Card 
-                  className="relative overflow-hidden h-96 group cursor-pointer"
-                  onClick={() => handleCardClick(activity)}
-                >
-                  <div className="absolute inset-0">
-                    <img
-                      src={activity.images && activity.images[0] ? `${baseURL}${activity.images[0]}` : "/placeholder.svg"}
-                      alt={activity.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="relative w-full h-96 overflow-hidden rounded-2xl">
+          {activities.map((activity, index) => (
+            <div 
+              key={activity.id}
+              className={`absolute top-0 left-0 w-full h-full transition-transform duration-700 ease-in-out ${
+                index === currentSlide ? 'translate-x-0' : 
+                index < currentSlide ? '-translate-x-full' : 'translate-x-full'
+              }`}
+            >
+              <Card 
+                className="relative overflow-hidden h-full group cursor-pointer w-full"
+                onClick={() => handleCardClick(activity)}
+              >
+                <div className="absolute inset-0">
+                  <img
+                    src={activity.images && activity.images[0] ? `${baseURL}${activity.images[0]}` : "/placeholder.svg"}
+                    alt={activity.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                </div>
+
+                <div className="relative z-10 h-full flex flex-col justify-end p-8">
+                  <div className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium w-fit mb-4">
+                    {activity.category}
                   </div>
 
-                  <div className="relative z-10 h-full flex flex-col justify-end p-8">
-                    <div className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium w-fit mb-4">
-                      {activity.category}
+                  <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-primary transition-colors">
+                    {activity.title}
+                  </h3>
+
+                  <p className="text-white/90 mb-6 text-lg line-clamp-3">{activity.description}</p>
+
+                  <div className="flex items-center gap-6 text-white/80 mb-6">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5" />
+                      {activity.date}
                     </div>
-
-                    <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-primary transition-colors">
-                      {activity.title}
-                    </h3>
-
-                    <p className="text-white/90 mb-6 text-lg line-clamp-3">{activity.description}</p>
-
-                    <div className="flex items-center gap-6 text-white/80 mb-6">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5" />
-                        {activity.date}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-5 h-5" />
-                        {activity.location}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="w-5 h-5" />
-                        {activity.participants}
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-5 h-5" />
+                      {activity.location}
                     </div>
-
-                    <Button 
-                      size="lg" 
-                      className="w-fit animate-pulse-glow !cursor-pointer"
-                      onClick={(e) => handleMoreClick(e, activity)}
-                    >
-                      اعرف المزيد
-                      <ArrowLeft className="w-5 h-5 mr-2" />
-                    </Button>
-                  </div>
-
-                  {/* Floating Icons */}
-                  <div className="absolute top-6 left-6 flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-                      <Camera className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-                      <Video className="w-5 h-5 text-white" />
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5" />
+                      {activity.participants}
                     </div>
                   </div>
-                </Card>
-              </div>
-            ))}
-          </div>
+
+                  <Button 
+                    size="lg" 
+                    className="w-fit animate-pulse-glow !cursor-pointer"
+                    onClick={(e) => handleMoreClick(e, activity)}
+                  >
+                    اعرف المزيد
+                    <ArrowLeft className="w-5 h-5 mr-2" />
+                  </Button>
+                </div>
+
+                {/* Floating Icons */}
+                <div className="absolute top-6 left-6 flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                    <Camera className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                    <Video className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </Card>
+            </div>
+          ))}
         </div>
 
         {/* Navigation Controls */}
         <div
-          className={`absolute inset-y-0 left-4 flex items-center transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-y-0 left-4 flex items-center transition-opacity duration-300 z-20 ${showControls ? "opacity-100" : "opacity-0"}`}
         >
           <Button
             variant="ghost"
@@ -252,7 +254,7 @@ export function ActivitiesPreview() {
         </div>
 
         <div
-          className={`absolute inset-y-0 right-4 flex items-center transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-y-0 right-4 flex items-center transition-opacity duration-300 z-20 ${showControls ? "opacity-100" : "opacity-0"}`}
         >
           <Button
             variant="ghost"

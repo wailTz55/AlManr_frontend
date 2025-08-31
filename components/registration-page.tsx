@@ -690,7 +690,7 @@ export function RegistrationPage() {
                     <p className="text-right text-sm text-muted-foreground">
                       "انضمامي لجمعية المنار غير حياتي تماماً. تعلمت مهارات جديدة وكونت صداقات رائعة."
                     </p>
-                    <p className="text-right font-medium mt-2">- أحمد محمد</p>
+                    <p className="text-right font-medium mt-2">-  محمد</p>
                   </div>
                   <div className="p-4 bg-gradient-to-r from-secondary/5 to-accent/5 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
@@ -700,7 +700,7 @@ export function RegistrationPage() {
                     <p className="text-right text-sm text-muted-foreground">
                       "الأنشطة والورش التدريبية ساعدتني في تطوير مهاراتي القيادية بشكل كبير."
                     </p>
-                    <p className="text-right font-medium mt-2">- فاطمة علي</p>
+                    <p className="text-right font-medium mt-2">- فاطمة </p>
                   </div>
                 </div>
               </CardContent>
