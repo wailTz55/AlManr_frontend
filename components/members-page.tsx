@@ -534,9 +534,9 @@ export function MembersPage() {
                 <User className="w-6 h-6 text-secondary" />
                 المتطوعون
               </h2>
-              <Badge variant="secondary" className="text-sm px-3 py-1">
+              {/* <Badge variant="secondary" className="text-sm px-3 py-1">
                 عرض {currentNormalMembers.length} من {normalMembers.length}
-              </Badge>
+              </Badge> */}
             </div>
             <div className="w-24 h-1 bg-secondary mx-auto rounded-full" />
           </div>

@@ -1,3 +1,4 @@
+"use client";
 import { NewsPage } from "@/components/news-page"
 import { EnhancedFloatingNavbar } from "@/components/enhanced-floating-navbar"
 

@@ -1,3 +1,4 @@
+"use client";
 import { TreasureMapActivities } from "@/components/treasure-map-activities"
 import { EnhancedFloatingNavbar } from "@/components/enhanced-floating-navbar"
 
