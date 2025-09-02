@@ -41,6 +41,7 @@ export function RegistrationPage() {
   const [successMessage, setSuccessMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   // Check if all required fields are filled
   const isFormValid = useMemo(() => {
@@ -263,7 +264,7 @@ export function RegistrationPage() {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/registration/", {
+      const response = await fetch(`${baseURL}/api/registration/`, {
         method: "POST",
         body: formDataToSend,
       })

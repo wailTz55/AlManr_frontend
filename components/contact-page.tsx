@@ -49,6 +49,7 @@ export function ContactPage() {
   const [successMessage, setSuccessMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
+  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   // Check if all required fields are filled (email is optional)
   const isFormValid = useMemo(() => {
@@ -208,7 +209,7 @@ export function ContactPage() {
     formDataToSend.append("contactReason", formData.contactReason)
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/contact/", {
+      const response = await fetch(`${baseURL}/api/contact/`, {
         method: "POST",
         body: formDataToSend,
       })
