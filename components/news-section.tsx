@@ -211,7 +211,7 @@ export function NewsSection() {
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 {/* Timeline Node */}
-                <div className="absolute right-1/2 transform translate-x-1/2 w-8 h-8 bg-background border-4 border-primary rounded-full flex items-center justify-center z-10">
+                <div className="hidden sm:flex absolute right-1/2 transform translate-x-1/2 w-8 h-8 bg-background border-4 border-primary rounded-full items-center justify-center z-10">
                   <Icon className="w-4 h-4 text-primary" />
                 </div>
 

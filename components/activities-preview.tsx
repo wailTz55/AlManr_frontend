@@ -198,7 +198,7 @@ export function ActivitiesPreview() {
                     {activity.title}
                   </h3>
 
-                  <p className="text-white/90 mb-6 text-lg line-clamp-3">{activity.description}</p>
+                  <p className="hidden sm:block text-white/90 mb-6 text-lg line-clamp-3">{activity.description}</p>
 
                   <div className="flex items-center gap-6 text-white/80 mb-6">
                     <div className="flex items-center gap-2">

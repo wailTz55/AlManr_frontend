@@ -264,7 +264,7 @@ export function RegistrationPage() {
     }
 
     try {
-      const response = await fetch(`${baseURL}/api/registration/`, {
+      const response = await fetch(`${baseURL}api/registration/`, {
         method: "POST",
         body: formDataToSend,
       })

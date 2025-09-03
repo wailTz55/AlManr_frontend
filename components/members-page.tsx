@@ -432,32 +432,32 @@ export function MembersPage() {
               className="pr-10 text-right"
             />
           </div>
-          <div className="flex justify-center gap-4">
-            <Button
-              variant={selectedDepartment === "all" ? "default" : "outline"}
-              onClick={() => setSelectedDepartment("all")}
-              className="rounded-full !cursor-pointer"
-            >
-              <Filter className="w-4 h-4 ml-2" />
-              جميع الأعضاء
-            </Button>
-            <Button
-              variant={selectedDepartment === "admin" ? "default" : "outline"}
-              onClick={() => setSelectedDepartment("admin")}
-              className="rounded-full !cursor-pointer"
-            >
-              <Crown className="w-4 h-4 ml-2" />
-              مجلس الإدارة
-            </Button>
-            <Button
-              variant={selectedDepartment === "normal" ? "default" : "outline"}
-              onClick={() => setSelectedDepartment("normal")}
-              className="rounded-full !cursor-pointer"
-            >
-              <Users className="w-4 h-4 ml-2" />
-              المتطوعون
-            </Button>
-          </div>
+<div className="flex flex-wrap justify-center gap-2 sm:gap-4 px-2">
+  <Button
+    variant={selectedDepartment === "all" ? "default" : "outline"}
+    onClick={() => setSelectedDepartment("all")}
+    className="rounded-full !cursor-pointer text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+  >
+    <Filter className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+    جميع الأعضاء
+  </Button>
+  <Button
+    variant={selectedDepartment === "admin" ? "default" : "outline"}
+    onClick={() => setSelectedDepartment("admin")}
+    className="rounded-full !cursor-pointer text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+  >
+    <Crown className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+    مجلس الإدارة
+  </Button>
+  <Button
+    variant={selectedDepartment === "normal" ? "default" : "outline"}
+    onClick={() => setSelectedDepartment("normal")}
+    className="rounded-full !cursor-pointer text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+  >
+    <Users className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+    المتطوعون
+  </Button>
+</div>
         </div>
       </div>
 

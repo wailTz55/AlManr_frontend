@@ -377,19 +377,19 @@ export function TreasureMapActivities() {
       </div>
 
       {/* Activity Detail Modal - نفس الكود السابق */}
-      <Dialog open={!!selectedActivity} onOpenChange={handleCloseDialog}>
-        <DialogContent className="w-[95vw] sm:max-w-[95vw] md:max-w-[85vw] lg:max-w-[75vw] xl:max-w-[1200px] max-h-[95vh] overflow-y-auto overflow-x-hidden">
+    <Dialog open={!!selectedActivity} onOpenChange={handleCloseDialog}>
+        <DialogContent className="w-[98vw] sm:max-w-[95vw] md:max-w-[85vw] lg:max-w-[75vw] xl:max-w-[1200px] max-h-[98vh] overflow-y-auto overflow-x-hidden px-2 sm:px-6">
           {selectedActivity && (
             <>
-              <DialogHeader>
-                <DialogTitle className="text-3xl font-bold text-right">
+              <DialogHeader className="px-1 sm:px-0">
+                <DialogTitle className="text-xl xs:text-2xl sm:text-3xl font-bold text-right break-words">
                   {selectedActivity.title}
                 </DialogTitle>
               </DialogHeader>
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 px-1 sm:px-0">
                 {/* Image Gallery */}
-                <div className="space-y-6">
-                  <div className="relative aspect-video rounded-xl overflow-hidden shadow-lg">
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="relative aspect-video rounded-lg sm:rounded-xl overflow-hidden shadow-lg">
                     <img
                       src={
                         selectedActivity.images && selectedActivity.images[currentImageIndex]
@@ -406,27 +406,27 @@ export function TreasureMapActivities() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                          className="absolute left-1 sm:left-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 p-1 sm:p-2 min-w-0"
                           onClick={prevImage}
                         >
-                          <ChevronLeft className="w-4 h-4" />
+                          <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
+                          className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70 p-1 sm:p-2 min-w-0"
                           onClick={nextImage}
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
                         </Button>
                         
                         {/* Image Indicators */}
-                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                        <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2 flex gap-0.5 sm:gap-1">
                           {selectedActivity.images.map((_, index) => (
                             <button
                               key={index}
                               onClick={() => setCurrentImageIndex(index)}
-                              className={`w-2 h-2 rounded-full transition-colors ${
+                              className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-colors ${
                                 index === currentImageIndex ? "bg-white" : "bg-white/50"
                               }`}
                             />
@@ -444,8 +444,8 @@ export function TreasureMapActivities() {
                           className="w-full h-full flex items-center justify-center cursor-pointer bg-gradient-to-br from-primary/20 to-secondary/20"
                           onClick={() => setIsVideoPlaying(true)}
                         >
-                          <div className="bg-primary text-primary-foreground rounded-full p-4 animate-pulse-glow">
-                            <Play className="w-8 h-8" />
+                          <div className="bg-primary text-primary-foreground rounded-full p-2 sm:p-4 animate-pulse-glow">
+                            <Play className="w-6 h-6 sm:w-8 sm:h-8" />
                           </div>
                         </div>
                       ) : (
@@ -462,31 +462,31 @@ export function TreasureMapActivities() {
                 </div>
                 
                 {/* Activity Details */}
-                <div className="space-y-8">
+                <div className="space-y-4 sm:space-y-8">
                   {/* Basic Info */}
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="flex items-center gap-3 text-lg">
-                      <Calendar className="w-6 h-6 text-primary" />
-                      <span>{selectedActivity.date}</span>
+                  <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-6">
+                    <div className="flex items-center gap-2 sm:gap-3 text-sm sm:text-lg min-w-0">
+                      <Calendar className="w-4 h-4 sm:w-6 sm:h-6 text-primary flex-shrink-0" />
+                      <span className="truncate">{selectedActivity.date}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-lg">
-                      <Clock className="w-6 h-6 text-secondary" />
-                      <span>{selectedActivity.duration}</span>
+                    <div className="flex items-center gap-2 sm:gap-3 text-sm sm:text-lg min-w-0">
+                      <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-secondary flex-shrink-0" />
+                      <span className="truncate">{selectedActivity.duration}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-lg">
-                      <MapPin className="w-6 h-6 text-accent" />
-                      <span>{selectedActivity.location}</span>
+                    <div className="flex items-center gap-2 sm:gap-3 text-sm sm:text-lg min-w-0">
+                      <MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-accent flex-shrink-0" />
+                      <span className="truncate">{selectedActivity.location}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-lg">
-                      <Users className="w-6 h-6 text-chart-3" />
-                      <span>{selectedActivity.participants} مشارك</span>
+                    <div className="flex items-center gap-2 sm:gap-3 text-sm sm:text-lg min-w-0">
+                      <Users className="w-4 h-4 sm:w-6 sm:h-6 text-chart-3 flex-shrink-0" />
+                      <span className="truncate">{selectedActivity.participants} مشارك</span>
                     </div>
                   </div>
                   
                   {/* Description */}
                   <div>
-                    <h4 className="font-semibold text-xl text-foreground mb-4">وصف النشاط</h4>
-                    <p className="text-muted-foreground leading-relaxed text-lg">
+                    <h4 className="font-semibold text-lg sm:text-xl text-foreground mb-2 sm:mb-4">وصف النشاط</h4>
+                    <p className="text-muted-foreground leading-relaxed text-sm sm:text-lg break-words">
                       {selectedActivity.description}
                     </p>
                   </div>
@@ -494,12 +494,12 @@ export function TreasureMapActivities() {
                   {/* Achievements */}
                   {selectedActivity.achievements && selectedActivity.achievements.length > 0 && (
                     <div>
-                      <h4 className="font-semibold text-xl text-foreground mb-3">الإنجازات المحققة</h4>
+                      <h4 className="font-semibold text-lg sm:text-xl text-foreground mb-2 sm:mb-3">الإنجازات المحققة</h4>
                       <div className="grid grid-cols-1 gap-2">
                         {selectedActivity.achievements.map((achievement, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <Award className="w-4 h-4 text-primary flex-shrink-0" />
-                            <span className="text-sm text-muted-foreground">{achievement}</span>
+                          <div key={index} className="flex items-start gap-2 min-w-0">
+                            <Award className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0 mt-0.5" />
+                            <span className="text-xs sm:text-sm text-muted-foreground break-words">{achievement}</span>
                           </div>
                         ))}
                       </div>
@@ -509,12 +509,12 @@ export function TreasureMapActivities() {
                   {/* Highlights */}
                   {selectedActivity.highlights && selectedActivity.highlights.length > 0 && (
                     <div>
-                      <h4 className="font-semibold text-xl text-foreground mb-3">أبرز اللحظات</h4>
-                      <div className="flex flex-wrap gap-2">
+                      <h4 className="font-semibold text-lg sm:text-xl text-foreground mb-2 sm:mb-3">أبرز اللحظات</h4>
+                      <div className="flex flex-wrap gap-1 sm:gap-2">
                         {selectedActivity.highlights.map((highlight, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            <Star className="w-3 h-3 ml-1" />
-                            {highlight}
+                          <Badge key={index} variant="outline" className="text-xs px-2 py-1 break-all">
+                            <Star className="w-2 h-2 sm:w-3 sm:h-3 ml-1 flex-shrink-0" />
+                            <span className="truncate max-w-[120px] sm:max-w-none">{highlight}</span>
                           </Badge>
                         ))}
                       </div>
@@ -522,14 +522,14 @@ export function TreasureMapActivities() {
                   )}
                   
                   {/* Action Buttons */}
-                  <div className="flex gap-4 pt-6">
-                    <Button size="lg" className="flex-1 text-lg py-4">
-                      <Camera className="w-5 h-5 ml-2" />
-                      عرض الصور
+                  <div className="flex flex-col xs:flex-row gap-2 sm:gap-4 pt-4 sm:pt-6">
+                    <Button size="sm" className="flex-1 text-sm sm:text-lg py-2 sm:py-4 min-h-0">
+                      <Camera className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
+                      <span className="truncate">عرض الصور</span>
                     </Button>
-                    <Button variant="outline" size="lg" className="flex-1 bg-transparent text-lg py-4">
-                      <Video className="w-5 h-5 ml-2" />
-                      مشاهدة الفيديو
+                    <Button variant="outline" size="sm" className="flex-1 bg-transparent text-sm sm:text-lg py-2 sm:py-4 min-h-0">
+                      <Video className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
+                      <span className="truncate">مشاهدة الفيديو</span>
                     </Button>
                   </div>
                 </div>
@@ -537,7 +537,7 @@ export function TreasureMapActivities() {
             </>
           )}
         </DialogContent>
-      </Dialog>
+    </Dialog>
     </div>
   );
 }
