@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,22 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Users,
   Calendar,
@@ -49,6 +65,11 @@ import {
   Check,
   X,
   Crown,
+  Undo2,
+  Building2,
+  FileDown,
+  AlertTriangle,
+  Timer,
 } from "lucide-react"
 
 interface Activity {
@@ -79,22 +100,22 @@ interface Message {
   priority: "low" | "medium" | "high"
 }
 
-interface MembershipApplication {
+interface AssociationApplication {
   id: string
   applicationId: string
-  name: string
+  associationName: string
+  institutionName: string
+  presidentName: string
+  presidentPhone: string
+  treasurerName: string
+  treasurerPhone: string
+  secretaryGeneralName: string
+  secretaryGeneralPhone: string
   email: string
   phone: string
-  age: number
-  gender: "male" | "female"
-  address: string
-  education: string
-  interests: string[]
-  experience: string
-  motivation: string
-  personalPhoto: string
   submissionDate: string
   status: "pending" | "approved" | "rejected"
+  rejectedAt?: string
   reviewedBy?: string
   reviewDate?: string
   notes?: string
@@ -249,70 +270,70 @@ export function AdminDashboard() {
   const [messageFilter, setMessageFilter] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
 
-  const [membershipApplications, setMembershipApplications] = useState<MembershipApplication[]>([
+  const [associationApplications, setAssociationApplications] = useState<AssociationApplication[]>([
     {
       id: "1",
-      applicationId: "APP-2024-001",
-      name: "أحمد محمد علي",
-      email: "ahmed.mohamed@email.com",
-      phone: "+961 70 123 456",
-      age: 22,
-      gender: "male",
-      address: "بيروت، لبنان",
-      education: "بكالوريوس في الهندسة",
-      interests: ["الرياضة", "التطوع", "التكنولوجيا"],
-      experience: "عضو في نادي الطلاب الجامعي لمدة سنتين",
-      motivation: "أريد المساهمة في تطوير المجتمع والمشاركة في الأنشطة التطوعية",
-      personalPhoto: "/young-arab-man-sports.png",
+      applicationId: "ASC-2024-001",
+      associationName: "جمعية النور الخيرية",
+      institutionName: "مؤسسة النور للتنمية الاجتماعية",
+      presidentName: "أحمد محمد علي",
+      presidentPhone: "+961 70 123 456",
+      treasurerName: "سمير حسن خالد",
+      treasurerPhone: "+961 71 222 333",
+      secretaryGeneralName: "ريما سعد الدين",
+      secretaryGeneralPhone: "+961 76 444 555",
+      email: "info@alnoor-charity.org",
+      phone: "+961 1 234 567",
       submissionDate: "2024-01-15T10:30:00",
       status: "pending",
     },
     {
       id: "2",
-      applicationId: "APP-2024-002",
-      name: "فاطمة حسن أحمد",
-      email: "fatima.hassan@email.com",
-      phone: "+961 71 987 654",
-      age: 20,
-      gender: "female",
-      address: "طرابلس، لبنان",
-      education: "طالبة في كلية الطب",
-      interests: ["الصحة", "التعليم", "الفنون"],
-      experience: "متطوعة في المستشفى المحلي",
-      motivation: "أحب مساعدة الآخرين وتقديم الخدمات الصحية للمجتمع",
-      personalPhoto: "/young-arab-woman-leader.png",
+      applicationId: "ASC-2024-002",
+      associationName: "جمعية الأمل للتنمية",
+      institutionName: "مؤسسة الأمل للخدمات المجتمعية",
+      presidentName: "فاطمة حسن أحمد",
+      presidentPhone: "+961 71 987 654",
+      treasurerName: "نادين عبد الله",
+      treasurerPhone: "+961 78 111 222",
+      secretaryGeneralName: "كريم مصطفى",
+      secretaryGeneralPhone: "+961 70 333 444",
+      email: "contact@alamal-dev.org",
+      phone: "+961 1 345 678",
       submissionDate: "2024-01-14T14:20:00",
       status: "approved",
       reviewedBy: "المدير العام",
       reviewDate: "2024-01-16T09:00:00",
-      notes: "مؤهلات ممتازة وخبرة جيدة في التطوع",
+      notes: "جمعية فاعلة وتستوفي جميع الشروط المطلوبة",
     },
     {
       id: "3",
-      applicationId: "APP-2024-003",
-      name: "محمد خالد سعد",
-      email: "mohamed.khaled@email.com",
-      phone: "+961 76 555 123",
-      age: 25,
-      gender: "male",
-      address: "صيدا، لبنان",
-      education: "ماجستير في إدارة الأعمال",
-      interests: ["الإدارة", "ريادة الأعمال", "التدريب"],
-      experience: "مدير مشاريع في شركة تقنية",
-      motivation: "أريد استخدام خبرتي في الإدارة لتطوير أنشطة الجمعية",
-      personalPhoto: "/young-arab-president.png",
+      applicationId: "ASC-2024-003",
+      associationName: "جمعية الشباب الرياضي",
+      institutionName: "مؤسسة الشباب والرياضة",
+      presidentName: "محمد خالد سعد",
+      presidentPhone: "+961 76 555 123",
+      treasurerName: "حسام الدين نور",
+      treasurerPhone: "+961 79 666 777",
+      secretaryGeneralName: "لينا أحمد",
+      secretaryGeneralPhone: "+961 71 888 999",
+      email: "info@youth-sports.org",
+      phone: "+961 1 456 789",
       submissionDate: "2024-01-13T09:15:00",
       status: "rejected",
+      rejectedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       reviewedBy: "مدير الموارد البشرية",
       reviewDate: "2024-01-15T11:30:00",
-      notes: "لا يتوفر وقت كافي للالتزام بالأنشطة",
+      notes: "لم تستوف الجمعية الشروط المطلوبة للانتساب",
     },
   ])
 
-  const [selectedApplication, setSelectedApplication] = useState<MembershipApplication | null>(null)
+  const [selectedApplication, setSelectedApplication] = useState<AssociationApplication | null>(null)
   const [applicationFilter, setApplicationFilter] = useState("all")
   const [applicationSearchTerm, setApplicationSearchTerm] = useState("")
   const [reviewNotes, setReviewNotes] = useState("")
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [showExportDialog, setShowExportDialog] = useState(false)
 
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([
     {
@@ -447,7 +468,7 @@ export function AdminDashboard() {
     { id: "activities", label: "إدارة الأنشطة", description: "إضافة وتعديل وحذف الأنشطة" },
     { id: "news", label: "إدارة الأخبار", description: "إضافة وتعديل ونشر الأخبار" },
     { id: "messages", label: "إدارة الرسائل", description: "قراءة والرد على الرسائل" },
-    { id: "memberships", label: "إدارة العضويات", description: "قبول ورفض طلبات العضوية" },
+    { id: "memberships", label: "إدارة الانتسابات", description: "قبول ورفض طلبات الانتساب" },
     { id: "members", label: "إدارة الأعضاء", description: "عرض وإدارة بيانات الأعضاء" },
     { id: "permissions", label: "إدارة الصلاحيات", description: "منح وإلغاء صلاحيات المديرين" },
   ]
@@ -584,48 +605,274 @@ export function AdminDashboard() {
   }
 
   const handleApproveApplication = (applicationId: string) => {
-    setMembershipApplications((applications) =>
+    setAssociationApplications((applications) =>
       applications.map((app) =>
         app.id === applicationId
           ? {
               ...app,
-              status: "approved",
+              status: "approved" as const,
+              rejectedAt: undefined,
               reviewedBy: "المدير العام",
               reviewDate: new Date().toISOString(),
-              notes: reviewNotes || "تم قبول الطلب",
+              notes: reviewNotes || "تم قبول طلب الانتساب",
             }
           : app,
       ),
     )
     setReviewNotes("")
-    alert("تم قبول طلب العضوية بنجاح")
+    setSelectedApplication(null)
   }
 
   const handleRejectApplication = (applicationId: string) => {
-    if (confirm("هل أنت متأكد من رفض هذا الطلب؟")) {
-      setMembershipApplications((applications) =>
-        applications.map((app) =>
-          app.id === applicationId
-            ? {
-                ...app,
-                status: "rejected",
-                reviewedBy: "المدير العام",
-                reviewDate: new Date().toISOString(),
-                notes: reviewNotes || "تم رفض الطلب",
-              }
-            : app,
-        ),
-      )
-      setReviewNotes("")
-      alert("تم رفض طلب العضوية")
-    }
+    setAssociationApplications((applications) =>
+      applications.map((app) =>
+        app.id === applicationId
+          ? {
+              ...app,
+              status: "rejected" as const,
+              rejectedAt: new Date().toISOString(),
+              reviewedBy: "المدير العام",
+              reviewDate: new Date().toISOString(),
+              notes: reviewNotes || "تم رفض طلب الانتساب",
+            }
+          : app,
+      ),
+    )
+    setReviewNotes("")
+    setSelectedApplication(null)
+  }
+
+  const handleUndoRejection = (applicationId: string) => {
+    setAssociationApplications((applications) =>
+      applications.map((app) =>
+        app.id === applicationId
+          ? {
+              ...app,
+              status: "pending" as const,
+              rejectedAt: undefined,
+              reviewedBy: undefined,
+              reviewDate: undefined,
+              notes: undefined,
+            }
+          : app,
+      ),
+    )
   }
 
   const handleDeleteApplication = (applicationId: string) => {
-    if (confirm("هل أنت متأكد من حذف هذا الطلب؟")) {
-      setMembershipApplications((applications) => applications.filter((app) => app.id !== applicationId))
+    setDeleteConfirmId(applicationId)
+  }
+
+  const confirmDeleteApplication = () => {
+    if (deleteConfirmId) {
+      setAssociationApplications((applications) => applications.filter((app) => app.id !== deleteConfirmId))
+      setDeleteConfirmId(null)
+      if (selectedApplication?.id === deleteConfirmId) {
+        setSelectedApplication(null)
+      }
     }
   }
+
+  const getRejectionDaysRemaining = (rejectedAt: string): number => {
+    const rejectedDate = new Date(rejectedAt)
+    const now = new Date()
+    const diffMs = 5 * 24 * 60 * 60 * 1000 - (now.getTime() - rejectedDate.getTime())
+    return Math.max(0, Math.ceil(diffMs / (24 * 60 * 60 * 1000)))
+  }
+
+  // Auto-delete rejected applications after 5 days
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAssociationApplications((applications) =>
+        applications.filter((app) => {
+          if (app.status === "rejected" && app.rejectedAt) {
+            return getRejectionDaysRemaining(app.rejectedAt) > 0
+          }
+          return true
+        }),
+      )
+    }, 60 * 1000) // Check every minute
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleExportPDF = useCallback(async () => {
+    const { default: jsPDF } = await import("jspdf")
+    await import("jspdf-autotable")
+
+    const approvedApps = associationApplications.filter((app) => app.status === "approved")
+    const doc = new jsPDF({ orientation: "landscape", putOnlyUsedFonts: true })
+
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(18)
+    doc.text("Approved Association Applications", doc.internal.pageSize.getWidth() / 2, 20, { align: "center" })
+    doc.setFontSize(10)
+    doc.setFont("helvetica", "normal")
+    doc.text(`Generated: ${new Date().toLocaleDateString("en-US")}`, doc.internal.pageSize.getWidth() / 2, 28, { align: "center" })
+
+    let startY = 38
+
+    approvedApps.forEach((app, index) => {
+      if (index > 0) {
+        doc.addPage()
+        startY = 20
+      }
+
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(14)
+      doc.text(`${index + 1}. ${app.associationName}`, doc.internal.pageSize.getWidth() / 2, startY, { align: "center" })
+
+      const tableData = [
+        ["Application ID", app.applicationId],
+        ["Association Name", app.associationName],
+        ["Institution Name", app.institutionName],
+        ["President", `${app.presidentName} - ${app.presidentPhone}`],
+        ["Treasurer", `${app.treasurerName} - ${app.treasurerPhone}`],
+        ["Secretary General", `${app.secretaryGeneralName} - ${app.secretaryGeneralPhone}`],
+        ["Email", app.email],
+        ["Phone", app.phone],
+        ["Submission Date", new Date(app.submissionDate).toLocaleDateString("en-US")],
+        ["Status", "Approved"],
+        ["Reviewed By", app.reviewedBy || "-"],
+        ["Review Date", app.reviewDate ? new Date(app.reviewDate).toLocaleDateString("en-US") : "-"],
+        ["Notes", app.notes || "-"],
+      ]
+
+      ;(doc as unknown as { autoTable: (options: Record<string, unknown>) => void }).autoTable({
+        startY: startY + 6,
+        head: [["Field", "Value"]],
+        body: tableData,
+        theme: "grid",
+        styles: { fontSize: 10, cellPadding: 4, halign: "left" },
+        headStyles: { fillColor: [217, 119, 6], textColor: 255, fontStyle: "bold" },
+        alternateRowStyles: { fillColor: [255, 251, 235] },
+        columnStyles: {
+          0: { fontStyle: "bold", cellWidth: 60 },
+          1: { cellWidth: "auto" },
+        },
+      })
+    })
+
+    if (approvedApps.length === 0) {
+      doc.setFontSize(14)
+      doc.text("No approved associations to export.", doc.internal.pageSize.getWidth() / 2, 50, { align: "center" })
+    }
+
+    doc.save("approved-associations.pdf")
+    setShowExportDialog(false)
+  }, [associationApplications])
+
+  const handleExportDOCX = useCallback(async () => {
+    const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun, AlignmentType, BorderStyle } = await import("docx")
+    const { saveAs } = await import("file-saver")
+
+    const approvedApps = associationApplications.filter((app) => app.status === "approved")
+
+    const createTableForApp = (app: AssociationApplication) => {
+      const rows = [
+        ["رقم الطلب", app.applicationId],
+        ["اسم الجمعية", app.associationName],
+        ["اسم المؤسسة", app.institutionName],
+        ["رئيس الجمعية", `${app.presidentName} - ${app.presidentPhone}`],
+        ["أمين الصندوق", `${app.treasurerName} - ${app.treasurerPhone}`],
+        ["الأمين العام", `${app.secretaryGeneralName} - ${app.secretaryGeneralPhone}`],
+        ["البريد الإلكتروني", app.email],
+        ["رقم الهاتف", app.phone],
+        ["تاريخ التقديم", new Date(app.submissionDate).toLocaleDateString("ar-SA")],
+        ["الحالة", "مقبول"],
+        ["تمت المراجعة بواسطة", app.reviewedBy || "-"],
+        ["تاريخ المراجعة", app.reviewDate ? new Date(app.reviewDate).toLocaleDateString("ar-SA") : "-"],
+        ["ملاحظات", app.notes || "-"],
+      ]
+
+      const borderStyle = {
+        style: BorderStyle.SINGLE,
+        size: 1,
+        color: "999999",
+      }
+
+      return new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [new Paragraph({ children: [new TextRun({ text: "Field", bold: true, size: 22, font: "Arial" })], alignment: AlignmentType.CENTER })],
+                width: { size: 30, type: WidthType.PERCENTAGE },
+                shading: { fill: "D97706" },
+                borders: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
+              }),
+              new TableCell({
+                children: [new Paragraph({ children: [new TextRun({ text: "Value", bold: true, size: 22, font: "Arial" })], alignment: AlignmentType.CENTER })],
+                width: { size: 70, type: WidthType.PERCENTAGE },
+                shading: { fill: "D97706" },
+                borders: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
+              }),
+            ],
+          }),
+          ...rows.map(
+            ([label, value], idx) =>
+              new TableRow({
+                children: [
+                  new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: label, bold: true, size: 20, font: "Arial" })] })],
+                    shading: idx % 2 === 0 ? { fill: "FFFBEB" } : undefined,
+                    borders: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
+                  }),
+                  new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: value, size: 20, font: "Arial" })] })],
+                    shading: idx % 2 === 0 ? { fill: "FFFBEB" } : undefined,
+                    borders: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
+                  }),
+                ],
+              }),
+          ),
+        ],
+      })
+    }
+
+    const sections = approvedApps.length > 0
+      ? approvedApps.map((app, index) => ({
+          properties: {},
+          children: [
+            ...(index === 0
+              ? [
+                  new Paragraph({
+                    children: [new TextRun({ text: "Approved Association Applications", bold: true, size: 36, font: "Arial" })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 },
+                  }),
+                  new Paragraph({
+                    children: [new TextRun({ text: `Generated: ${new Date().toLocaleDateString("en-US")}`, size: 20, font: "Arial", color: "666666" })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 400 },
+                  }),
+                ]
+              : []),
+            new Paragraph({
+              children: [new TextRun({ text: `${index + 1}. ${app.associationName}`, bold: true, size: 28, font: "Arial" })],
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 200, after: 200 },
+            }),
+            createTableForApp(app),
+          ],
+        }))
+      : [
+          {
+            properties: {},
+            children: [
+              new Paragraph({
+                children: [new TextRun({ text: "No approved associations to export.", size: 24, font: "Arial" })],
+                alignment: AlignmentType.CENTER,
+              }),
+            ],
+          },
+        ]
+
+    const doc = new Document({ sections })
+    const blob = await Packer.toBlob(doc)
+    saveAs(blob, "approved-associations.docx")
+    setShowExportDialog(false)
+  }, [associationApplications])
 
   const handleAddNews = () => {
     if (newNews.title && newNews.content) {
@@ -779,9 +1026,9 @@ export function AdminDashboard() {
       case "pending":
         return "قيد المراجعة"
       case "approved":
-        return "مقبول"
+        return "مقبولة"
       case "rejected":
-        return "مرفوض"
+        return "مرفوضة"
       default:
         return "غير محدد"
     }
@@ -822,12 +1069,13 @@ export function AdminDashboard() {
     return matchesFilter && matchesSearch
   })
 
-  const filteredApplications = membershipApplications.filter((application) => {
+  const filteredApplications = associationApplications.filter((application) => {
     const matchesFilter = applicationFilter === "all" || application.status === applicationFilter
     const matchesSearch =
-      application.name.toLowerCase().includes(applicationSearchTerm.toLowerCase()) ||
+      application.associationName.toLowerCase().includes(applicationSearchTerm.toLowerCase()) ||
       application.applicationId.toLowerCase().includes(applicationSearchTerm.toLowerCase()) ||
-      application.email.toLowerCase().includes(applicationSearchTerm.toLowerCase())
+      application.email.toLowerCase().includes(applicationSearchTerm.toLowerCase()) ||
+      application.institutionName.toLowerCase().includes(applicationSearchTerm.toLowerCase())
     return matchesFilter && matchesSearch
   })
 
@@ -855,8 +1103,8 @@ export function AdminDashboard() {
       color: "text-amber-600",
     },
     {
-      title: "طلبات العضوية",
-      value: membershipApplications.filter((app) => app.status === "pending").length.toString(),
+      title: "طلبات الانتساب",
+      value: associationApplications.filter((app) => app.status === "pending").length.toString(),
       icon: UserCheck,
       color: "text-purple-600",
     },
@@ -904,7 +1152,7 @@ export function AdminDashboard() {
     { id: "dashboard", label: "لوحة التحكم", icon: BarChart3 },
     { id: "activities", label: "إدارة الأنشطة", icon: Calendar },
     { id: "messages", label: "الرسائل", icon: MessageSquare },
-    { id: "memberships", label: "إدارة العضويات", icon: UserCheck },
+    { id: "memberships", label: "إدارة الانتسابات", icon: UserCheck },
     { id: "members", label: "إدارة الأعضاء", icon: Users },
     { id: "news", label: "إدارة الأخبار", icon: Newspaper },
     { id: "permissions", label: "الصلاحيات", icon: Shield },
@@ -1594,8 +1842,8 @@ export function AdminDashboard() {
             {/* Header with Search and Filter */}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">إدارة طلبات العضوية</h3>
-                <p className="text-sm text-gray-600">مراجعة وإدارة طلبات الانضمام للجمعية</p>
+                <h3 className="text-lg font-semibold text-gray-900">إدارة طلبات الانتساب</h3>
+                <p className="text-sm text-gray-600">مراجعة وإدارة طلبات انتساب الجمعيات</p>
               </div>
               <div className="flex gap-2">
                 <div className="relative">
@@ -1612,16 +1860,28 @@ export function AdminDashboard() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">جميع الطلبات</SelectItem>
-                    <SelectItem value="pending">قيد المراجعة</SelectItem>
+                    <SelectItem value="all">جميع الانتسابات</SelectItem>
                     <SelectItem value="approved">مقبولة</SelectItem>
-                    <SelectItem value="rejected">مرفوضة</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" className="flex items-center gap-2 bg-transparent">
-                  <Download className="h-4 w-4" />
-                  تصدير
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-2 bg-transparent">
+                      <FileDown className="h-4 w-4" />
+                      تصدير
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleExportPDF} className="cursor-pointer">
+                      <FileText className="ml-2 h-4 w-4 text-red-600" />
+                      تصدير PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportDOCX} className="cursor-pointer">
+                      <FileText className="ml-2 h-4 w-4 text-blue-600" />
+                      تصدير Word
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
@@ -1631,10 +1891,10 @@ export function AdminDashboard() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">إجمالي الطلبات</p>
-                      <p className="text-2xl font-bold text-gray-900">{membershipApplications.length}</p>
+                      <p className="text-sm font-medium text-gray-600">إجمالي الانتسابات</p>
+                      <p className="text-2xl font-bold text-gray-900">{associationApplications.length}</p>
                     </div>
-                    <FileText className="h-8 w-8 text-blue-600" />
+                    <Building2 className="h-8 w-8 text-blue-600" />
                   </div>
                 </CardContent>
               </Card>
@@ -1642,9 +1902,9 @@ export function AdminDashboard() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">قيد المراجعة</p>
+                      <p className="text-sm font-medium text-gray-600">بانتظار المراجعة</p>
                       <p className="text-2xl font-bold text-yellow-600">
-                        {membershipApplications.filter((app) => app.status === "pending").length}
+                        {associationApplications.filter((app) => app.status === "pending").length}
                       </p>
                     </div>
                     <Clock className="h-8 w-8 text-yellow-600" />
@@ -1657,7 +1917,7 @@ export function AdminDashboard() {
                     <div>
                       <p className="text-sm font-medium text-gray-600">مقبولة</p>
                       <p className="text-2xl font-bold text-green-600">
-                        {membershipApplications.filter((app) => app.status === "approved").length}
+                        {associationApplications.filter((app) => app.status === "approved").length}
                       </p>
                     </div>
                     <CheckCircle className="h-8 w-8 text-green-600" />
@@ -1668,9 +1928,9 @@ export function AdminDashboard() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">مرفوضة</p>
+                      <p className="text-sm font-medium text-gray-600">مرفوضة (بانتظار الحذف)</p>
                       <p className="text-2xl font-bold text-red-600">
-                        {membershipApplications.filter((app) => app.status === "rejected").length}
+                        {associationApplications.filter((app) => app.status === "rejected").length}
                       </p>
                     </div>
                     <XCircle className="h-8 w-8 text-red-600" />
@@ -1682,14 +1942,14 @@ export function AdminDashboard() {
             {/* Applications List */}
             <Card>
               <CardHeader>
-                <CardTitle>قائمة طلبات العضوية</CardTitle>
-                <CardDescription>جميع طلبات الانضمام المقدمة للجمعية</CardDescription>
+                <CardTitle>قائمة طلبات الانتساب</CardTitle>
+                <CardDescription>جميع طلبات انتساب الجمعيات</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {filteredApplications.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
-                      <UserCheck className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                       <p>لا توجد طلبات تطابق البحث</p>
                     </div>
                   ) : (
@@ -1697,26 +1957,67 @@ export function AdminDashboard() {
                       <div
                         key={application.id}
                         className={`p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer ${
-                          application.status === "pending" ? "bg-yellow-50 border-yellow-200" : "bg-white"
+                          application.status === "rejected"
+                            ? "bg-red-50 border-red-200 opacity-75"
+                            : application.status === "pending"
+                              ? "bg-yellow-50 border-yellow-200"
+                              : "bg-white"
                         }`}
                         onClick={() => setSelectedApplication(application)}
                       >
+                        {/* Rejection countdown banner */}
+                        {application.status === "rejected" && application.rejectedAt && (
+                          <div className="flex items-center justify-between mb-3 p-2 bg-red-100 rounded-md border border-red-200">
+                            <div className="flex items-center gap-2 text-sm text-red-700">
+                              <Timer className="h-4 w-4" />
+                              <span>
+                                سيتم الحذف التلقائي خلال{" "}
+                                <strong>{getRejectionDaysRemaining(application.rejectedAt)} أيام</strong>
+                              </span>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-amber-700 border-amber-400 hover:bg-amber-50 bg-transparent h-7 text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleUndoRejection(application.id)
+                              }}
+                            >
+                              <Undo2 className="ml-1 h-3 w-3" />
+                              تراجع عن الرفض
+                            </Button>
+                          </div>
+                        )}
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-4 flex-1">
-                            <img
-                              src={application.personalPhoto || "/placeholder.svg"}
-                              alt={application.name}
-                              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h4 className="font-semibold text-gray-900">{application.name}</h4>
+                            <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                              <Building2 className="h-6 w-6 text-amber-700" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                <h4 className="font-semibold text-gray-900">{application.associationName}</h4>
                                 <Badge className={getApplicationStatusColor(application.status)}>
                                   {getApplicationStatusText(application.status)}
                                 </Badge>
                                 <Badge variant="outline">{application.applicationId}</Badge>
                               </div>
-                              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-2">
+                              <p className="text-sm text-gray-500 mb-2">{application.institutionName}</p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1 text-sm text-gray-600 mb-2">
+                                <div className="flex items-center gap-1">
+                                  <Crown className="h-3 w-3 text-amber-600" />
+                                  <span className="text-gray-500">الرئيس:</span> {application.presidentName}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <User className="h-3 w-3 text-blue-600" />
+                                  <span className="text-gray-500">الأمين العام:</span> {application.secretaryGeneralName}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3 text-green-600" />
+                                  <span className="text-gray-500">أمين الصندوق:</span> {application.treasurerName}
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-gray-600 mb-2">
                                 <div className="flex items-center gap-1">
                                   <Mail className="h-3 w-3" />
                                   {application.email}
@@ -1725,22 +2026,6 @@ export function AdminDashboard() {
                                   <Phone className="h-3 w-3" />
                                   {application.phone}
                                 </div>
-                                <div className="flex items-center gap-1">
-                                  <User className="h-3 w-3" />
-                                  {application.age} سنة - {application.gender === "male" ? "ذكر" : "أنثى"}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />
-                                  {application.address}
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">{application.education}</p>
-                              <div className="flex flex-wrap gap-1 mb-2">
-                                {application.interests.map((interest, index) => (
-                                  <Badge key={index} variant="secondary" className="text-xs">
-                                    {interest}
-                                  </Badge>
-                                ))}
                               </div>
                               <div className="text-xs text-gray-500">
                                 تاريخ التقديم: {new Date(application.submissionDate).toLocaleDateString("ar-SA")}
@@ -1752,7 +2037,7 @@ export function AdminDashboard() {
                               </div>
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 shrink-0">
                             {application.status === "pending" && (
                               <>
                                 <Button
@@ -1803,86 +2088,102 @@ export function AdminDashboard() {
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <UserCheck className="h-5 w-5" />
-                    طلب العضوية - {selectedApplication?.name}
+                    <Building2 className="h-5 w-5" />
+                    طلب الانتساب - {selectedApplication?.associationName}
                   </DialogTitle>
                   <DialogDescription>رقم الطلب: {selectedApplication?.applicationId}</DialogDescription>
                 </DialogHeader>
                 {selectedApplication && (
                   <div className="space-y-6">
-                    {/* Personal Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="md:col-span-2 space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">الاسم الكامل</Label>
-                            <p className="text-sm font-medium">{selectedApplication.name}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">رقم الطلب</Label>
-                            <p className="text-sm font-medium">{selectedApplication.applicationId}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">البريد الإلكتروني</Label>
-                            <p className="text-sm">{selectedApplication.email}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">رقم الهاتف</Label>
-                            <p className="text-sm">{selectedApplication.phone}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">العمر</Label>
-                            <p className="text-sm">{selectedApplication.age} سنة</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">الجنس</Label>
-                            <p className="text-sm">{selectedApplication.gender === "male" ? "ذكر" : "أنثى"}</p>
-                          </div>
+                    {/* Rejection banner in dialog */}
+                    {selectedApplication.status === "rejected" && selectedApplication.rejectedAt && (
+                      <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                        <div className="flex items-center gap-2 text-sm text-red-700">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span>
+                            تم رفض هذا الطلب - سيتم الحذف التلقائي خلال{" "}
+                            <strong>{getRejectionDaysRemaining(selectedApplication.rejectedAt)} أيام</strong>
+                          </span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-amber-700 border-amber-400 hover:bg-amber-50 bg-transparent"
+                          onClick={() => handleUndoRejection(selectedApplication.id)}
+                        >
+                          <Undo2 className="ml-1 h-4 w-4" />
+                          تراجع عن الرفض
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Association Info */}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">اسم الجمعية</Label>
+                          <p className="text-sm font-medium">{selectedApplication.associationName}</p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">العنوان</Label>
-                          <p className="text-sm">{selectedApplication.address}</p>
+                          <Label className="text-sm font-medium text-gray-600">رقم الطلب</Label>
+                          <p className="text-sm font-medium">{selectedApplication.applicationId}</p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label className="text-sm font-medium text-gray-600">اسم المؤسسة</Label>
+                          <p className="text-sm">{selectedApplication.institutionName}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Leadership Info */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        معلومات القيادة
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                          <Label className="text-xs font-medium text-amber-700">رئيس الجمعية</Label>
+                          <p className="text-sm font-medium">{selectedApplication.presidentName}</p>
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                            <Phone className="h-3 w-3" />
+                            {selectedApplication.presidentPhone}
+                          </div>
+                        </div>
+                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                          <Label className="text-xs font-medium text-blue-700">الأمين العام</Label>
+                          <p className="text-sm font-medium">{selectedApplication.secretaryGeneralName}</p>
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                            <Phone className="h-3 w-3" />
+                            {selectedApplication.secretaryGeneralPhone}
+                          </div>
+                        </div>
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-100">
+                          <Label className="text-xs font-medium text-green-700">أمين الصندوق</Label>
+                          <p className="text-sm font-medium">{selectedApplication.treasurerName}</p>
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                            <Phone className="h-3 w-3" />
+                            {selectedApplication.treasurerPhone}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contact Info */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        معلومات الاتصال
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">البريد الإلكتروني</Label>
+                          <p className="text-sm">{selectedApplication.email}</p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">المستوى التعليمي</Label>
-                          <p className="text-sm">{selectedApplication.education}</p>
+                          <Label className="text-sm font-medium text-gray-600">رقم الهاتف</Label>
+                          <p className="text-sm">{selectedApplication.phone}</p>
                         </div>
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <Label className="text-sm font-medium text-gray-600 mb-2">الصورة الشخصية</Label>
-                        <img
-                          src={selectedApplication.personalPhoto || "/placeholder.svg"}
-                          alt={selectedApplication.name}
-                          className="w-32 h-32 rounded-lg object-cover border-2 border-gray-200"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Interests */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">الاهتمامات</Label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {selectedApplication.interests.map((interest, index) => (
-                          <Badge key={index} variant="secondary">
-                            {interest}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Experience */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">الخبرة السابقة</Label>
-                      <div className="mt-2 p-4 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-800">{selectedApplication.experience}</p>
-                      </div>
-                    </div>
-
-                    {/* Motivation */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">دافع الانضمام</Label>
-                      <div className="mt-2 p-4 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-800">{selectedApplication.motivation}</p>
                       </div>
                     </div>
 
@@ -1967,6 +2268,30 @@ export function AdminDashboard() {
                 )}
               </DialogContent>
             </Dialog>
+
+            {/* Delete Confirmation AlertDialog */}
+            <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+              <AlertDialogContent dir="rtl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                    تأكيد الحذف
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    هل أنت متأكد من حذف هذا الانتساب؟ لا يمكن التراجع عن هذا الإجراء وسيتم حذف جميع البيانات المرتبطة بشكل نهائي.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex gap-2 sm:justify-start">
+                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    onClick={confirmDeleteApplication}
+                  >
+                    حذف نهائي
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         )}
 
