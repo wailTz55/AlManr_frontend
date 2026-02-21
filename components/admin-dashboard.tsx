@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -49,6 +49,12 @@ import {
   Check,
   X,
   Crown,
+  Building2,
+  Undo2,
+  AlertTriangle,
+  Printer,
+  FileDown,
+  Link2,
 } from "lucide-react"
 
 interface Activity {
@@ -79,22 +85,21 @@ interface Message {
   priority: "low" | "medium" | "high"
 }
 
-interface MembershipApplication {
+interface AssociationPartnership {
   id: string
-  applicationId: string
-  name: string
+  associationName: string
+  institutionName: string
+  presidentName: string
+  presidentPhone: string
+  treasurerName: string
+  treasurerPhone: string
+  secretaryName: string
+  secretaryPhone: string
   email: string
   phone: string
-  age: number
-  gender: "male" | "female"
-  address: string
-  education: string
-  interests: string[]
-  experience: string
-  motivation: string
-  personalPhoto: string
   submissionDate: string
   status: "pending" | "approved" | "rejected"
+  rejectedAt?: string
   reviewedBy?: string
   reviewDate?: string
   notes?: string
@@ -249,70 +254,66 @@ export function AdminDashboard() {
   const [messageFilter, setMessageFilter] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
 
-  const [membershipApplications, setMembershipApplications] = useState<MembershipApplication[]>([
+  const [partnerships, setPartnerships] = useState<AssociationPartnership[]>([
     {
       id: "1",
-      applicationId: "APP-2024-001",
-      name: "أحمد محمد علي",
-      email: "ahmed.mohamed@email.com",
-      phone: "+961 70 123 456",
-      age: 22,
-      gender: "male",
-      address: "بيروت، لبنان",
-      education: "بكالوريوس في الهندسة",
-      interests: ["الرياضة", "التطوع", "التكنولوجيا"],
-      experience: "عضو في نادي الطلاب الجامعي لمدة سنتين",
-      motivation: "أريد المساهمة في تطوير المجتمع والمشاركة في الأنشطة التطوعية",
-      personalPhoto: "/young-arab-man-sports.png",
+      associationName: "جمعية الأمل للشباب",
+      institutionName: "وزارة الشباب والرياضة",
+      presidentName: "محمد بن عبد الله",
+      presidentPhone: "0551234567",
+      treasurerName: "فاطمة زهراء",
+      treasurerPhone: "0559876543",
+      secretaryName: "عمر خالد",
+      secretaryPhone: "0554561234",
+      email: "amal.youth@gmail.com",
+      phone: "0551112233",
       submissionDate: "2024-01-15T10:30:00",
       status: "pending",
     },
     {
       id: "2",
-      applicationId: "APP-2024-002",
-      name: "فاطمة حسن أحمد",
-      email: "fatima.hassan@email.com",
-      phone: "+961 71 987 654",
-      age: 20,
-      gender: "female",
-      address: "طرابلس، لبنان",
-      education: "طالبة في كلية الطب",
-      interests: ["الصحة", "التعليم", "الفنون"],
-      experience: "متطوعة في المستشفى المحلي",
-      motivation: "أحب مساعدة الآخرين وتقديم الخدمات الصحية للمجتمع",
-      personalPhoto: "/young-arab-woman-leader.png",
-      submissionDate: "2024-01-14T14:20:00",
+      associationName: "منتدى الإبداع الشبابي",
+      institutionName: "المديرية العامة للثقافة",
+      presidentName: "سارة بن يوسف",
+      presidentPhone: "0667891234",
+      treasurerName: "كريم بوعلي",
+      treasurerPhone: "0662345678",
+      secretaryName: "نور الدين مسعود",
+      secretaryPhone: "0665678901",
+      email: "ibdaa.forum@outlook.com",
+      phone: "0661122334",
+      submissionDate: "2024-01-10T09:00:00",
       status: "approved",
       reviewedBy: "المدير العام",
-      reviewDate: "2024-01-16T09:00:00",
-      notes: "مؤهلات ممتازة وخبرة جيدة في التطوع",
+      reviewDate: "2024-01-12T11:00:00",
+      notes: "تتوافق أهداف المنتدى مع رسالة الجمعية",
     },
     {
       id: "3",
-      applicationId: "APP-2024-003",
-      name: "محمد خالد سعد",
-      email: "mohamed.khaled@email.com",
-      phone: "+961 76 555 123",
-      age: 25,
-      gender: "male",
-      address: "صيدا، لبنان",
-      education: "ماجستير في إدارة الأعمال",
-      interests: ["الإدارة", "ريادة الأعمال", "التدريب"],
-      experience: "مدير مشاريع في شركة تقنية",
-      motivation: "أريد استخدام خبرتي في الإدارة لتطوير أنشطة الجمعية",
-      personalPhoto: "/young-arab-president.png",
-      submissionDate: "2024-01-13T09:15:00",
-      status: "rejected",
-      reviewedBy: "مدير الموارد البشرية",
-      reviewDate: "2024-01-15T11:30:00",
-      notes: "لا يتوفر وقت كافي للالتزام بالأنشطة",
+      associationName: "رابطة الطلاب المتطوعين",
+      institutionName: "جامعة سطيف",
+      presidentName: "يوسف بن حمزة",
+      presidentPhone: "0773456789",
+      treasurerName: "إيمان بلقاسم",
+      treasurerPhone: "0779012345",
+      secretaryName: "عبد الرحمن صالح",
+      secretaryPhone: "0776543210",
+      email: "volunteers@setif-univ.dz",
+      phone: "0770011223",
+      submissionDate: "2024-01-08T14:00:00",
+      status: "approved",
+      reviewedBy: "نائب الرئيس",
+      reviewDate: "2024-01-09T10:30:00",
+      notes: "شراكة ممتازة على مستوى الجامعة",
     },
   ])
 
-  const [selectedApplication, setSelectedApplication] = useState<MembershipApplication | null>(null)
-  const [applicationFilter, setApplicationFilter] = useState("all")
-  const [applicationSearchTerm, setApplicationSearchTerm] = useState("")
+  const [selectedPartnership, setSelectedPartnership] = useState<AssociationPartnership | null>(null)
+  const [partnershipFilter, setPartnershipFilter] = useState("all")
+  const [partnershipSearchTerm, setPartnershipSearchTerm] = useState("")
   const [reviewNotes, setReviewNotes] = useState("")
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [exportFormatOpen, setExportFormatOpen] = useState(false)
 
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([
     {
@@ -583,48 +584,58 @@ export function AdminDashboard() {
     }
   }
 
-  const handleApproveApplication = (applicationId: string) => {
-    setMembershipApplications((applications) =>
-      applications.map((app) =>
-        app.id === applicationId
+  const handleApprovePartnership = (partnershipId: string) => {
+    setPartnerships((prev) =>
+      prev.map((p) =>
+        p.id === partnershipId
           ? {
-              ...app,
-              status: "approved",
-              reviewedBy: "المدير العام",
-              reviewDate: new Date().toISOString(),
-              notes: reviewNotes || "تم قبول الطلب",
-            }
-          : app,
+            ...p,
+            status: "approved" as const,
+            reviewedBy: "المدير العام",
+            reviewDate: new Date().toISOString(),
+            notes: reviewNotes || "تمت الموافقة على الشراكة",
+            rejectedAt: undefined,
+          }
+          : p,
       ),
     )
     setReviewNotes("")
-    alert("تم قبول طلب العضوية بنجاح")
+    setSelectedPartnership(null)
   }
 
-  const handleRejectApplication = (applicationId: string) => {
-    if (confirm("هل أنت متأكد من رفض هذا الطلب؟")) {
-      setMembershipApplications((applications) =>
-        applications.map((app) =>
-          app.id === applicationId
-            ? {
-                ...app,
-                status: "rejected",
-                reviewedBy: "المدير العام",
-                reviewDate: new Date().toISOString(),
-                notes: reviewNotes || "تم رفض الطلب",
-              }
-            : app,
-        ),
-      )
-      setReviewNotes("")
-      alert("تم رفض طلب العضوية")
-    }
+  const handleRejectPartnership = (partnershipId: string) => {
+    setPartnerships((prev) =>
+      prev.map((p) =>
+        p.id === partnershipId
+          ? {
+            ...p,
+            status: "rejected" as const,
+            reviewedBy: "المدير العام",
+            reviewDate: new Date().toISOString(),
+            rejectedAt: new Date().toISOString(),
+            notes: reviewNotes || "تم رفض طلب الشراكة",
+          }
+          : p,
+      ),
+    )
+    setReviewNotes("")
+    setSelectedPartnership(null)
   }
 
-  const handleDeleteApplication = (applicationId: string) => {
-    if (confirm("هل أنت متأكد من حذف هذا الطلب؟")) {
-      setMembershipApplications((applications) => applications.filter((app) => app.id !== applicationId))
-    }
+  const handleUndoReject = (partnershipId: string) => {
+    setPartnerships((prev) =>
+      prev.map((p) =>
+        p.id === partnershipId
+          ? { ...p, status: "pending" as const, rejectedAt: undefined, reviewedBy: undefined, reviewDate: undefined, notes: undefined }
+          : p,
+      ),
+    )
+  }
+
+  const handleDeletePartnership = (partnershipId: string) => {
+    setPartnerships((prev) => prev.filter((p) => p.id !== partnershipId))
+    setDeleteConfirmId(null)
+    setSelectedPartnership(null)
   }
 
   const handleAddNews = () => {
@@ -822,14 +833,25 @@ export function AdminDashboard() {
     return matchesFilter && matchesSearch
   })
 
-  const filteredApplications = membershipApplications.filter((application) => {
-    const matchesFilter = applicationFilter === "all" || application.status === applicationFilter
+  const filteredPartnerships = partnerships.filter((p) => {
+    if (p.status === "rejected") return false // rejected entries shown separately
+    const matchesFilter = partnershipFilter === "all" || p.status === partnershipFilter
     const matchesSearch =
-      application.name.toLowerCase().includes(applicationSearchTerm.toLowerCase()) ||
-      application.applicationId.toLowerCase().includes(applicationSearchTerm.toLowerCase()) ||
-      application.email.toLowerCase().includes(applicationSearchTerm.toLowerCase())
+      p.associationName.toLowerCase().includes(partnershipSearchTerm.toLowerCase()) ||
+      p.institutionName.toLowerCase().includes(partnershipSearchTerm.toLowerCase()) ||
+      p.presidentName.toLowerCase().includes(partnershipSearchTerm.toLowerCase()) ||
+      p.email.toLowerCase().includes(partnershipSearchTerm.toLowerCase())
     return matchesFilter && matchesSearch
   })
+
+  const rejectedPartnerships = partnerships.filter((p) => p.status === "rejected")
+
+  const GRACE_DAYS = 5
+  const getRemainingDays = (rejectedAt: string) => {
+    const diff = Date.now() - new Date(rejectedAt).getTime()
+    const daysPassed = diff / (1000 * 60 * 60 * 24)
+    return Math.max(0, Math.ceil(GRACE_DAYS - daysPassed))
+  }
 
   const filteredNews = newsArticles.filter((article) => {
     const matchesFilter = newsFilter === "all" || article.status === newsFilter
@@ -855,8 +877,8 @@ export function AdminDashboard() {
       color: "text-amber-600",
     },
     {
-      title: "طلبات العضوية",
-      value: membershipApplications.filter((app) => app.status === "pending").length.toString(),
+      title: "طلبات الشراكة",
+      value: partnerships.filter((p) => p.status === "pending").length.toString(),
       icon: UserCheck,
       color: "text-purple-600",
     },
@@ -927,9 +949,8 @@ export function AdminDashboard() {
               <Button
                 key={item.id}
                 variant={activeSection === item.id ? "default" : "ghost"}
-                className={`w-full justify-start ${
-                  activeSection === item.id ? "bg-amber-600 hover:bg-amber-700 text-white" : "hover:bg-gray-100"
-                }`}
+                className={`w-full justify-start ${activeSection === item.id ? "bg-amber-600 hover:bg-amber-700 text-white" : "hover:bg-gray-100"
+                  }`}
                 onClick={() => setActiveSection(item.id)}
               >
                 <Icon className="ml-2 h-4 w-4" />
@@ -1457,9 +1478,8 @@ export function AdminDashboard() {
                     filteredMessages.map((message) => (
                       <div
                         key={message.id}
-                        className={`p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer ${
-                          message.status === "unread" ? "bg-blue-50 border-blue-200" : "bg-white"
-                        }`}
+                        className={`p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer ${message.status === "unread" ? "bg-blue-50 border-blue-200" : "bg-white"
+                          }`}
                         onClick={() => setSelectedMessage(message)}
                       >
                         <div className="flex items-start justify-between">
@@ -1591,23 +1611,36 @@ export function AdminDashboard() {
 
         {activeSection === "memberships" && (
           <div className="space-y-6">
-            {/* Header with Search and Filter */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+            {/* ── Export Print Styles (hidden except when printing) ── */}
+            <style>{`
+              @media print {
+                body > *:not(#membership-print-area) { display: none !important; }
+                #membership-print-area { display: block !important; }
+                .no-print { display: none !important; }
+              }
+              #membership-print-area { display: none; }
+            `}</style>
+
+            {/* ── Header ── */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center no-print">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">إدارة طلبات العضوية</h3>
-                <p className="text-sm text-gray-600">مراجعة وإدارة طلبات الانضمام للجمعية</p>
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Link2 className="h-5 w-5 text-amber-600" />
+                  إدارة شراكات الجمعيات
+                </h3>
+                <p className="text-sm text-gray-600">مراجعة وإدارة طلبات الشراكة مع الجمعيات</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <div className="relative">
                   <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    placeholder="البحث في الطلبات..."
-                    value={applicationSearchTerm}
-                    onChange={(e) => setApplicationSearchTerm(e.target.value)}
-                    className="pr-10 w-64"
+                    placeholder="البحث في الجمعيات..."
+                    value={partnershipSearchTerm}
+                    onChange={(e) => setPartnershipSearchTerm(e.target.value)}
+                    className="pr-10 w-56"
                   />
                 </div>
-                <Select value={applicationFilter} onValueChange={setApplicationFilter}>
+                <Select value={partnershipFilter} onValueChange={setPartnershipFilter}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
@@ -1615,24 +1648,109 @@ export function AdminDashboard() {
                     <SelectItem value="all">جميع الطلبات</SelectItem>
                     <SelectItem value="pending">قيد المراجعة</SelectItem>
                     <SelectItem value="approved">مقبولة</SelectItem>
-                    <SelectItem value="rejected">مرفوضة</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" className="flex items-center gap-2 bg-transparent">
-                  <Download className="h-4 w-4" />
-                  تصدير
-                </Button>
+                {/* Export Button */}
+                <Dialog open={exportFormatOpen} onOpenChange={setExportFormatOpen}>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2 bg-transparent"
+                    onClick={() => setExportFormatOpen(true)}
+                    disabled={partnerships.filter((p) => p.status === "approved").length === 0}
+                  >
+                    <Download className="h-4 w-4" />
+                    تصدير
+                  </Button>
+                  <DialogContent className="max-w-sm" dir="rtl">
+                    <DialogHeader>
+                      <DialogTitle>اختر صيغة التصدير</DialogTitle>
+                      <DialogDescription>سيتم تصدير جميع الشراكات المقبولة</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid grid-cols-2 gap-4 py-4">
+                      <Button
+                        variant="outline"
+                        className="h-24 flex flex-col gap-2 bg-transparent border-2 hover:border-red-400 hover:bg-red-50"
+                        onClick={() => {
+                          setExportFormatOpen(false)
+                          const approved = partnerships.filter((p) => p.status === "approved")
+                          // Build printable HTML
+                          const rows = approved.map((p) => `
+                            <div style="page-break-inside:avoid;margin-bottom:32px;border:1px solid #e5e7eb;border-radius:8px;padding:20px">
+                              <h2 style="font-size:18px;font-weight:700;color:#d97706;margin-bottom:12px;border-bottom:2px solid #d97706;padding-bottom:6px">${p.associationName}</h2>
+                              <table style="width:100%;border-collapse:collapse;font-size:13px">
+                                <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;width:35%;border:1px solid #e5e7eb">المؤسسة المشرفة</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.institutionName}</td></tr>
+                                <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">رئيس الجمعية</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.presidentName}</td></tr>
+                                <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف الرئيس</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.presidentPhone}</td></tr>
+                                <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">أمين المال</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.treasurerName}</td></tr>
+                                <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف أمين المال</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.treasurerPhone}</td></tr>
+                                <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">الأمين العام</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.secretaryName}</td></tr>
+                                <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف الأمين العام</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.secretaryPhone}</td></tr>
+                                <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">البريد الإلكتروني</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.email}</td></tr>
+                                <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">رقم الهاتف</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.phone}</td></tr>
+                                <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">تاريخ الموافقة</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.reviewDate ? new Date(p.reviewDate).toLocaleDateString("ar-DZ") : "-"}</td></tr>
+                              </table>
+                            </div>
+                          `).join("")
+                          const printWin = window.open("", "_blank", "width=900,height=700")
+                          if (printWin) {
+                            printWin.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>شراكات الجمعية المنار</title><style>body{font-family:Arial,sans-serif;padding:30px;direction:rtl} h1{color:#d97706;text-align:center;margin-bottom:6px} .subtitle{text-align:center;color:#6b7280;margin-bottom:24px}</style></head><body><h1>جمعية المنار للشباب</h1><p class="subtitle">قائمة الشراكات المعتمدة — ${new Date().toLocaleDateString("ar-DZ")}</p>${rows}</body></html>`)
+                            printWin.document.close()
+                            printWin.focus()
+                            setTimeout(() => printWin.print(), 500)
+                          }
+                        }}
+                      >
+                        <Printer className="h-8 w-8 text-red-500" />
+                        <span className="text-sm font-medium">PDF / طباعة</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-24 flex flex-col gap-2 bg-transparent border-2 hover:border-blue-400 hover:bg-blue-50"
+                        onClick={() => {
+                          setExportFormatOpen(false)
+                          const approved = partnerships.filter((p) => p.status === "approved")
+                          const tableRows = approved.map((p) => `
+                            <h2>${p.associationName}</h2>
+                            <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%">
+                              <tr style="background:#fef9f0"><td><b>المؤسسة المشرفة</b></td><td>${p.institutionName}</td></tr>
+                              <tr><td><b>رئيس الجمعية</b></td><td>${p.presidentName}</td></tr>
+                              <tr style="background:#fef9f0"><td><b>هاتف الرئيس</b></td><td>${p.presidentPhone}</td></tr>
+                              <tr><td><b>أمين المال</b></td><td>${p.treasurerName}</td></tr>
+                              <tr style="background:#fef9f0"><td><b>هاتف أمين المال</b></td><td>${p.treasurerPhone}</td></tr>
+                              <tr><td><b>الأمين العام</b></td><td>${p.secretaryName}</td></tr>
+                              <tr style="background:#fef9f0"><td><b>هاتف الأمين العام</b></td><td>${p.secretaryPhone}</td></tr>
+                              <tr><td><b>البريد الإلكتروني</b></td><td>${p.email}</td></tr>
+                              <tr style="background:#fef9f0"><td><b>رقم الهاتف</b></td><td>${p.phone}</td></tr>
+                              <tr><td><b>تاريخ الموافقة</b></td><td>${p.reviewDate ? new Date(p.reviewDate).toLocaleDateString("ar-DZ") : "-"}</td></tr>
+                            </table><br/>
+                          `).join("")
+                          const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>شراكات</title><style>body{font-family:Arial;direction:rtl} table{border-collapse:collapse;width:100%} td{padding:6px 10px} h2{color:#d97706}</style></head><body><h1 style="text-align:center;color:#d97706">جمعية المنار للشباب — الشراكات المعتمدة</h1><p style="text-align:center;color:#6b7280">${new Date().toLocaleDateString("ar-DZ")}</p><hr/>${tableRows}</body></html>`
+                          const blob = new Blob(["\ufeff" + html], { type: "application/msword" })
+                          const url = URL.createObjectURL(blob)
+                          const a = document.createElement("a")
+                          a.href = url
+                          a.download = `شراكات_المنار_${new Date().toISOString().slice(0, 10)}.doc`
+                          a.click()
+                          URL.revokeObjectURL(url)
+                        }}
+                      >
+                        <FileDown className="h-8 w-8 text-blue-500" />
+                        <span className="text-sm font-medium">Word (.doc)</span>
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
 
-            {/* Applications Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* ── Stats Cards ── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي الطلبات</p>
-                      <p className="text-2xl font-bold text-gray-900">{membershipApplications.length}</p>
+                      <p className="text-2xl font-bold text-gray-900">{partnerships.filter(p => p.status !== "rejected").length}</p>
                     </div>
                     <FileText className="h-8 w-8 text-blue-600" />
                   </div>
@@ -1644,7 +1762,7 @@ export function AdminDashboard() {
                     <div>
                       <p className="text-sm font-medium text-gray-600">قيد المراجعة</p>
                       <p className="text-2xl font-bold text-yellow-600">
-                        {membershipApplications.filter((app) => app.status === "pending").length}
+                        {partnerships.filter((p) => p.status === "pending").length}
                       </p>
                     </div>
                     <Clock className="h-8 w-8 text-yellow-600" />
@@ -1655,124 +1773,152 @@ export function AdminDashboard() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">مقبولة</p>
+                      <p className="text-sm font-medium text-gray-600">شراكات معتمدة</p>
                       <p className="text-2xl font-bold text-green-600">
-                        {membershipApplications.filter((app) => app.status === "approved").length}
+                        {partnerships.filter((p) => p.status === "approved").length}
                       </p>
                     </div>
                     <CheckCircle className="h-8 w-8 text-green-600" />
                   </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">مرفوضة</p>
-                      <p className="text-2xl font-bold text-red-600">
-                        {membershipApplications.filter((app) => app.status === "rejected").length}
-                      </p>
-                    </div>
-                    <XCircle className="h-8 w-8 text-red-600" />
-                  </div>
-                </CardContent>
-              </Card>
             </div>
 
-            {/* Applications List */}
-            <Card>
-              <CardHeader>
-                <CardTitle>قائمة طلبات العضوية</CardTitle>
-                <CardDescription>جميع طلبات الانضمام المقدمة للجمعية</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredApplications.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <UserCheck className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p>لا توجد طلبات تطابق البحث</p>
-                    </div>
-                  ) : (
-                    filteredApplications.map((application) => (
-                      <div
-                        key={application.id}
-                        className={`p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer ${
-                          application.status === "pending" ? "bg-yellow-50 border-yellow-200" : "bg-white"
-                        }`}
-                        onClick={() => setSelectedApplication(application)}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-4 flex-1">
-                            <img
-                              src={application.personalPhoto || "/placeholder.svg"}
-                              alt={application.name}
-                              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h4 className="font-semibold text-gray-900">{application.name}</h4>
-                                <Badge className={getApplicationStatusColor(application.status)}>
-                                  {getApplicationStatusText(application.status)}
-                                </Badge>
-                                <Badge variant="outline">{application.applicationId}</Badge>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-2">
-                                <div className="flex items-center gap-1">
-                                  <Mail className="h-3 w-3" />
-                                  {application.email}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Phone className="h-3 w-3" />
-                                  {application.phone}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <User className="h-3 w-3" />
-                                  {application.age} سنة - {application.gender === "male" ? "ذكر" : "أنثى"}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />
-                                  {application.address}
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">{application.education}</p>
-                              <div className="flex flex-wrap gap-1 mb-2">
-                                {application.interests.map((interest, index) => (
-                                  <Badge key={index} variant="secondary" className="text-xs">
-                                    {interest}
-                                  </Badge>
-                                ))}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                تاريخ التقديم: {new Date(application.submissionDate).toLocaleDateString("ar-SA")}
-                                {application.reviewDate && (
-                                  <span className="mr-4">
-                                    تاريخ المراجعة: {new Date(application.reviewDate).toLocaleDateString("ar-SA")}
-                                  </span>
-                                )}
-                              </div>
+            {/* ── Soft-deleted (rejected) Grace Period Zone ── */}
+            {rejectedPartnerships.length > 0 && (
+              <Card className="border-orange-200 bg-orange-50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold text-orange-700 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    جمعيات مرفوضة مؤقتاً — سيتم حذفها نهائياً خلال {GRACE_DAYS} أيام
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {rejectedPartnerships.map((p) => {
+                      const remaining = p.rejectedAt ? getRemainingDays(p.rejectedAt) : GRACE_DAYS
+                      return (
+                        <div key={p.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-200">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                              <Building2 className="h-5 w-5 text-orange-500" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900 text-sm">{p.associationName}</p>
+                              <p className="text-xs text-orange-600">
+                                يتبقى <strong>{remaining}</strong> {remaining === 1 ? "يوم" : "أيام"} قبل الحذف النهائي
+                              </p>
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            {application.status === "pending" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-300 bg-transparent"
+                              onClick={() => handleUndoReject(p.id)}
+                            >
+                              <Undo2 className="h-4 w-4 ml-1" />
+                              تراجع
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 hover:text-red-700 border-red-300 bg-transparent"
+                              onClick={() => setDeleteConfirmId(p.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ── Partnerships List ── */}
+            <Card>
+              <CardHeader>
+                <CardTitle>قائمة الشراكات</CardTitle>
+                <CardDescription>جميع طلبات الشراكة المقدمة من الجمعيات</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {filteredPartnerships.length === 0 ? (
+                    <div className="text-center py-10 text-gray-500">
+                      <Link2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>لا توجد جمعيات تطابق البحث</p>
+                    </div>
+                  ) : (
+                    filteredPartnerships.map((p) => (
+                      <div
+                        key={p.id}
+                        className={`p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer ${p.status === "pending" ? "bg-yellow-50 border-yellow-200" : "bg-white border-gray-200"
+                          }`}
+                        onClick={() => setSelectedPartnership(p)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-4 flex-1">
+                            {/* Association Avatar */}
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center flex-shrink-0 border-2 border-amber-300">
+                              <Building2 className="h-7 w-7 text-amber-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-3 mb-1 flex-wrap">
+                                <h4 className="font-bold text-gray-900">{p.associationName}</h4>
+                                <Badge
+                                  className={
+                                    p.status === "pending"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-green-100 text-green-800"
+                                  }
+                                >
+                                  {p.status === "pending" ? "قيد المراجعة" : "مقبولة"}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-500 mb-2">{p.institutionName}</p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-gray-600">
+                                <div className="flex items-center gap-1">
+                                  <User className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">الرئيس: {p.presidentName}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Phone className="h-3 w-3 flex-shrink-0" />
+                                  <span>{p.presidentPhone}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Mail className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">{p.email}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Phone className="h-3 w-3 flex-shrink-0" />
+                                  <span>{p.phone}</span>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-400 mt-2">
+                                تاريخ التقديم: {new Date(p.submissionDate).toLocaleDateString("ar-DZ")}
+                              </p>
+                            </div>
+                          </div>
+                          {/* Action Buttons */}
+                          <div className="flex gap-2 flex-shrink-0 mr-2" onClick={(e) => e.stopPropagation()}>
+                            {p.status === "pending" && (
                               <>
                                 <Button
                                   size="sm"
                                   className="bg-green-600 hover:bg-green-700"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleApproveApplication(application.id)
-                                  }}
+                                  onClick={() => handleApprovePartnership(p.id)}
+                                  title="قبول"
                                 >
                                   <CheckCircle className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="text-red-600 hover:text-red-700 bg-transparent"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleRejectApplication(application.id)
-                                  }}
+                                  className="text-red-600 hover:text-red-700 bg-transparent border-red-300"
+                                  onClick={() => handleRejectPartnership(p.id)}
+                                  title="رفض"
                                 >
                                   <XCircle className="h-4 w-4" />
                                 </Button>
@@ -1781,11 +1927,9 @@ export function AdminDashboard() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDeleteApplication(application.id)
-                              }}
-                              className="text-red-600 hover:text-red-700"
+                              className="text-red-600 hover:text-red-700 border-red-200 bg-transparent"
+                              onClick={() => setDeleteConfirmId(p.id)}
+                              title="حذف"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -1798,173 +1942,178 @@ export function AdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* Application Detail Dialog */}
-            <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+            {/* ── Partnership Detail Dialog ── */}
+            <Dialog open={!!selectedPartnership} onOpenChange={() => setSelectedPartnership(null)}>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <UserCheck className="h-5 w-5" />
-                    طلب العضوية - {selectedApplication?.name}
+                    <Building2 className="h-5 w-5 text-amber-600" />
+                    {selectedPartnership?.associationName}
                   </DialogTitle>
-                  <DialogDescription>رقم الطلب: {selectedApplication?.applicationId}</DialogDescription>
+                  <DialogDescription>{selectedPartnership?.institutionName}</DialogDescription>
                 </DialogHeader>
-                {selectedApplication && (
+                {selectedPartnership && (
                   <div className="space-y-6">
-                    {/* Personal Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="md:col-span-2 space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">الاسم الكامل</Label>
-                            <p className="text-sm font-medium">{selectedApplication.name}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">رقم الطلب</Label>
-                            <p className="text-sm font-medium">{selectedApplication.applicationId}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">البريد الإلكتروني</Label>
-                            <p className="text-sm">{selectedApplication.email}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">رقم الهاتف</Label>
-                            <p className="text-sm">{selectedApplication.phone}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">العمر</Label>
-                            <p className="text-sm">{selectedApplication.age} سنة</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-600">الجنس</Label>
-                            <p className="text-sm">{selectedApplication.gender === "male" ? "ذكر" : "أنثى"}</p>
-                          </div>
+                    {/* Contact Grid */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3 border-b pb-1">معلومات القيادة</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                          <Label className="text-xs font-medium text-amber-700">رئيس الجمعية</Label>
+                          <p className="text-sm font-semibold mt-1">{selectedPartnership.presidentName}</p>
+                          <p className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
+                            <Phone className="h-3 w-3" />{selectedPartnership.presidentPhone}
+                          </p>
                         </div>
-                        <div>
-                          <Label className="text-sm font-medium text-gray-600">العنوان</Label>
-                          <p className="text-sm">{selectedApplication.address}</p>
+                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                          <Label className="text-xs font-medium text-blue-700">أمين المال</Label>
+                          <p className="text-sm font-semibold mt-1">{selectedPartnership.treasurerName}</p>
+                          <p className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
+                            <Phone className="h-3 w-3" />{selectedPartnership.treasurerPhone}
+                          </p>
                         </div>
-                        <div>
-                          <Label className="text-sm font-medium text-gray-600">المستوى التعليمي</Label>
-                          <p className="text-sm">{selectedApplication.education}</p>
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-100">
+                          <Label className="text-xs font-medium text-green-700">الأمين العام</Label>
+                          <p className="text-sm font-semibold mt-1">{selectedPartnership.secretaryName}</p>
+                          <p className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
+                            <Phone className="h-3 w-3" />{selectedPartnership.secretaryPhone}
+                          </p>
+                        </div>
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <Label className="text-xs font-medium text-gray-600">معلومات التواصل</Label>
+                          <p className="text-sm text-gray-800 flex items-center gap-1 mt-1">
+                            <Mail className="h-3 w-3" />{selectedPartnership.email}
+                          </p>
+                          <p className="text-sm text-gray-800 flex items-center gap-1 mt-0.5">
+                            <Phone className="h-3 w-3" />{selectedPartnership.phone}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex flex-col items-center">
-                        <Label className="text-sm font-medium text-gray-600 mb-2">الصورة الشخصية</Label>
-                        <img
-                          src={selectedApplication.personalPhoto || "/placeholder.svg"}
-                          alt={selectedApplication.name}
-                          className="w-32 h-32 rounded-lg object-cover border-2 border-gray-200"
-                        />
-                      </div>
                     </div>
 
-                    {/* Interests */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">الاهتمامات</Label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {selectedApplication.interests.map((interest, index) => (
-                          <Badge key={index} variant="secondary">
-                            {interest}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Experience */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">الخبرة السابقة</Label>
-                      <div className="mt-2 p-4 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-800">{selectedApplication.experience}</p>
-                      </div>
-                    </div>
-
-                    {/* Motivation */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">دافع الانضمام</Label>
-                      <div className="mt-2 p-4 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-800">{selectedApplication.motivation}</p>
-                      </div>
-                    </div>
-
-                    {/* Status and Review */}
+                    {/* Status Info */}
                     <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                       <div>
                         <Label className="text-sm font-medium text-gray-600">حالة الطلب</Label>
-                        <Badge className={`mt-1 ${getApplicationStatusColor(selectedApplication.status)}`}>
-                          {getApplicationStatusText(selectedApplication.status)}
+                        <Badge
+                          className={`mt-1 ${selectedPartnership.status === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-green-100 text-green-800"
+                            }`}
+                        >
+                          {selectedPartnership.status === "pending" ? "قيد المراجعة" : "مقبولة"}
                         </Badge>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-600">تاريخ التقديم</Label>
-                        <p className="text-sm">
-                          {new Date(selectedApplication.submissionDate).toLocaleString("ar-SA")}
-                        </p>
+                        <p className="text-sm mt-1">{new Date(selectedPartnership.submissionDate).toLocaleDateString("ar-DZ")}</p>
                       </div>
-                      {selectedApplication.reviewedBy && (
+                      {selectedPartnership.reviewedBy && (
                         <>
                           <div>
                             <Label className="text-sm font-medium text-gray-600">تمت المراجعة بواسطة</Label>
-                            <p className="text-sm">{selectedApplication.reviewedBy}</p>
+                            <p className="text-sm mt-1">{selectedPartnership.reviewedBy}</p>
                           </div>
                           <div>
                             <Label className="text-sm font-medium text-gray-600">تاريخ المراجعة</Label>
-                            <p className="text-sm">
-                              {new Date(selectedApplication.reviewDate!).toLocaleString("ar-SA")}
-                            </p>
+                            <p className="text-sm mt-1">{selectedPartnership.reviewDate ? new Date(selectedPartnership.reviewDate).toLocaleDateString("ar-DZ") : "-"}</p>
                           </div>
                         </>
                       )}
                     </div>
 
-                    {selectedApplication.notes && (
+                    {selectedPartnership.notes && (
                       <div>
-                        <Label className="text-sm font-medium text-gray-600">ملاحظات المراجعة</Label>
-                        <div className="mt-2 p-4 bg-blue-50 rounded-lg">
-                          <p className="text-sm text-blue-800">{selectedApplication.notes}</p>
+                        <Label className="text-sm font-medium text-gray-600">ملاحظات</Label>
+                        <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                          <p className="text-sm text-blue-800">{selectedPartnership.notes}</p>
                         </div>
                       </div>
                     )}
 
-                    {/* Review Actions */}
-                    {selectedApplication.status === "pending" && (
-                      <div className="space-y-4 border-t pt-4">
+                    {/* Approve / Reject actions for pending */}
+                    {selectedPartnership.status === "pending" && (
+                      <div className="space-y-3 border-t pt-4">
                         <div>
-                          <Label htmlFor="review-notes">ملاحظات المراجعة</Label>
+                          <Label htmlFor="review-notes-dialog">ملاحظات المراجعة (اختياري)</Label>
                           <Textarea
-                            id="review-notes"
-                            placeholder="اكتب ملاحظاتك حول الطلب..."
+                            id="review-notes-dialog"
+                            placeholder="اكتب ملاحظاتك حول طلب الشراكة..."
                             value={reviewNotes}
                             onChange={(e) => setReviewNotes(e.target.value)}
                             rows={3}
+                            className="mt-1"
                           />
                         </div>
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
-                            className="text-red-600 hover:text-red-700 bg-transparent"
-                            onClick={() => handleRejectApplication(selectedApplication.id)}
+                            className="text-red-600 hover:text-red-700 bg-transparent border-red-300"
+                            onClick={() => handleRejectPartnership(selectedPartnership.id)}
                           >
                             <XCircle className="ml-2 h-4 w-4" />
                             رفض الطلب
                           </Button>
                           <Button
                             className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleApproveApplication(selectedApplication.id)}
+                            onClick={() => handleApprovePartnership(selectedPartnership.id)}
                           >
                             <CheckCircle className="ml-2 h-4 w-4" />
-                            قبول الطلب
+                            قبول الشراكة
                           </Button>
                         </div>
                       </div>
                     )}
 
                     <div className="flex justify-end">
-                      <Button variant="outline" onClick={() => setSelectedApplication(null)}>
+                      <Button variant="outline" onClick={() => setSelectedPartnership(null)}>
                         إغلاق
                       </Button>
                     </div>
                   </div>
                 )}
+              </DialogContent>
+            </Dialog>
+
+            {/* ── Delete Confirmation Dialog ── */}
+            <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
+              <DialogContent className="max-w-md" dir="rtl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-red-600">
+                    <AlertTriangle className="h-5 w-5" />
+                    تأكيد الحذف النهائي
+                  </DialogTitle>
+                  <DialogDescription>
+                    هذا الإجراء لا يمكن التراجع عنه بعد التأكيد
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-3">
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700 font-medium flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                      ستقوم بحذف الجمعية التالية بشكل نهائي:
+                    </p>
+                    <p className="text-base font-bold text-red-900 mt-2 pr-6">
+                      {partnerships.find((p) => p.id === deleteConfirmId)?.associationName}
+                    </p>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    سيتم حذف جميع بيانات هذه الجمعية نهائياً ولن تتمكن من استعادتها لاحقاً.
+                    هل أنت متأكد من المتابعة؟
+                  </p>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
+                    إلغاء — ابقِ الجمعية
+                  </Button>
+                  <Button
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    onClick={() => deleteConfirmId && handleDeletePartnership(deleteConfirmId)}
+                  >
+                    <Trash2 className="ml-2 h-4 w-4" />
+                    نعم، احذف نهائياً
+                  </Button>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
@@ -2658,7 +2807,7 @@ export function AdminDashboard() {
                           </td>
                           <td className="text-center p-3">
                             {rolePermissions["Content Manager"].includes(permission.id) ||
-                            rolePermissions["Content Manager"].includes("all") ? (
+                              rolePermissions["Content Manager"].includes("all") ? (
                               <Check className="h-5 w-5 text-green-600 mx-auto" />
                             ) : (
                               <X className="h-5 w-5 text-red-400 mx-auto" />
@@ -2666,7 +2815,7 @@ export function AdminDashboard() {
                           </td>
                           <td className="text-center p-3">
                             {rolePermissions["Moderator"].includes(permission.id) ||
-                            rolePermissions["Moderator"].includes("all") ? (
+                              rolePermissions["Moderator"].includes("all") ? (
                               <Check className="h-5 w-5 text-green-600 mx-auto" />
                             ) : (
                               <X className="h-5 w-5 text-red-400 mx-auto" />
