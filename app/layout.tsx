@@ -18,9 +18,8 @@ const cairo = Cairo({
 })
 
 export const metadata: Metadata = {
-  title: "جمعية المنار للشباب | Al-Manar Youth Association",
-  description: "موقع جمعية المنار للشباب - نحو مستقبل أفضل للشباب العربي",
-  generator: "v0.app",
+  title: "Al-Manar Youth Association",
+  description: "Al-Manar Youth Association Website",
 }
 
 export default function RootLayout({
@@ -30,16 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className={`${amiri.variable} ${cairo.variable}`}>
-      <head>
-        <style>{`
-html {
-  font-family: ${cairo.style.fontFamily};
-  --font-sans: ${cairo.variable};
-  --font-serif: ${amiri.variable};
-}
-        `}</style>
-      </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body className={`${cairo.className} antialiased`}>{children}</body>
     </html>
   )
 }
