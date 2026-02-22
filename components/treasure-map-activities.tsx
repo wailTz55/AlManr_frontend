@@ -7,8 +7,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Calendar, MapPin, Users, Camera, Video, Award, Clock, Star, ChevronLeft, ChevronRight, Play, Heart, Bookmark, Share } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar, MapPin, Users, Camera, Video, Award, Clock, Star, ChevronLeft, ChevronRight, Play, UserCheck, CheckCircle, Building2 } from "lucide-react"
 
 export function TreasureMapActivities() {
   const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -26,11 +29,26 @@ export function TreasureMapActivities() {
   const [savedActivities, setSavedActivities] = useState<Set<number>>(new Set());
   const card_number = 20;
   // إعدادات التمرير اللامتهي
-  const [displayedItems, setDisplayedItems] = useState(card_number); // البطاقات المعروضة حالياً
+  const [displayedItems, setDisplayedItems] = useState(card_number);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const loadMoreRef = useRef<HTMLDivElement>(null); // مرجع لنقطة التحميل
-  const ITEMS_PER_LOAD = card_number; // عدد البطاقات التي تُحمل في كل مرة
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const ITEMS_PER_LOAD = card_number;
+
+  // --- Registration / Participant UI state (ready to wire to real auth/API) ---
+  // isLoggedIn: simulate association login (set to false = show login prompt)
+  const [isLoggedIn] = useState(false)
+  // Track which activityId the current user's association is registered for
+  const [registeredActivityIds, setRegisteredActivityIds] = useState<Set<number>>(new Set())
+  const [showRegisterDialog, setShowRegisterDialog] = useState(false)
+  const [registeringActivity, setRegisteringActivity] = useState<Activity | null>(null)
+  const [regFormData, setRegFormData] = useState({ assocName: "", email: "", phone: "" })
+  const [regSuccess, setRegSuccess] = useState(false)
+  // Participant form
+  const [showParticipantDialog, setShowParticipantDialog] = useState(false)
+  const [participantActivity, setParticipantActivity] = useState<Activity | null>(null)
+  const [participantForm, setParticipantForm] = useState({ name: "", age: "", category: "" })
+  const [participantSuccess, setParticipantSuccess] = useState(false)
 
   // جلب البيانات من API مع معالجة الأخطاء
   useEffect(() => {
@@ -39,7 +57,7 @@ export function TreasureMapActivities() {
         setIsLoading(true);
         setError(null);
         const data = await fetchAllData();
-        
+
         if (data && data.activities && Array.isArray(data.activities)) {
           setActivities(data.activities);
           // تحديث حالة "يوجد المزيد" بناءً على البيانات المحملة
@@ -106,7 +124,7 @@ export function TreasureMapActivities() {
           loadMoreItems();
         }
       },
-      { 
+      {
         threshold: 0.1,
         rootMargin: '100px' // بدء التحميل قبل 100px من الوصول للنهاية
       }
@@ -122,15 +140,15 @@ export function TreasureMapActivities() {
   // دالة تحميل المزيد من البطاقات
   const loadMoreItems = async () => {
     if (isLoadingMore || !hasMore) return;
-    
+
     setIsLoadingMore(true);
-    
+
     // محاكاة تأخير التحميل لتجربة أفضل
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     const newDisplayedItems = Math.min(displayedItems + ITEMS_PER_LOAD, activities.length);
     setDisplayedItems(newDisplayedItems);
-    
+
     // تحديث حالة "يوجد المزيد"
     setHasMore(newDisplayedItems < activities.length);
     setIsLoadingMore(false);
@@ -176,7 +194,7 @@ export function TreasureMapActivities() {
   const handleActivityCardClick = (activity: Activity) => {
     setSelectedActivity(activity);
     setCurrentImageIndex(0);
-    
+
     // تحديث URL بدون إعادة تحميل الصفحة
     const url = new URL(window.location.href);
     url.searchParams.set('activityId', activity.id.toString());
@@ -185,7 +203,7 @@ export function TreasureMapActivities() {
 
   const handleCloseDialog = () => {
     setSelectedActivity(null);
-    
+
     // إزالة معرف النشاط من URL
     const url = new URL(window.location.href);
     url.searchParams.delete('activityId');
@@ -260,21 +278,19 @@ export function TreasureMapActivities() {
               'h-64', 'h-80', 'h-96', 'h-72', 'h-60', 'h-88'
             ];
             const randomHeight = heights[index % heights.length];
-            
+
             return (
               <div
                 key={activity.id}
                 data-activity-id={activity.id}
-                className={`break-inside-avoid mb-4 transition-all duration-1000 ${
-                  visibleActivities.has(activity.id)
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-8"
-                } `}
+                className={`break-inside-avoid mb-4 transition-all duration-1000 ${visibleActivities.has(activity.id)
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-8"
+                  } `}
               >
                 <Card
-                  className={`relative overflow-hidden cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl group rounded-2xl !pb-0 ${
-                    activity.status === "قادم" ? "opacity-80" : ""
-                  }`}
+                  className={`relative overflow-hidden cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl group rounded-2xl !pb-0 ${activity.status === "قادم" ? "opacity-80" : ""
+                    }`}
                   onClick={() => handleActivityCardClick(activity)}
                 >
                   {/* الصورة الرئيسية */}
@@ -285,7 +301,7 @@ export function TreasureMapActivities() {
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                       loading={index < card_number ? "eager" : "lazy"} // تحسين الأداء
                     />
-                    
+
                     {/* طبقة التمويه عند التمرير */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
@@ -293,18 +309,17 @@ export function TreasureMapActivities() {
                         اكتشف الكنز
                       </Button>
                     </div>
-                    
+
                     {/* شارة الحالة */}
                     <Badge
-                      className={`absolute top-3 right-3 text-sm px-3 py-1 ${
-                        activity.status === "مكتمل"
-                          ? "bg-secondary text-secondary-foreground"
-                          : "bg-primary text-primary-foreground"
-                      }`}
+                      className={`absolute top-3 right-3 text-sm px-3 py-1 ${activity.status === "مكتمل"
+                        ? "bg-secondary text-secondary-foreground"
+                        : "bg-primary text-primary-foreground"
+                        }`}
                     >
                       {activity.status}
                     </Badge>
-                    
+
                     {/* أيقونة الفئة */}
                     <div className="absolute bottom-3 left-3 bg-background/80 backdrop-blur-sm rounded-full p-3">
                       {activity.category === "مخيم" && <Calendar className="w-5 h-5 text-primary" />}
@@ -314,7 +329,7 @@ export function TreasureMapActivities() {
                       {activity.category === "استكشاف" && <MapPin className="w-5 h-5 text-chart-4" />}
                       {activity.category === "مؤتمر" && <Users className="w-5 h-5 text-chart-5" />}
                     </div>
-                    
+
                     {/* عنوان النشاط فوق الصورة عند التمرير */}
                     <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <h3 className="font-bold text-lg text-white line-clamp-2">
@@ -340,8 +355,8 @@ export function TreasureMapActivities() {
 
         {/* مؤشر التحميل للتمرير اللامتهي */}
         {hasMore && (
-          <div 
-            ref={loadMoreRef} 
+          <div
+            ref={loadMoreRef}
             className="flex justify-center py-12"
           >
             {isLoadingMore ? (
@@ -377,7 +392,7 @@ export function TreasureMapActivities() {
       </div>
 
       {/* Activity Detail Modal - نفس الكود السابق */}
-    <Dialog open={!!selectedActivity} onOpenChange={handleCloseDialog}>
+      <Dialog open={!!selectedActivity} onOpenChange={handleCloseDialog}>
         <DialogContent className="w-[98vw] sm:max-w-[95vw] md:max-w-[85vw] lg:max-w-[75vw] xl:max-w-[1200px] max-h-[98vh] overflow-y-auto overflow-x-hidden px-2 sm:px-6">
           {selectedActivity && (
             <>
@@ -399,7 +414,7 @@ export function TreasureMapActivities() {
                       alt={selectedActivity.title}
                       className="w-full h-full object-cover transition-transform duration-500"
                     />
-                    
+
                     {/* Gallery Navigation */}
                     {selectedActivity.images && selectedActivity.images.length > 1 && (
                       <>
@@ -419,23 +434,22 @@ export function TreasureMapActivities() {
                         >
                           <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
                         </Button>
-                        
+
                         {/* Image Indicators */}
                         <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2 flex gap-0.5 sm:gap-1">
                           {selectedActivity.images.map((_, index) => (
                             <button
                               key={index}
                               onClick={() => setCurrentImageIndex(index)}
-                              className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-colors ${
-                                index === currentImageIndex ? "bg-white" : "bg-white/50"
-                              }`}
+                              className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-colors ${index === currentImageIndex ? "bg-white" : "bg-white/50"
+                                }`}
                             />
                           ))}
                         </div>
                       </>
                     )}
                   </div>
-                  
+
                   {/* Video Section */}
                   {selectedActivity.videos && selectedActivity.videos.length > 0 && (
                     <div className="relative aspect-video rounded-lg overflow-hidden bg-black/10">
@@ -460,7 +474,7 @@ export function TreasureMapActivities() {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Activity Details */}
                 <div className="space-y-4 sm:space-y-8">
                   {/* Basic Info */}
@@ -482,7 +496,7 @@ export function TreasureMapActivities() {
                       <span className="truncate">{selectedActivity.participants} مشارك</span>
                     </div>
                   </div>
-                  
+
                   {/* Description */}
                   <div>
                     <h4 className="font-semibold text-lg sm:text-xl text-foreground mb-2 sm:mb-4">وصف النشاط</h4>
@@ -490,7 +504,7 @@ export function TreasureMapActivities() {
                       {selectedActivity.description}
                     </p>
                   </div>
-                  
+
                   {/* Achievements */}
                   {selectedActivity.achievements && selectedActivity.achievements.length > 0 && (
                     <div>
@@ -505,7 +519,7 @@ export function TreasureMapActivities() {
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Highlights */}
                   {selectedActivity.highlights && selectedActivity.highlights.length > 0 && (
                     <div>
@@ -520,9 +534,74 @@ export function TreasureMapActivities() {
                       </div>
                     </div>
                   )}
-                  
+
+                  {/* Activity Template Badge */}
+                  {selectedActivity.activityTemplate && selectedActivity.activityTemplate !== "announcement" && (
+                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium w-fit ${selectedActivity.activityTemplate === "announcement_reg" ? "bg-blue-50 text-blue-700 border border-blue-200" :
+                        selectedActivity.activityTemplate === "announcement_reg_participants" ? "bg-purple-50 text-purple-700 border border-purple-200" :
+                          "bg-orange-50 text-orange-700 border border-orange-200"
+                      }`}>
+                      <Users className="w-4 h-4" />
+                      {selectedActivity.activityTemplate === "announcement_reg" && "التسجيل متاح للجمعيات"}
+                      {selectedActivity.activityTemplate === "announcement_reg_participants" && "التسجيل + إضافة مشاركين"}
+                      {selectedActivity.activityTemplate === "special" && "نشاط خاص — تسجيل بفئات"}
+                    </div>
+                  )}
+
+                  {/* Categories Display for special activities */}
+                  {selectedActivity.activityTemplate === "special" && selectedActivity.categories && selectedActivity.categories.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-base text-foreground mb-2">الفئات المتاحة</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedActivity.categories.map((cat, idx) => (
+                          <span key={idx} className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium">{cat}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Registration Button — show if activity allows association registration */}
+                  {(selectedActivity.activityTemplate === "announcement_reg" ||
+                    selectedActivity.activityTemplate === "announcement_reg_participants" ||
+                    selectedActivity.activityTemplate === "special") && (
+                      <div className="pt-3 border-t">
+                        {!isLoggedIn ? (
+                          <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-center text-sm text-amber-700">
+                            يجب تسجيل الدخول كجمعية للتسجيل في هذا النشاط
+                          </div>
+                        ) : registeredActivityIds.has(selectedActivity.id) ? (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg border border-green-200">
+                              <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                              <span className="text-sm font-medium">تم تسجيل جمعيتك في هذا النشاط — بانتظار المراجعة</span>
+                            </div>
+                            {(selectedActivity.activityTemplate === "announcement_reg_participants" ||
+                              selectedActivity.activityTemplate === "special") && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="w-full text-purple-700 border-purple-200 hover:bg-purple-50"
+                                  onClick={() => { setParticipantActivity(selectedActivity); setParticipantForm({ name: "", age: "", category: "" }); setParticipantSuccess(false); setShowParticipantDialog(true) }}
+                                >
+                                  <UserCheck className="w-4 h-4 ml-2" />
+                                  إضافة مشاركين
+                                </Button>
+                              )}
+                          </div>
+                        ) : (
+                          <Button
+                            className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                            onClick={() => { setRegisteringActivity(selectedActivity); setRegFormData({ assocName: "", email: "", phone: "" }); setRegSuccess(false); setShowRegisterDialog(true) }}
+                          >
+                            <Building2 className="w-4 h-4 ml-2" />
+                            تسجيل جمعيتك في النشاط
+                          </Button>
+                        )}
+                      </div>
+                    )}
+
                   {/* Action Buttons */}
-                  <div className="flex flex-col xs:flex-row gap-2 sm:gap-4 pt-4 sm:pt-6">
+                  <div className="flex flex-col xs:flex-row gap-2 sm:gap-4 pt-2">
                     <Button size="sm" className="flex-1 text-sm sm:text-lg py-2 sm:py-4 min-h-0">
                       <Camera className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
                       <span className="truncate">عرض الصور</span>
@@ -537,7 +616,119 @@ export function TreasureMapActivities() {
             </>
           )}
         </DialogContent>
-    </Dialog>
+      </Dialog>
+
+      {/* Association Registration Dialog */}
+      <Dialog open={showRegisterDialog} onOpenChange={(open) => { if (!open) setShowRegisterDialog(false) }}>
+        <DialogContent className="max-w-lg w-[95vw] p-6" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-amber-600" />
+              تسجيل الجمعية في النشاط
+            </DialogTitle>
+            <DialogDescription>
+              تسجيل جمعيتك في نشاط: {registeringActivity?.title}
+            </DialogDescription>
+          </DialogHeader>
+          {regSuccess ? (
+            <div className="text-center py-6">
+              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">تم إرسال طلب التسجيل!</h3>
+              <p className="text-sm text-gray-500">سيتم مراجعة طلبكم والرد عليه في أقرب وقت.</p>
+              <Button className="mt-4" onClick={() => setShowRegisterDialog(false)}>إغلاق</Button>
+            </div>
+          ) : (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>اسم الجمعية</Label>
+                <input className="w-full border rounded-md px-3 py-2 text-sm" placeholder="اسم جمعيتك" value={regFormData.assocName} onChange={(e) => setRegFormData({ ...regFormData, assocName: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>البريد الإلكتروني</Label>
+                <input className="w-full border rounded-md px-3 py-2 text-sm" placeholder="email@example.com" type="email" value={regFormData.email} onChange={(e) => setRegFormData({ ...regFormData, email: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>رقم الهاتف</Label>
+                <input className="w-full border rounded-md px-3 py-2 text-sm" placeholder="0550000000" value={regFormData.phone} onChange={(e) => setRegFormData({ ...regFormData, phone: e.target.value })} />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setShowRegisterDialog(false)}>إلغاء</Button>
+                <Button
+                  className="flex-1 bg-amber-600 hover:bg-amber-700"
+                  onClick={() => {
+                    if (regFormData.assocName && regFormData.email && registeringActivity) {
+                      setRegisteredActivityIds(prev => new Set([...prev, registeringActivity.id]))
+                      setRegSuccess(true)
+                    }
+                  }}
+                >
+                  إرسال طلب التسجيل
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Participants Dialog */}
+      <Dialog open={showParticipantDialog} onOpenChange={(open) => { if (!open) setShowParticipantDialog(false) }}>
+        <DialogContent className="max-w-lg w-[95vw] p-6" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5 text-purple-600" />
+              إضافة مشارك
+            </DialogTitle>
+            <DialogDescription>
+              إضافة مشارك لنشاط: {participantActivity?.title}
+            </DialogDescription>
+          </DialogHeader>
+          {participantSuccess ? (
+            <div className="text-center py-6">
+              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">تمت إضافة المشارك!</h3>
+              <div className="flex gap-2 mt-4 justify-center">
+                <Button variant="outline" onClick={() => { setParticipantForm({ name: "", age: "", category: "" }); setParticipantSuccess(false) }}>إضافة مشارك آخر</Button>
+                <Button onClick={() => setShowParticipantDialog(false)}>إغلاق</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>اسم المشارك</Label>
+                <input className="w-full border rounded-md px-3 py-2 text-sm" placeholder="الاسم الكامل" value={participantForm.name} onChange={(e) => setParticipantForm({ ...participantForm, name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>العمر</Label>
+                <input className="w-full border rounded-md px-3 py-2 text-sm" placeholder="العمر" type="number" value={participantForm.age} onChange={(e) => setParticipantForm({ ...participantForm, age: e.target.value })} />
+              </div>
+              {participantActivity?.activityTemplate === "special" && participantActivity.categories && participantActivity.categories.length > 0 && (
+                <div className="space-y-2">
+                  <Label>الفئة</Label>
+                  <select className="w-full border rounded-md px-3 py-2 text-sm" value={participantForm.category} onChange={(e) => setParticipantForm({ ...participantForm, category: e.target.value })}>
+                    <option value="">اختر الفئة...</option>
+                    {participantActivity.categories.map((cat, i) => (
+                      <option key={i} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setShowParticipantDialog(false)}>إلغاء</Button>
+                <Button
+                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  onClick={() => {
+                    if (participantForm.name && participantForm.age) {
+                      setParticipantSuccess(true)
+                    }
+                  }}
+                >
+                  إضافة المشارك
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

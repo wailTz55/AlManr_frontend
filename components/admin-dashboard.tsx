@@ -33,7 +33,7 @@ import {
   Trash2,
   MapPin,
   Clock,
-  DollarSign,
+
   Mail,
   Reply,
   Search,
@@ -55,7 +55,41 @@ import {
   Printer,
   FileDown,
   Link2,
+  Upload,
 } from "lucide-react"
+
+type ActivityTemplate =
+  | "announcement"
+  | "announcement_reg"
+  | "announcement_reg_participants"
+  | "special"
+
+const ACTIVITY_TEMPLATES: { value: ActivityTemplate; label: string; description: string; color: string }[] = [
+  {
+    value: "announcement",
+    label: "إعلان فقط",
+    description: "عرض معلومات النشاط فقط، بدون تسجيل",
+    color: "bg-gray-100 text-gray-700",
+  },
+  {
+    value: "announcement_reg",
+    label: "إعلان + تسجيل جمعيات",
+    description: "يمكن للجمعيات التسجيل في هذا النشاط",
+    color: "bg-blue-100 text-blue-700",
+  },
+  {
+    value: "announcement_reg_participants",
+    label: "إعلان + جمعيات + مشاركون",
+    description: "يمكن للجمعيات التسجيل وإضافة مشاركين",
+    color: "bg-purple-100 text-purple-700",
+  },
+  {
+    value: "special",
+    label: "نشاط خاص (بطولة / مسابقة)",
+    description: "تسجيل جمعيات ومشاركين مع تصنيفات قابلة للتخصيص (مثل U12، U16، Senior)",
+    color: "bg-orange-100 text-orange-700",
+  },
+]
 
 interface Activity {
   id: string
@@ -65,11 +99,33 @@ interface Activity {
   date: string
   location: string
   duration: string
-  price: string
   capacity: number
   registered: number
   status: "active" | "completed" | "cancelled"
   image: string
+  // --- Template fields ---
+  activityTemplate: ActivityTemplate
+  categories: string[]   // for "special" type, e.g. ["U12", "U16", "Senior"]
+}
+
+interface ActivityRegistration {
+  id: string
+  activityId: string
+  associationName: string
+  associationEmail: string
+  associationPhone: string
+  status: "pending" | "approved" | "rejected"
+  registrationDate: string
+  notes?: string
+  participants: ActivityParticipant[]
+}
+
+interface ActivityParticipant {
+  id: string
+  registrationId: string
+  name: string
+  age: number
+  category?: string
 }
 
 interface Message {
@@ -147,11 +203,12 @@ export function AdminDashboard() {
       date: "2024-07-15",
       location: "جبال الشوف",
       duration: "5 أيام",
-      price: "150",
       capacity: 50,
       registered: 35,
       status: "active",
       image: "/summer-camp-mountains.png",
+      activityTemplate: "announcement",
+      categories: [],
     },
     {
       id: "2",
@@ -161,11 +218,12 @@ export function AdminDashboard() {
       date: "2024-06-20",
       location: "مركز الجمعية",
       duration: "يوم واحد",
-      price: "مجاني",
       capacity: 30,
       registered: 28,
       status: "completed",
       image: "/creative-workshop-innovation.png",
+      activityTemplate: "announcement_reg",
+      categories: [],
     },
     {
       id: "3",
@@ -175,13 +233,61 @@ export function AdminDashboard() {
       date: "2024-08-10",
       location: "الملعب البلدي",
       duration: "3 أيام",
-      price: "50",
       capacity: 100,
       registered: 67,
       status: "active",
       image: "/youth-football-tournament.png",
+      activityTemplate: "special",
+      categories: ["U12", "U16", "Senior"],
     },
   ])
+
+  // --- New Activity Registration State ---
+  const [activityRegistrations, setActivityRegistrations] = useState<ActivityRegistration[]>([
+    {
+      id: "reg-1",
+      activityId: "2",
+      associationName: "جمعية الأمل للشباب",
+      associationEmail: "amal@youth.dz",
+      associationPhone: "0551234567",
+      status: "pending",
+      registrationDate: "2024-06-01T10:00:00",
+      participants: [],
+    },
+    {
+      id: "reg-2",
+      activityId: "2",
+      associationName: "منتدى الإبداع الشبابي",
+      associationEmail: "ibdaa@forum.dz",
+      associationPhone: "0667891234",
+      status: "approved",
+      registrationDate: "2024-06-02T09:00:00",
+      participants: [
+        { id: "p-1", registrationId: "reg-2", name: "كريم بوعلي", age: 22, category: undefined },
+        { id: "p-2", registrationId: "reg-2", name: "نور الدين مسعود", age: 20, category: undefined },
+      ],
+    },
+    {
+      id: "reg-3",
+      activityId: "3",
+      associationName: "رابطة الطلاب الرياضيين",
+      associationEmail: "sport@students.dz",
+      associationPhone: "0773456789",
+      status: "approved",
+      registrationDate: "2024-07-15T14:00:00",
+      participants: [
+        { id: "p-3", registrationId: "reg-3", name: "أحمد زيد", age: 14, category: "U16" },
+        { id: "p-4", registrationId: "reg-3", name: "سامي علي", age: 11, category: "U12" },
+        { id: "p-5", registrationId: "reg-3", name: "يوسف محمد", age: 25, category: "Senior" },
+      ],
+    },
+  ])
+
+  // --- UI state for new features ---
+  const [activityDeleteConfirmId, setActivityDeleteConfirmId] = useState<string | null>(null)
+  const [viewingRegistrationsActivity, setViewingRegistrationsActivity] = useState<Activity | null>(null)
+  const [expandedRegistrationId, setExpandedRegistrationId] = useState<string | null>(null)
+  const [newCategoryInput, setNewCategoryInput] = useState("")
 
   const [isAddingActivity, setIsAddingActivity] = useState(false)
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null)
@@ -192,10 +298,11 @@ export function AdminDashboard() {
     date: "",
     location: "",
     duration: "",
-    price: "",
     capacity: 0,
     status: "active",
     image: "",
+    activityTemplate: "announcement",
+    categories: [],
   })
 
   const [messages, setMessages] = useState<Message[]>([
@@ -497,6 +604,33 @@ export function AdminDashboard() {
     }
   }
 
+  // --- Activity helper ---
+  const getTemplateMeta = (template: ActivityTemplate) =>
+    ACTIVITY_TEMPLATES.find((t) => t.value === template) || ACTIVITY_TEMPLATES[0]
+
+  const templateNeedsReg = (t?: ActivityTemplate) =>
+    t === "announcement_reg" || t === "announcement_reg_participants" || t === "special"
+
+  const templateNeedsParticipants = (t?: ActivityTemplate) =>
+    t === "announcement_reg_participants" || t === "special"
+
+  const templateNeedsCategories = (t?: ActivityTemplate) => t === "special"
+
+  const resetNewActivity = () =>
+    setNewActivity({
+      title: "",
+      description: "",
+      type: "",
+      date: "",
+      location: "",
+      duration: "",
+      capacity: 0,
+      status: "active",
+      image: "",
+      activityTemplate: "announcement",
+      categories: [],
+    })
+
   const handleAddActivity = () => {
     if (newActivity.title && newActivity.description) {
       const activity: Activity = {
@@ -507,25 +641,15 @@ export function AdminDashboard() {
         date: newActivity.date || "",
         location: newActivity.location || "",
         duration: newActivity.duration || "",
-        price: newActivity.price || "مجاني",
         capacity: newActivity.capacity || 0,
         registered: 0,
         status: (newActivity.status as "active" | "completed" | "cancelled") || "active",
         image: newActivity.image || "/diverse-group-activity.png",
+        activityTemplate: newActivity.activityTemplate || "announcement",
+        categories: newActivity.categories || [],
       }
       setActivities([...activities, activity])
-      setNewActivity({
-        title: "",
-        description: "",
-        type: "",
-        date: "",
-        location: "",
-        duration: "",
-        price: "",
-        capacity: 0,
-        status: "active",
-        image: "",
-      })
+      resetNewActivity()
       setIsAddingActivity(false)
     }
   }
@@ -543,24 +667,48 @@ export function AdminDashboard() {
         ),
       )
       setEditingActivity(null)
-      setNewActivity({
-        title: "",
-        description: "",
-        type: "",
-        date: "",
-        location: "",
-        duration: "",
-        price: "",
-        capacity: 0,
-        status: "active",
-        image: "",
-      })
+      resetNewActivity()
     }
   }
 
-  const handleDeleteActivity = (id: string) => {
-    if (confirm("هل أنت متأكد من حذف هذا النشاط؟")) {
-      setActivities(activities.filter((activity) => activity.id !== id))
+  const handleDeleteActivityConfirmed = () => {
+    if (activityDeleteConfirmId) {
+      setActivities(activities.filter((a) => a.id !== activityDeleteConfirmId))
+      setActivityRegistrations(activityRegistrations.filter((r) => r.activityId !== activityDeleteConfirmId))
+      setActivityDeleteConfirmId(null)
+    }
+  }
+
+  // --- Registration handlers ---
+  const handleApproveRegistration = (registrationId: string) => {
+    setActivityRegistrations((prev) =>
+      prev.map((r) => (r.id === registrationId ? { ...r, status: "approved" as const } : r)),
+    )
+  }
+
+  const handleRejectRegistration = (registrationId: string) => {
+    // Rejection = permanent delete per spec
+    setActivityRegistrations((prev) => prev.filter((r) => r.id !== registrationId))
+  }
+
+  const getActivityRegistrations = (activityId: string) =>
+    activityRegistrations.filter((r) => r.activityId === activityId)
+
+  const getRegistrationStatusColor = (status: string) => {
+    switch (status) {
+      case "pending": return "bg-yellow-100 text-yellow-800"
+      case "approved": return "bg-green-100 text-green-800"
+      case "rejected": return "bg-red-100 text-red-800"
+      default: return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  const getRegistrationStatusText = (status: string) => {
+    switch (status) {
+      case "pending": return "قيد المراجعة"
+      case "approved": return "مقبول"
+      case "rejected": return "مرفوض"
+      default: return "غير محدد"
     }
   }
 
@@ -1054,38 +1202,46 @@ export function AdminDashboard() {
                 <h3 className="text-lg font-semibold text-gray-900">جميع الأنشطة</h3>
                 <p className="text-sm text-gray-600">إدارة وتنظيم أنشطة الجمعية</p>
               </div>
-              <Dialog open={isAddingActivity} onOpenChange={setIsAddingActivity}>
+              <Dialog open={isAddingActivity} onOpenChange={(open) => { setIsAddingActivity(open); if (!open) resetNewActivity() }}>
                 <DialogTrigger asChild>
                   <Button className="bg-amber-600 hover:bg-amber-700">
                     <Plus className="ml-2 h-4 w-4" />
                     إضافة نشاط جديد
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl" dir="rtl">
+                <DialogContent className="max-w-5xl md:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-6 md:p-8" dir="rtl">
                   <DialogHeader>
                     <DialogTitle>إضافة نشاط جديد</DialogTitle>
-                    <DialogDescription>املأ البيانات التالية لإضافة نشاط جديد</DialogDescription>
+                    <DialogDescription>اختر نمط النشاط ثم أدخل البيانات المطلوبة</DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
+                    {/* Activity Template Selector */}
+                    <div className="space-y-2">
+                      <Label className="text-base font-semibold">نمط النشاط</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {ACTIVITY_TEMPLATES.map((tmpl) => (
+                          <button
+                            key={tmpl.value}
+                            type="button"
+                            onClick={() => setNewActivity({ ...newActivity, activityTemplate: tmpl.value, categories: tmpl.value !== "special" ? [] : (newActivity.categories || []) })}
+                            className={`p-3 rounded-lg border-2 text-right transition-all ${newActivity.activityTemplate === tmpl.value ? "border-amber-500 bg-amber-50" : "border-gray-200 hover:border-gray-300"}`}
+                          >
+                            <span className={`inline-block text-xs px-2 py-0.5 rounded-full mb-1 ${tmpl.color}`}>{tmpl.label}</span>
+                            <p className="text-xs text-gray-500 mt-1">{tmpl.description}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="title">عنوان النشاط</Label>
-                        <Input
-                          id="title"
-                          value={newActivity.title}
-                          onChange={(e) => setNewActivity({ ...newActivity, title: e.target.value })}
-                          placeholder="مثال: المخيم الصيفي"
-                        />
+                        <Label htmlFor="add-title">عنوان النشاط</Label>
+                        <Input id="add-title" value={newActivity.title} onChange={(e) => setNewActivity({ ...newActivity, title: e.target.value })} placeholder="مثال: المخيم الصيفي" />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="type">نوع النشاط</Label>
-                        <Select
-                          value={newActivity.type}
-                          onValueChange={(value) => setNewActivity({ ...newActivity, type: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر نوع النشاط" />
-                          </SelectTrigger>
+                        <Label htmlFor="add-type">تصنيف النشاط</Label>
+                        <Select value={newActivity.type} onValueChange={(value) => setNewActivity({ ...newActivity, type: value })}>
+                          <SelectTrigger><SelectValue placeholder="اختر تصنيف النشاط" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="مخيم">مخيم</SelectItem>
                             <SelectItem value="ورشة">ورشة</SelectItem>
@@ -1098,84 +1254,107 @@ export function AdminDashboard() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="description">وصف النشاط</Label>
-                      <Textarea
-                        id="description"
-                        value={newActivity.description}
-                        onChange={(e) => setNewActivity({ ...newActivity, description: e.target.value })}
-                        placeholder="وصف مفصل عن النشاط وأهدافه"
-                        rows={3}
-                      />
+                      <Label htmlFor="add-description">وصف النشاط</Label>
+                      <Textarea id="add-description" value={newActivity.description} onChange={(e) => setNewActivity({ ...newActivity, description: e.target.value })} placeholder="وصف مفصل عن النشاط وأهدافه" rows={3} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="date">تاريخ النشاط</Label>
-                        <Input
-                          id="date"
-                          type="date"
-                          value={newActivity.date}
-                          onChange={(e) => setNewActivity({ ...newActivity, date: e.target.value })}
-                        />
+                        <Label htmlFor="add-date">تاريخ النشاط</Label>
+                        <Input id="add-date" type="date" value={newActivity.date} onChange={(e) => setNewActivity({ ...newActivity, date: e.target.value })} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="location">المكان</Label>
-                        <Input
-                          id="location"
-                          value={newActivity.location}
-                          onChange={(e) => setNewActivity({ ...newActivity, location: e.target.value })}
-                          placeholder="مثال: مركز الجمعية"
-                        />
+                        <Label htmlFor="add-location">المكان</Label>
+                        <Input id="add-location" value={newActivity.location} onChange={(e) => setNewActivity({ ...newActivity, location: e.target.value })} placeholder="مثال: مركز الجمعية" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="duration">المدة</Label>
-                        <Input
-                          id="duration"
-                          value={newActivity.duration}
-                          onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })}
-                          placeholder="مثال: 3 أيام"
-                        />
+                        <Label htmlFor="add-duration">المدة</Label>
+                        <Input id="add-duration" value={newActivity.duration} onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })} placeholder="مثال: 3 أيام" />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="price">السعر</Label>
-                        <Input
-                          id="price"
-                          value={newActivity.price}
-                          onChange={(e) => setNewActivity({ ...newActivity, price: e.target.value })}
-                          placeholder="مثال: 100 أو مجاني"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="capacity">السعة القصوى</Label>
-                        <Input
-                          id="capacity"
-                          type="number"
-                          value={newActivity.capacity}
-                          onChange={(e) =>
-                            setNewActivity({ ...newActivity, capacity: Number.parseInt(e.target.value) || 0 })
-                          }
-                          placeholder="50"
-                        />
+                        <Label htmlFor="add-capacity">السعة القصوى</Label>
+                        <Input id="add-capacity" type="number" value={newActivity.capacity} onChange={(e) => setNewActivity({ ...newActivity, capacity: parseInt(e.target.value) || 0 })} placeholder="50" />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="image">رابط الصورة</Label>
-                      <Input
-                        id="image"
-                        value={newActivity.image}
-                        onChange={(e) => setNewActivity({ ...newActivity, image: e.target.value })}
-                        placeholder="رابط صورة النشاط"
-                      />
+                      <Label>صورة النشاط</Label>
+                      <div className="flex items-center gap-3">
+                        <label htmlFor="add-image-upload" className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 border-dashed border-gray-300 flex-1 justify-center">
+                          <Upload className="h-4 w-4 text-amber-600" />
+                          {newActivity.image ? "تغيير الصورة" : "رفع صورة"}
+                        </label>
+                        <input id="add-image-upload" type="file" accept="image/*" className="hidden" onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            const url = URL.createObjectURL(file)
+                            setNewActivity({ ...newActivity, image: url })
+                          }
+                        }} />
+                        {newActivity.image && (
+                          <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                            <img src={newActivity.image} alt="preview" className="w-full h-full object-cover" />
+                            <button type="button" onClick={() => setNewActivity({ ...newActivity, image: "" })} className="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-bl-lg">×</button>
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Conditional: Registration Settings */}
+                    {templateNeedsReg(newActivity.activityTemplate) && (
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-1">
+                        <h4 className="font-medium text-blue-900 flex items-center gap-2"><Users className="h-4 w-4" />إعدادات تسجيل الجمعيات</h4>
+                        <p className="text-sm text-blue-700">سيُتاح للجمعيات التسجيل في هذا النشاط. يمكنك مراجعة وقبول أو رفض التسجيلات لاحقاً.</p>
+                      </div>
+                    )}
+
+                    {/* Conditional: Participant Config */}
+                    {templateNeedsParticipants(newActivity.activityTemplate) && (
+                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 space-y-1">
+                        <h4 className="font-medium text-purple-900 flex items-center gap-2"><UserCheck className="h-4 w-4" />تكوين المشاركين</h4>
+                        <p className="text-sm text-purple-700">سيتمكن ممثلو الجمعيات المقبولة من إضافة قوائم المشاركين إلى النشاط.</p>
+                      </div>
+                    )}
+
+                    {/* Conditional: Categories Editor */}
+                    {templateNeedsCategories(newActivity.activityTemplate) && (
+                      <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 space-y-3">
+                        <h4 className="font-medium text-orange-900 flex items-center gap-2"><Shield className="h-4 w-4" />تصنيفات المشاركين</h4>
+                        <p className="text-sm text-orange-700">أضف التصنيفات المطلوبة لهذا النشاط (مثل U12، U16، Senior)</p>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="أدخل اسم التصنيف..."
+                            value={newCategoryInput}
+                            onChange={(e) => setNewCategoryInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && newCategoryInput.trim()) {
+                                setNewActivity({ ...newActivity, categories: [...(newActivity.categories || []), newCategoryInput.trim()] })
+                                setNewCategoryInput("")
+                              }
+                            }}
+                          />
+                          <Button type="button" variant="outline" onClick={() => {
+                            if (newCategoryInput.trim()) {
+                              setNewActivity({ ...newActivity, categories: [...(newActivity.categories || []), newCategoryInput.trim()] })
+                              setNewCategoryInput("")
+                            }
+                          }}>إضافة</Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(newActivity.categories || []).map((cat, idx) => (
+                            <span key={idx} className="inline-flex items-center gap-1 bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">
+                              {cat}
+                              <button onClick={() => setNewActivity({ ...newActivity, categories: (newActivity.categories || []).filter((_, i) => i !== idx) })} className="text-orange-600 hover:text-orange-900 font-bold ml-1">×</button>
+                            </span>
+                          ))}
+                          {(newActivity.categories || []).length === 0 && <p className="text-xs text-orange-600">لم تُضف أي تصنيفات بعد</p>}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-end space-x-2 space-x-reverse">
-                    <Button variant="outline" onClick={() => setIsAddingActivity(false)}>
-                      إلغاء
-                    </Button>
-                    <Button onClick={handleAddActivity} className="bg-amber-600 hover:bg-amber-700">
-                      إضافة النشاط
-                    </Button>
+                    <Button variant="outline" onClick={() => { resetNewActivity(); setIsAddingActivity(false) }}>إلغاء</Button>
+                    <Button onClick={handleAddActivity} className="bg-amber-600 hover:bg-amber-700">إضافة النشاط</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -1183,98 +1362,101 @@ export function AdminDashboard() {
 
             {/* Activities Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {activities.map((activity) => (
-                <Card key={activity.id} className="hover:shadow-lg transition-shadow">
-                  <div className="relative">
-                    <img
-                      src={activity.image || "/placeholder.svg"}
-                      alt={activity.title}
-                      className="w-full h-48 object-cover rounded-t-lg"
-                    />
-                    <Badge className={`absolute top-2 right-2 ${getStatusColor(activity.status)}`}>
-                      {getStatusText(activity.status)}
-                    </Badge>
-                  </div>
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <div>
-                        <h4 className="font-semibold text-lg text-gray-900">{activity.title}</h4>
-                        <Badge variant="outline" className="mt-1">
-                          {activity.type}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600 line-clamp-2">{activity.description}</p>
-
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 ml-2" />
-                          {activity.date}
-                        </div>
-                        <div className="flex items-center">
-                          <MapPin className="h-4 w-4 ml-2" />
-                          {activity.location}
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 ml-2" />
-                          {activity.duration}
-                        </div>
-                        <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 ml-2" />
-                          {activity.price}
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <div className="text-sm">
-                          <span className="font-medium">{activity.registered}</span>
-                          <span className="text-gray-500">/{activity.capacity} مسجل</span>
-                        </div>
-                        <div className="flex space-x-2 space-x-reverse">
-                          <Button size="sm" variant="outline" onClick={() => handleEditActivity(activity)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteActivity(activity.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+              {[...activities].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((activity) => {
+                const tmplMeta = getTemplateMeta(activity.activityTemplate)
+                const regs = getActivityRegistrations(activity.id)
+                return (
+                  <Card key={activity.id} className="hover:shadow-lg transition-shadow flex flex-col">
+                    <div className="relative">
+                      <img src={activity.image || "/placeholder.svg"} alt={activity.title} className="w-full h-48 object-cover rounded-t-lg" />
+                      <Badge className={`absolute top-2 right-2 ${getStatusColor(activity.status)}`}>{getStatusText(activity.status)}</Badge>
+                      <span className={`absolute top-2 left-2 text-xs px-2 py-1 rounded-full font-medium ${tmplMeta.color}`}>{tmplMeta.label}</span>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    <CardContent className="p-4 flex-1 flex flex-col">
+                      <div className="space-y-3 flex-1">
+                        <div>
+                          <h4 className="font-semibold text-lg text-gray-900">{activity.title}</h4>
+                          <Badge variant="outline" className="mt-1">{activity.type}</Badge>
+                          {activity.categories.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {activity.categories.map((cat, i) => (
+                                <span key={i} className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">{cat}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 line-clamp-2">{activity.description}</p>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <div className="flex items-center"><Calendar className="h-4 w-4 ml-2 flex-shrink-0" />{activity.date}</div>
+                          <div className="flex items-center"><MapPin className="h-4 w-4 ml-2 flex-shrink-0" />{activity.location}</div>
+                          <div className="flex items-center"><Clock className="h-4 w-4 ml-2 flex-shrink-0" />{activity.duration}</div>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t">
+                          <div className="text-sm">
+                            <span className="font-medium">{activity.registered}</span>
+                            <span className="text-gray-500">/{activity.capacity} مسجل</span>
+                          </div>
+                          {templateNeedsReg(activity.activityTemplate) && (
+                            <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
+                              <Users className="h-3 w-3" />{regs.length} جمعية
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t">
+                        <Button size="sm" variant="outline" className="flex-1" onClick={() => handleEditActivity(activity)}>
+                          <Edit className="h-4 w-4 ml-1" />تعديل
+                        </Button>
+                        {templateNeedsReg(activity.activityTemplate) && (
+                          <Button size="sm" variant="outline" className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50" onClick={() => setViewingRegistrationsActivity(activity)}>
+                            <EyeIcon className="h-4 w-4 ml-1" />التسجيلات
+                          </Button>
+                        )}
+                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setActivityDeleteConfirmId(activity.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
 
             {/* Edit Activity Dialog */}
-            <Dialog open={!!editingActivity} onOpenChange={() => setEditingActivity(null)}>
-              <DialogContent className="max-w-2xl" dir="rtl">
+            <Dialog open={!!editingActivity} onOpenChange={(open) => { if (!open) { setEditingActivity(null); resetNewActivity() } }}>
+              <DialogContent className="max-w-5xl md:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-6 md:p-8" dir="rtl">
                 <DialogHeader>
                   <DialogTitle>تعديل النشاط</DialogTitle>
                   <DialogDescription>تعديل بيانات النشاط</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+                  {/* Template Selector */}
+                  <div className="space-y-2">
+                    <Label className="text-base font-semibold">نمط النشاط</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {ACTIVITY_TEMPLATES.map((tmpl) => (
+                        <button
+                          key={tmpl.value}
+                          type="button"
+                          onClick={() => setNewActivity({ ...newActivity, activityTemplate: tmpl.value, categories: tmpl.value !== "special" ? [] : (newActivity.categories || []) })}
+                          className={`p-3 rounded-lg border-2 text-right transition-all ${newActivity.activityTemplate === tmpl.value ? "border-amber-500 bg-amber-50" : "border-gray-200 hover:border-gray-300"}`}
+                        >
+                          <span className={`inline-block text-xs px-2 py-0.5 rounded-full mb-1 ${tmpl.color}`}>{tmpl.label}</span>
+                          <p className="text-xs text-gray-500 mt-1">{tmpl.description}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="edit-title">عنوان النشاط</Label>
-                      <Input
-                        id="edit-title"
-                        value={newActivity.title}
-                        onChange={(e) => setNewActivity({ ...newActivity, title: e.target.value })}
-                      />
+                      <Label>عنوان النشاط</Label>
+                      <Input value={newActivity.title} onChange={(e) => setNewActivity({ ...newActivity, title: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="edit-type">نوع النشاط</Label>
-                      <Select
-                        value={newActivity.type}
-                        onValueChange={(value) => setNewActivity({ ...newActivity, type: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
+                      <Label>تصنيف النشاط</Label>
+                      <Select value={newActivity.type} onValueChange={(value) => setNewActivity({ ...newActivity, type: value })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="مخيم">مخيم</SelectItem>
                           <SelectItem value="ورشة">ورشة</SelectItem>
@@ -1287,72 +1469,54 @@ export function AdminDashboard() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-description">وصف النشاط</Label>
-                    <Textarea
-                      id="edit-description"
-                      value={newActivity.description}
-                      onChange={(e) => setNewActivity({ ...newActivity, description: e.target.value })}
-                      rows={3}
-                    />
+                    <Label>وصف النشاط</Label>
+                    <Textarea value={newActivity.description} onChange={(e) => setNewActivity({ ...newActivity, description: e.target.value })} rows={3} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="edit-date">تاريخ النشاط</Label>
-                      <Input
-                        id="edit-date"
-                        type="date"
-                        value={newActivity.date}
-                        onChange={(e) => setNewActivity({ ...newActivity, date: e.target.value })}
-                      />
+                      <Label>تاريخ النشاط</Label>
+                      <Input type="date" value={newActivity.date} onChange={(e) => setNewActivity({ ...newActivity, date: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="edit-location">المكان</Label>
-                      <Input
-                        id="edit-location"
-                        value={newActivity.location}
-                        onChange={(e) => setNewActivity({ ...newActivity, location: e.target.value })}
-                      />
+                      <Label>المكان</Label>
+                      <Input value={newActivity.location} onChange={(e) => setNewActivity({ ...newActivity, location: e.target.value })} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-duration">المدة</Label>
-                      <Input
-                        id="edit-duration"
-                        value={newActivity.duration}
-                        onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-price">السعر</Label>
-                      <Input
-                        id="edit-price"
-                        value={newActivity.price}
-                        onChange={(e) => setNewActivity({ ...newActivity, price: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-capacity">السعة القصوى</Label>
-                      <Input
-                        id="edit-capacity"
-                        type="number"
-                        value={newActivity.capacity}
-                        onChange={(e) =>
-                          setNewActivity({ ...newActivity, capacity: Number.parseInt(e.target.value) || 0 })
+                  <div className="space-y-2">
+                    <Label>صورة النشاط</Label>
+                    <div className="flex items-center gap-3">
+                      <label htmlFor="edit-image-upload" className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 border-dashed border-gray-300 flex-1 justify-center">
+                        <Upload className="h-4 w-4 text-amber-600" />
+                        {newActivity.image ? "تغيير الصورة" : "رفع صورة"}
+                      </label>
+                      <input id="edit-image-upload" type="file" accept="image/*" className="hidden" onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          const url = URL.createObjectURL(file)
+                          setNewActivity({ ...newActivity, image: url })
                         }
-                      />
+                      }} />
+                      {newActivity.image && (
+                        <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                          <img src={newActivity.image} alt="preview" className="w-full h-full object-cover" />
+                          <button type="button" onClick={() => setNewActivity({ ...newActivity, image: "" })} className="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-bl-lg">×</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>المدة</Label>
+                      <Input value={newActivity.duration} onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="edit-status">الحالة</Label>
-                      <Select
-                        value={newActivity.status}
-                        onValueChange={(value) =>
-                          setNewActivity({ ...newActivity, status: value as "active" | "completed" | "cancelled" })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
+                      <Label>السعة القصوى</Label>
+                      <Input type="number" value={newActivity.capacity} onChange={(e) => setNewActivity({ ...newActivity, capacity: parseInt(e.target.value) || 0 })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>الحالة</Label>
+                      <Select value={newActivity.status} onValueChange={(value) => setNewActivity({ ...newActivity, status: value as "active" | "completed" | "cancelled" })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="active">نشط</SelectItem>
                           <SelectItem value="completed">مكتمل</SelectItem>
@@ -1361,14 +1525,165 @@ export function AdminDashboard() {
                       </Select>
                     </div>
                   </div>
+
+                  {/* Conditional sections */}
+                  {templateNeedsReg(newActivity.activityTemplate) && (
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h4 className="font-medium text-blue-900 flex items-center gap-2"><Users className="h-4 w-4" />تسجيل الجمعيات مُفعَّل</h4>
+                      <p className="text-sm text-blue-700 mt-1">الجمعيات يمكنها التسجيل في هذا النشاط.</p>
+                    </div>
+                  )}
+                  {templateNeedsParticipants(newActivity.activityTemplate) && (
+                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <h4 className="font-medium text-purple-900 flex items-center gap-2"><UserCheck className="h-4 w-4" />تسجيل المشاركين مُفعَّل</h4>
+                      <p className="text-sm text-purple-700 mt-1">الجمعيات المقبولة يمكنها إضافة مشاركين.</p>
+                    </div>
+                  )}
+                  {templateNeedsCategories(newActivity.activityTemplate) && (
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 space-y-3">
+                      <h4 className="font-medium text-orange-900 flex items-center gap-2"><Shield className="h-4 w-4" />تصنيفات المشاركين</h4>
+                      <div className="flex gap-2">
+                        <Input placeholder="أدخل اسم التصنيف..." value={newCategoryInput} onChange={(e) => setNewCategoryInput(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter" && newCategoryInput.trim()) { setNewActivity({ ...newActivity, categories: [...(newActivity.categories || []), newCategoryInput.trim()] }); setNewCategoryInput("") } }} />
+                        <Button type="button" variant="outline" onClick={() => { if (newCategoryInput.trim()) { setNewActivity({ ...newActivity, categories: [...(newActivity.categories || []), newCategoryInput.trim()] }); setNewCategoryInput("") } }}>إضافة</Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {(newActivity.categories || []).map((cat, idx) => (
+                          <span key={idx} className="inline-flex items-center gap-1 bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">
+                            {cat}
+                            <button onClick={() => setNewActivity({ ...newActivity, categories: (newActivity.categories || []).filter((_, i) => i !== idx) })} className="text-orange-600 hover:text-orange-900 font-bold ml-1">×</button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex justify-end space-x-2 space-x-reverse">
-                  <Button variant="outline" onClick={() => setEditingActivity(null)}>
-                    إلغاء
+                  <Button variant="outline" onClick={() => { setEditingActivity(null); resetNewActivity() }}>إلغاء</Button>
+                  <Button onClick={handleUpdateActivity} className="bg-amber-600 hover:bg-amber-700">حفظ التغييرات</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Modal */}
+            <Dialog open={!!activityDeleteConfirmId} onOpenChange={(open) => { if (!open) setActivityDeleteConfirmId(null) }}>
+              <DialogContent dir="rtl" className="max-w-lg w-[95vw] p-6">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-red-600">
+                    <AlertTriangle className="h-5 w-5" />
+                    تأكيد حذف النشاط
+                  </DialogTitle>
+                  <DialogDescription>
+                    هل أنت متأكد من حذف النشاط{" "}
+                    <strong>{activities.find((a) => a.id === activityDeleteConfirmId)?.title}</strong>؟
+                    <br />
+                    سيتم حذف جميع التسجيلات المرتبطة به. هذا الإجراء لا يمكن التراجع عنه.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline" onClick={() => setActivityDeleteConfirmId(null)}>إلغاء</Button>
+                  <Button variant="destructive" onClick={handleDeleteActivityConfirmed}>
+                    <Trash2 className="h-4 w-4 ml-2" />
+                    حذف النشاط
                   </Button>
-                  <Button onClick={handleUpdateActivity} className="bg-amber-600 hover:bg-amber-700">
-                    حفظ التغييرات
-                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Registrations Panel Dialog */}
+            <Dialog open={!!viewingRegistrationsActivity} onOpenChange={(open) => { if (!open) { setViewingRegistrationsActivity(null); setExpandedRegistrationId(null) } }}>
+              <DialogContent className="max-w-5xl md:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-6 md:p-8" dir="rtl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-amber-600" />
+                    تسجيلات النشاط: {viewingRegistrationsActivity?.title}
+                  </DialogTitle>
+                  <DialogDescription>
+                    إدارة طلبات تسجيل الجمعيات — القبول يحفظ التسجيل، الرفض يحذفه نهائياً
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 mt-4">
+                  {viewingRegistrationsActivity && getActivityRegistrations(viewingRegistrationsActivity.id).length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                      <p>لا توجد تسجيلات لهذا النشاط بعد</p>
+                    </div>
+                  )}
+                  {viewingRegistrationsActivity && getActivityRegistrations(viewingRegistrationsActivity.id).map((reg) => (
+                    <div key={reg.id} className="border rounded-lg overflow-hidden">
+                      {/* Registration Row */}
+                      <div className="flex items-center justify-between p-4 bg-gray-50">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                            <Building2 className="h-5 w-5 text-amber-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-900">{reg.associationName}</p>
+                            <p className="text-sm text-gray-500 truncate">{reg.associationEmail} · {reg.associationPhone}</p>
+                            <p className="text-xs text-gray-400">{new Date(reg.registrationDate).toLocaleDateString("ar-DZ")}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Badge className={getRegistrationStatusColor(reg.status)}>{getRegistrationStatusText(reg.status)}</Badge>
+                          {reg.status === "pending" && (
+                            <>
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApproveRegistration(reg.id)}>
+                                <Check className="h-4 w-4 ml-1" />قبول
+                              </Button>
+                              <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleRejectRegistration(reg.id)}>
+                                <X className="h-4 w-4 ml-1" />رفض
+                              </Button>
+                            </>
+                          )}
+                          {reg.status === "approved" && templateNeedsParticipants(viewingRegistrationsActivity.activityTemplate) && (
+                            <Button size="sm" variant="outline" onClick={() => setExpandedRegistrationId(expandedRegistrationId === reg.id ? null : reg.id)}>
+                              <Users className="h-4 w-4 ml-1" />{reg.participants.length} مشارك
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Participants Expandable */}
+                      {expandedRegistrationId === reg.id && (
+                        <div className="p-4 bg-white border-t">
+                          <h5 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                            <UserCheck className="h-4 w-4" />قائمة المشاركين
+                          </h5>
+                          {reg.participants.length === 0 ? (
+                            <p className="text-sm text-gray-400 text-center py-4">لم تُضف أي مشاركين بعد</p>
+                          ) : (
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="text-right text-gray-500 border-b">
+                                    <th className="pb-2 font-medium">الاسم</th>
+                                    <th className="pb-2 font-medium">العمر</th>
+                                    {viewingRegistrationsActivity.activityTemplate === "special" && <th className="pb-2 font-medium">الفئة</th>}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {reg.participants.map((p) => (
+                                    <tr key={p.id} className="border-b last:border-0">
+                                      <td className="py-2 font-medium">{p.name}</td>
+                                      <td className="py-2 text-gray-600">{p.age} سنة</td>
+                                      {viewingRegistrationsActivity.activityTemplate === "special" && (
+                                        <td className="py-2">
+                                          <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs">{p.category || "—"}</span>
+                                        </td>
+                                      )}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" onClick={() => { setViewingRegistrationsActivity(null); setExpandedRegistrationId(null) }}>إغلاق</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -1542,7 +1857,7 @@ export function AdminDashboard() {
 
             {/* Message Detail Dialog */}
             <Dialog open={!!selectedMessage} onOpenChange={() => setSelectedMessage(null)}>
-              <DialogContent className="max-w-2xl" dir="rtl">
+              <DialogContent className="max-w-3xl w-[95vw] p-6 md:p-8" dir="rtl">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <User className="h-5 w-5" />
@@ -1661,7 +1976,7 @@ export function AdminDashboard() {
                     <Download className="h-4 w-4" />
                     تصدير
                   </Button>
-                  <DialogContent className="max-w-sm" dir="rtl">
+                  <DialogContent className="max-w-md w-[95vw] p-6" dir="rtl">
                     <DialogHeader>
                       <DialogTitle>اختر صيغة التصدير</DialogTitle>
                       <DialogDescription>سيتم تصدير جميع الشراكات المقبولة</DialogDescription>
@@ -1944,7 +2259,7 @@ export function AdminDashboard() {
 
             {/* ── Partnership Detail Dialog ── */}
             <Dialog open={!!selectedPartnership} onOpenChange={() => setSelectedPartnership(null)}>
-              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
+              <DialogContent className="max-w-5xl md:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-6 md:p-8" dir="rtl">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Building2 className="h-5 w-5 text-amber-600" />
@@ -2077,7 +2392,7 @@ export function AdminDashboard() {
 
             {/* ── Delete Confirmation Dialog ── */}
             <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
-              <DialogContent className="max-w-md" dir="rtl">
+              <DialogContent className="max-w-lg w-[95vw] p-6" dir="rtl">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-red-600">
                     <AlertTriangle className="h-5 w-5" />
@@ -2155,7 +2470,7 @@ export function AdminDashboard() {
                       إضافة مقال جديد
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+                  <DialogContent className="max-w-5xl md:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-6 md:p-8" dir="rtl">
                     <DialogHeader>
                       <DialogTitle>إضافة مقال جديد</DialogTitle>
                       <DialogDescription>املأ البيانات التالية لإضافة مقال جديد</DialogDescription>
@@ -2422,7 +2737,7 @@ export function AdminDashboard() {
 
             {/* Edit News Dialog */}
             <Dialog open={!!editingNews} onOpenChange={() => setEditingNews(null)}>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+              <DialogContent className="max-w-5xl md:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-6 md:p-8" dir="rtl">
                 <DialogHeader>
                   <DialogTitle>تعديل المقال</DialogTitle>
                   <DialogDescription>تعديل بيانات المقال</DialogDescription>
@@ -2545,7 +2860,7 @@ export function AdminDashboard() {
 
             {/* News Detail Dialog */}
             <Dialog open={!!selectedNews} onOpenChange={() => setSelectedNews(null)}>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+              <DialogContent className="max-w-5xl md:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-6 md:p-8" dir="rtl">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Newspaper className="h-5 w-5" />
