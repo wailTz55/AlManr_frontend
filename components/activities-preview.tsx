@@ -17,7 +17,7 @@ export function ActivitiesPreview() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
-  
+
   // جلب البيانات من API عند تحميل الكومبوننت
   useEffect(() => {
     const loadActivities = async () => {
@@ -25,7 +25,7 @@ export function ActivitiesPreview() {
         setIsLoading(true)
         setError(null)
         const data = await fetchAllData()
-        
+
         if (data && data.activities && Array.isArray(data.activities)) {
           // أخذ أول 5 أنشطة
           const firstFiveActivities = data.activities.slice(0, 5)
@@ -101,7 +101,7 @@ export function ActivitiesPreview() {
           </p>
           <div className="w-24 h-1 bg-primary mx-auto mt-6 rounded-full" />
         </div>
-        
+
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">جاري تحميل الأنشطة...</p>
@@ -117,11 +117,11 @@ export function ActivitiesPreview() {
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">أنشطتنا المميزة</h2>
         </div>
-        
+
         <div className="text-center py-12">
           <p className="text-lg text-red-500 mb-4">{error}</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             variant="outline"
           >
             إعادة المحاولة
@@ -142,7 +142,7 @@ export function ActivitiesPreview() {
           </p>
           <div className="w-24 h-1 bg-primary mx-auto mt-6 rounded-full" />
         </div>
-        
+
         <div className="text-center py-12">
           <p className="text-lg text-muted-foreground">لا توجد أنشطة متاحة حالياً</p>
         </div>
@@ -169,14 +169,13 @@ export function ActivitiesPreview() {
         {/* Main Slider Container */}
         <div className="relative w-full h-96 overflow-hidden rounded-2xl">
           {activities.map((activity, index) => (
-            <div 
+            <div
               key={activity.id}
-              className={`absolute top-0 left-0 w-full h-full transition-transform duration-700 ease-in-out ${
-                index === currentSlide ? 'translate-x-0' : 
-                index < currentSlide ? '-translate-x-full' : 'translate-x-full'
-              }`}
+              className={`absolute top-0 left-0 w-full h-full transition-transform duration-700 ease-in-out ${index === currentSlide ? 'translate-x-0' :
+                  index < currentSlide ? '-translate-x-full' : 'translate-x-full'
+                }`}
             >
-              <Card 
+              <Card
                 className="relative overflow-hidden h-full group cursor-pointer w-full"
                 onClick={() => handleCardClick(activity)}
               >
@@ -190,10 +189,6 @@ export function ActivitiesPreview() {
                 </div>
 
                 <div className="relative z-10 h-full flex flex-col justify-end p-8">
-                  <div className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium w-fit mb-4">
-                    {activity.category}
-                  </div>
-
                   <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-primary transition-colors">
                     {activity.title}
                   </h3>
@@ -215,8 +210,8 @@ export function ActivitiesPreview() {
                     </div>
                   </div>
 
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="w-fit animate-pulse-glow !cursor-pointer"
                     onClick={(e) => handleMoreClick(e, activity)}
                   >
@@ -272,9 +267,8 @@ export function ActivitiesPreview() {
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index === currentSlide ? "bg-primary scale-125" : "bg-muted-foreground/30 hover:bg-muted-foreground/60"
-              }`}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide ? "bg-primary scale-125" : "bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                }`}
             />
           ))}
         </div>
@@ -293,8 +287,8 @@ export function ActivitiesPreview() {
 
       {/* Call to Action */}
       <div className="text-center mt-20 ">
-        <Button 
-          size="lg" 
+        <Button
+          size="lg"
           className="text-lg px-8 py-4 rounded-full animate-bounce-gentle !cursor-pointer"
           onClick={() => navigateToActivityPage()}
         >

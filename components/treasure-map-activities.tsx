@@ -157,13 +157,13 @@ export function TreasureMapActivities() {
   // باقي الدوال كما هي
   const nextImage = () => {
     if (selectedActivity && selectedActivity.images && selectedActivity.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % selectedActivity.images.length);
+      setCurrentImageIndex((prev) => (prev + 1) % selectedActivity.images!.length);
     }
   };
 
   const prevImage = () => {
     if (selectedActivity && selectedActivity.images && selectedActivity.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev - 1 + selectedActivity.images.length) % selectedActivity.images.length);
+      setCurrentImageIndex((prev) => (prev - 1 + selectedActivity.images!.length) % selectedActivity.images!.length);
     }
   };
 
@@ -322,12 +322,8 @@ export function TreasureMapActivities() {
 
                     {/* أيقونة الفئة */}
                     <div className="absolute bottom-3 left-3 bg-background/80 backdrop-blur-sm rounded-full p-3">
-                      {activity.category === "مخيم" && <Calendar className="w-5 h-5 text-primary" />}
-                      {activity.category === "ورشة" && <Star className="w-5 h-5 text-secondary" />}
-                      {activity.category === "رياضة" && <Award className="w-5 h-5 text-accent" />}
-                      {activity.category === "فنون" && <Camera className="w-5 h-5 text-chart-3" />}
-                      {activity.category === "استكشاف" && <MapPin className="w-5 h-5 text-chart-4" />}
-                      {activity.category === "مؤتمر" && <Users className="w-5 h-5 text-chart-5" />}
+                      {/* Activity icon placeholder */}
+                      <MapPin className="w-5 h-5 text-chart-4" />
                     </div>
 
                     {/* عنوان النشاط فوق الصورة عند التمرير */}
@@ -538,8 +534,8 @@ export function TreasureMapActivities() {
                   {/* Activity Template Badge */}
                   {selectedActivity.activityTemplate && selectedActivity.activityTemplate !== "announcement" && (
                     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium w-fit ${selectedActivity.activityTemplate === "announcement_reg" ? "bg-blue-50 text-blue-700 border border-blue-200" :
-                        selectedActivity.activityTemplate === "announcement_reg_participants" ? "bg-purple-50 text-purple-700 border border-purple-200" :
-                          "bg-orange-50 text-orange-700 border border-orange-200"
+                      selectedActivity.activityTemplate === "announcement_reg_participants" ? "bg-purple-50 text-purple-700 border border-purple-200" :
+                        "bg-orange-50 text-orange-700 border border-orange-200"
                       }`}>
                       <Users className="w-4 h-4" />
                       {selectedActivity.activityTemplate === "announcement_reg" && "التسجيل متاح للجمعيات"}

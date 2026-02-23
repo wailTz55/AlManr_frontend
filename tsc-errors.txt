@@ -1,0 +1,44 @@
+components/admin-dashboard.tsx(3286,84): error TS7006: Parameter 'p' implicitly has an 'any' type.
+components/admin-dashboard.tsx(3291,80): error TS7006: Parameter 'p' implicitly has an 'any' type.
+components/old/members-page.tsx(2,30): error TS2307: Cannot find module '../app/api/api' or its corresponding type declarations.
+components/old/members-page.tsx(3,26): error TS2307: Cannot find module '../app/api/type' or its corresponding type declarations.
+components/old/members-page.tsx(235,64): error TS2304: Cannot find name 'members'.
+components/old/members-page.tsx(241,27): error TS2304: Cannot find name 'members'.
+components/old/members-page.tsx(241,43): error TS7006: Parameter 'member' implicitly has an 'any' type.
+components/old/members-page.tsx(245,27): error TS7006: Parameter 'skill' implicitly has an 'any' type.
+components/old/members-page.tsx(250,48): error TS7006: Parameter 'member' implicitly has an 'any' type.
+components/old/members-page.tsx(251,46): error TS7006: Parameter 'member' implicitly has an 'any' type.
+components/old/members-page.tsx(303,32): error TS7006: Parameter 'member' implicitly has an 'any' type.
+components/old/members-page.tsx(303,40): error TS7006: Parameter 'index' implicitly has an 'any' type.
+components/old/members-page.tsx(328,57): error TS7006: Parameter 'skill' implicitly has an 'any' type.
+components/old/members-page.tsx(328,64): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+components/old/members-page.tsx(351,30): error TS7006: Parameter 'member' implicitly has an 'any' type.
+components/old/members-page.tsx(351,38): error TS7006: Parameter 'index' implicitly has an 'any' type.
+components/old/members-page.tsx(379,55): error TS7006: Parameter 'skill' implicitly has an 'any' type.
+components/old/members-page.tsx(379,62): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+components/old/members-page.tsx(458,64): error TS7006: Parameter 'paragraph' implicitly has an 'any' type.
+components/old/members-page.tsx(458,75): error TS7006: Parameter 'index' implicitly has an 'any' type.
+components/old/members-page.tsx(479,51): error TS7006: Parameter 'skill' implicitly has an 'any' type.
+components/old/members-page.tsx(479,58): error TS7006: Parameter 'index' implicitly has an 'any' type.
+components/old/members-page.tsx(491,57): error TS7006: Parameter 'achievement' implicitly has an 'any' type.
+components/old/members-page.tsx(491,70): error TS7006: Parameter 'index' implicitly has an 'any' type.
+components/old/news-page.tsx(2,30): error TS2307: Cannot find module '../app/api/api' or its corresponding type declarations.
+components/old/news-page.tsx(3,26): error TS2307: Cannot find module '../app/api/type' or its corresponding type declarations.
+components/old/news-page.tsx(4,10): error TS2300: Duplicate identifier 'useState'.
+components/old/news-page.tsx(5,10): error TS2300: Duplicate identifier 'useState'.
+components/old/news-page.tsx(231,9): error TS2304: Cannot find name 'setIsLoading'.
+components/old/news-page.tsx(232,9): error TS2304: Cannot find name 'setError'.
+components/old/news-page.tsx(236,11): error TS2304: Cannot find name 'setActivities'.
+components/old/news-page.tsx(242,9): error TS2304: Cannot find name 'setError'.
+components/old/news-page.tsx(244,9): error TS2304: Cannot find name 'setActivities'.
+components/old/news-page.tsx(246,9): error TS2304: Cannot find name 'setIsLoading'.
+components/old/news-page.tsx(247,9): error TS2304: Cannot find name 'setMounted'.
+components/old/treasure-map-activities.tsx(2,30): error TS2307: Cannot find module '../app/api/api' or its corresponding type declarations.
+components/old/treasure-map-activities.tsx(3,26): error TS2307: Cannot find module '../app/api/type' or its corresponding type declarations.
+components/old/treasure-map-activities.tsx(155,24): error TS7006: Parameter 'data' implicitly has an 'any' type.
+components/old/treasure-map-activities.tsx(446,57): error TS7006: Parameter '_' implicitly has an 'any' type.
+components/old/treasure-map-activities.tsx(446,60): error TS7006: Parameter 'index' implicitly has an 'any' type.
+components/old/treasure-map-activities.tsx(516,59): error TS7006: Parameter 'achievement' implicitly has an 'any' type.
+components/old/treasure-map-activities.tsx(516,72): error TS7006: Parameter 'index' implicitly has an 'any' type.
+components/old/treasure-map-activities.tsx(529,57): error TS7006: Parameter 'highlight' implicitly has an 'any' type.
+components/old/treasure-map-activities.tsx(529,68): error TS7006: Parameter 'index' implicitly has an 'any' type.

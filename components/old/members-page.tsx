@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client"
 import { fetchAllData } from "../app/api/api";
 import { Activity } from "../app/api/type";

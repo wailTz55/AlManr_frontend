@@ -15,7 +15,6 @@ export interface Activity {
   location: string
   participants: number
   duration?: string            // (اختياري لأنه عندك blank=True في Django)
-  category: string
   status: string
   images?: string[]            // JSONField => array of strings
   videos?: string[]            // JSONField => array of strings
@@ -79,10 +78,12 @@ export interface Member {
   role: string;
   image: string;
   bio: string;
-  achievements: string[];
-  type: string;
-  color: string;
-  icon: string;
+  achievements?: string[];
+  type?: string;
+  memberType?: "association" | "staff" | string;
+  status?: "approved" | "pending" | "rejected" | "active" | "inactive";
+  color?: string;
+  icon?: string;
 }
 
 // الرد الكامل من API

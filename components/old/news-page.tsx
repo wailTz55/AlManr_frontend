@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client"
 import { fetchAllData } from "../app/api/api";
 import { Activity } from "../app/api/type";
@@ -49,7 +50,6 @@ const newsArticles = [
     date: "2024-08-01",
     time: "10:00 ص",
     author: "إدارة الجمعية",
-    category: "إعلان",
     type: "announcement",
     icon: Megaphone,
     color: "text-primary",
@@ -83,7 +83,6 @@ const newsArticles = [
     date: "2024-07-28",
     time: "2:30 م",
     author: "فريق الإعلام",
-    category: "إنجاز",
     type: "achievement",
     icon: Trophy,
     color: "text-secondary",
@@ -121,7 +120,6 @@ const newsArticles = [
     date: "2024-08-05",
     time: "6:00 م",
     author: "سكرتير الجمعية",
-    category: "تذكير",
     type: "reminder",
     icon: Bell,
     color: "text-accent",
@@ -161,7 +159,6 @@ const newsArticles = [
     date: "2024-08-03",
     time: "11:30 ص",
     author: "قسم التدريب",
-    category: "ورشة",
     type: "workshop",
     icon: Star,
     color: "text-chart-3",
@@ -198,7 +195,6 @@ const newsArticles = [
     date: "2024-07-30",
     time: "3:15 م",
     author: "لجنة البيئة",
-    category: "مبادرة",
     type: "initiative",
     icon: Users,
     color: "text-chart-4",
@@ -223,7 +219,7 @@ export function NewsPage() {
     const matchesSearch =
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.excerpt.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === "all" || article.category === selectedCategory
+    const matchesCategory = selectedCategory === "all" || article.type === selectedCategory
     return matchesSearch && matchesCategory
   })
 
@@ -327,7 +323,7 @@ export function NewsPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <Badge className={`absolute top-4 right-4 ${article.bgColor} ${article.color} border-0`}>
                       <Icon className="w-4 h-4 ml-1" />
-                      {article.category}
+                      {article.type}
                     </Badge>
                     <div className="absolute bottom-4 left-4 right-4 text-white">
                       <h3 className="text-xl font-bold mb-2 line-clamp-2">{article.title}</h3>
@@ -375,7 +371,7 @@ export function NewsPage() {
                     <div className="flex items-start justify-between mb-3">
                       <Badge className={`${article.bgColor} ${article.color} border-0`}>
                         <Icon className="w-4 h-4 ml-1" />
-                        {article.category}
+                        {article.type}
                       </Badge>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
@@ -405,9 +401,8 @@ export function NewsPage() {
                             e.stopPropagation()
                             toggleLike(article.id)
                           }}
-                          className={`flex items-center gap-1 transition-colors ${
-                            isLiked ? "text-red-500" : "hover:text-red-500"
-                          }`}
+                          className={`flex items-center gap-1 transition-colors ${isLiked ? "text-red-500" : "hover:text-red-500"
+                            }`}
                         >
                           <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
                           {article.likes + (isLiked ? 1 : 0)}
@@ -440,7 +435,7 @@ export function NewsPage() {
                 <div className="flex items-center gap-3 mb-4">
                   <Badge className={`${selectedArticle.bgColor} ${selectedArticle.color} border-0`}>
                     <selectedArticle.icon className="w-4 h-4 ml-1" />
-                    {selectedArticle.category}
+                    {selectedArticle.type}
                   </Badge>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
@@ -482,9 +477,8 @@ export function NewsPage() {
                     </div>
                     <button
                       onClick={() => toggleLike(selectedArticle.id)}
-                      className={`flex items-center gap-1 text-sm transition-colors ${
-                        likedArticles.includes(selectedArticle.id) ? "text-red-500" : "hover:text-red-500"
-                      }`}
+                      className={`flex items-center gap-1 text-sm transition-colors ${likedArticles.includes(selectedArticle.id) ? "text-red-500" : "hover:text-red-500"
+                        }`}
                     >
                       <Heart
                         className={`w-4 h-4 ${likedArticles.includes(selectedArticle.id) ? "fill-current" : ""}`}

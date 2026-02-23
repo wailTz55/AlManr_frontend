@@ -30,7 +30,7 @@ const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 // مصفوفات القيم العشوائية للألوان والأيقونات
 const colorOptions = [
   "bg-primary",
-  "bg-secondary", 
+  "bg-secondary",
   "bg-accent",
   "bg-chart-3",
   "bg-chart-4",
@@ -47,7 +47,7 @@ const colorOptions = [
 // ألوان الإطارات (بدون الذهبي للأعضاء العاديين والإداريين)
 const frameColors = [
   "ring-primary/50",
-  "ring-secondary/50", 
+  "ring-secondary/50",
   "ring-blue-500/50",
   "ring-green-500/50",
   "ring-purple-500/50",
@@ -85,7 +85,7 @@ type MemberWithRandomProps = Member & {
 // دالة لتحديد إذا كان العضو رئيس
 const isPresident = (member: MemberWithRandomProps) => {
   const role = member.role?.toLowerCase() || '';
-  return role.includes('رئيس') || role.includes('president');
+  return role.includes('رئيس') || role.includes('president') || role === 'president';
 };
 
 // دالة ترتيب الأعضاء
@@ -94,26 +94,26 @@ const sortMembers = (members: MemberWithRandomProps[]) => {
     // الرئيس يأتي أولاً
     const aIsPresident = isPresident(a);
     const bIsPresident = isPresident(b);
-    
+
     if (aIsPresident && !bIsPresident) return -1;
     if (!aIsPresident && bIsPresident) return 1;
-    
+
     // ثم الإداريين
     if (a.type === 'admin' && b.type !== 'admin') return -1;
     if (a.type !== 'admin' && b.type === 'admin') return 1;
-    
+
     // ترتيب أبجدي للأعضاء من نفس الفئة
     return (a.name || '').localeCompare(b.name || '', 'ar');
   });
 };
 
 // مكون بطاقة العضو
-const MemberCard = ({ 
-  member, 
-  index, 
-  isHovered, 
-  onMouseEnter, 
-  onMouseLeave, 
+const MemberCard = ({
+  member,
+  index,
+  isHovered,
+  onMouseEnter,
+  onMouseLeave,
   onClick,
   isPresident: memberIsPresident,
   isClickable = true
@@ -131,15 +131,12 @@ const MemberCard = ({
 
   return (
     <Card
-      className={`relative overflow-hidden transition-all duration-500 ${
-        isClickable ? "cursor-pointer" : "cursor-default"
-      } group ${
-        isHovered ? "scale-105 shadow-2xl" : "hover:scale-102 hover:shadow-xl"
-      } animate-fade-in ${
-        memberIsPresident 
-          ? "ring-4 ring-yellow-400/50 shadow-yellow-200/20" 
+      className={`relative overflow-hidden transition-all duration-500 ${isClickable ? "cursor-pointer" : "cursor-default"
+        } group ${isHovered ? "scale-105 shadow-2xl" : "hover:scale-102 hover:shadow-xl"
+        } animate-fade-in ${memberIsPresident
+          ? "ring-4 ring-yellow-400/50 shadow-yellow-200/20"
           : `ring-4 ${member.randomFrameColor} shadow-lg`
-      }`}
+        }`}
       style={{ animationDelay: `${index * 0.1}s` }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -157,20 +154,17 @@ const MemberCard = ({
 
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
-        <div className={`w-full h-full bg-gradient-to-br ${
-          memberIsPresident ? "from-yellow-400 to-orange-500" : "from-primary to-secondary"
-        }`} />
+        <div className={`w-full h-full bg-gradient-to-br ${memberIsPresident ? "from-yellow-400 to-orange-500" : "from-primary to-secondary"
+          }`} />
       </div>
 
       <div className="relative p-6 text-center">
         {/* Member Image */}
         <div className="relative mb-6">
           <div
-            className={`w-32 h-32 mx-auto rounded-full overflow-hidden border-4 ${
-              memberIsPresident ? "border-yellow-400 shadow-yellow-200/50" : "border-background"
-            } shadow-lg transition-transform duration-300 ${
-              isHovered ? "scale-110" : ""
-            }`}
+            className={`w-32 h-32 mx-auto rounded-full overflow-hidden border-4 ${memberIsPresident ? "border-yellow-400 shadow-yellow-200/50" : "border-background"
+              } shadow-lg transition-transform duration-300 ${isHovered ? "scale-110" : ""
+              }`}
           >
             <img
               src={member.image ? `${baseURL}${member.image}` : "/placeholder.svg"}
@@ -181,9 +175,8 @@ const MemberCard = ({
 
           {/* Role Icon */}
           <div
-            className={`absolute -bottom-2 right-1/2 transform translate-x-1/2 w-10 h-10 ${
-              memberIsPresident ? "bg-gradient-to-r from-yellow-400 to-orange-500" : member.randomColor
-            } rounded-full flex items-center justify-center border-4 border-background shadow-lg`}
+            className={`absolute -bottom-2 right-1/2 transform translate-x-1/2 w-10 h-10 ${memberIsPresident ? "bg-gradient-to-r from-yellow-400 to-orange-500" : member.randomColor
+              } rounded-full flex items-center justify-center border-4 border-background shadow-lg`}
           >
             {memberIsPresident ? (
               <Crown className="w-5 h-5 text-white" />
@@ -196,9 +189,8 @@ const MemberCard = ({
         </div>
 
         {/* Member Info */}
-        <h3 className={`text-xl font-bold mb-2 group-hover:text-primary transition-colors ${
-          memberIsPresident ? "text-yellow-600" : "text-foreground"
-        }`}>
+        <h3 className={`text-xl font-bold mb-2 group-hover:text-primary transition-colors ${memberIsPresident ? "text-yellow-600" : "text-foreground"
+          }`}>
           {member.name}
         </h3>
 
@@ -207,23 +199,21 @@ const MemberCard = ({
         </Badge>
 
         <p
-          className={`text-muted-foreground mb-4 transition-all duration-300 ${
-            isHovered ? "line-clamp-none" : "line-clamp-2"
-          }`}
+          className={`text-muted-foreground mb-4 transition-all duration-300 ${isHovered ? "line-clamp-none" : "line-clamp-2"
+            }`}
         >
           {member.bio}
         </p>
 
         {/* Type Badge */}
         <div className="mb-4">
-          <Badge 
-            className={`${
-              memberIsPresident 
-                ? "bg-gradient-to-r from-yellow-400 to-orange-500" 
-                : member.type === "admin" 
-                ? "bg-primary" 
-                : "bg-secondary"
-            } text-white border-0`}
+          <Badge
+            className={`${memberIsPresident
+                ? "bg-gradient-to-r from-yellow-400 to-orange-500"
+                : member.type === "admin"
+                  ? "bg-primary"
+                  : "bg-secondary"
+              } text-white border-0`}
           >
             {memberIsPresident ? "الرئيس" : member.type === "admin" ? "مجلس الإدارة" : "متطوع"}
           </Badge>
@@ -244,11 +234,9 @@ const MemberCard = ({
 
       {/* Hover Overlay */}
       <div
-        className={`absolute inset-0 bg-gradient-to-t ${
-          memberIsPresident ? "from-yellow-400/10" : "from-primary/10"
-        } to-transparent transition-opacity duration-300 ${
-          isHovered ? "opacity-100" : "opacity-0"
-        }`}
+        className={`absolute inset-0 bg-gradient-to-t ${memberIsPresident ? "from-yellow-400/10" : "from-primary/10"
+          } to-transparent transition-opacity duration-300 ${isHovered ? "opacity-100" : "opacity-0"
+          }`}
       />
     </Card>
   );
@@ -307,21 +295,36 @@ export function MembersPage() {
 
     loadMembers();
   }, []);
-  
-  // تصفية الأعضاء
-  const filteredMembers = members.filter((member) => {
+
+  // تصفية الأعضاء (فقط المعتمدين/النشطين)
+  const approvedMembers = members.filter((m) => m.status === 'active' || m.status === 'approved' || !m.status);
+
+  // تصفية الأعضاء بالبحث
+  const filteredMembers = approvedMembers.filter((member) => {
     const matchesSearch =
       member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.bio?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesDepartment = selectedDepartment === "all" || member.type === selectedDepartment
+
+    // Check old `type` or new `memberType` for departments map
+    const typeOrRole = member.memberType || member.type || '';
+    // Map the new categories roughly to admin/normal if needed
+    // Assuming Board Members (admin) includes Treasurer, Secretary
+    const isBoard = member.role === "Treasurer" || member.role === "Secretary" || typeOrRole === "admin";
+    const isNormal = member.role === "Staff" || member.memberType === "Staff" || typeOrRole === "normal";
+
+    const matchesDepartment =
+      selectedDepartment === "all" ||
+      (selectedDepartment === "admin" && isBoard) ||
+      (selectedDepartment === "normal" && isNormal);
+
     return matchesSearch && matchesDepartment
   })
 
   // تقسيم الأعضاء حسب النوع
   const president = filteredMembers.find(member => isPresident(member));
-  const adminMembers = filteredMembers.filter(member => !isPresident(member) && member.type === 'admin');
-  const normalMembers = filteredMembers.filter(member => !isPresident(member) && member.type === 'normal');
+  const adminMembers = filteredMembers.filter(member => !isPresident(member) && (member.role === "Treasurer" || member.role === "Secretary" || member.type === 'admin'));
+  const normalMembers = filteredMembers.filter(member => !isPresident(member) && (member.role === "Staff" || member.memberType === "Staff" || member.type === 'normal'));
 
   // تحديث حالة "يوجد المزيد" للأعضاء العاديين
   useEffect(() => {
@@ -338,7 +341,7 @@ export function MembersPage() {
           loadMoreNormalMembers();
         }
       },
-      { 
+      {
         threshold: 0.1,
         rootMargin: '100px'
       }
@@ -354,12 +357,12 @@ export function MembersPage() {
   // دالة تحميل المزيد من الأعضاء العاديين
   const loadMoreNormalMembers = async () => {
     if (isLoadingMore || !hasMoreNormal) return;
-    
+
     setIsLoadingMore(true);
-    
+
     // محاكاة تأخير التحميل
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     const newDisplayedCount = Math.min(displayedNormalMembers + NORMAL_MEMBERS_PER_LOAD, normalMembers.length);
     setDisplayedNormalMembers(newDisplayedCount);
     setIsLoadingMore(false);
@@ -398,8 +401,8 @@ export function MembersPage() {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
           <p className="text-lg text-red-500">{error}</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             إعادة المحاولة
@@ -432,32 +435,32 @@ export function MembersPage() {
               className="pr-10 text-right"
             />
           </div>
-<div className="flex flex-wrap justify-center gap-2 sm:gap-4 px-2">
-  <Button
-    variant={selectedDepartment === "all" ? "default" : "outline"}
-    onClick={() => setSelectedDepartment("all")}
-    className="rounded-full !cursor-pointer text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
-  >
-    <Filter className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-    جميع الأعضاء
-  </Button>
-  <Button
-    variant={selectedDepartment === "admin" ? "default" : "outline"}
-    onClick={() => setSelectedDepartment("admin")}
-    className="rounded-full !cursor-pointer text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
-  >
-    <Crown className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-    مجلس الإدارة
-  </Button>
-  <Button
-    variant={selectedDepartment === "normal" ? "default" : "outline"}
-    onClick={() => setSelectedDepartment("normal")}
-    className="rounded-full !cursor-pointer text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
-  >
-    <Users className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-    المتطوعون
-  </Button>
-</div>
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 px-2">
+            <Button
+              variant={selectedDepartment === "all" ? "default" : "outline"}
+              onClick={() => setSelectedDepartment("all")}
+              className="rounded-full !cursor-pointer text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+            >
+              <Filter className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+              جميع الأعضاء
+            </Button>
+            <Button
+              variant={selectedDepartment === "admin" ? "default" : "outline"}
+              onClick={() => setSelectedDepartment("admin")}
+              className="rounded-full !cursor-pointer text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+            >
+              <Crown className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+              مجلس الإدارة
+            </Button>
+            <Button
+              variant={selectedDepartment === "normal" ? "default" : "outline"}
+              onClick={() => setSelectedDepartment("normal")}
+              className="rounded-full !cursor-pointer text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+            >
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+              المتطوعون
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -540,7 +543,7 @@ export function MembersPage() {
             </div>
             <div className="w-24 h-1 bg-secondary mx-auto rounded-full" />
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {currentNormalMembers.map((member, index) => (
               <MemberCard
@@ -559,8 +562,8 @@ export function MembersPage() {
 
           {/* مؤشر التحميل للأعضاء العاديين */}
           {hasMoreNormal && normalMembers.length > 0 && (
-            <div 
-              ref={loadMoreRef} 
+            <div
+              ref={loadMoreRef}
               className="flex justify-center py-12"
             >
               {isLoadingMore ? (
@@ -627,11 +630,10 @@ export function MembersPage() {
                       className="w-full aspect-square object-cover rounded-lg"
                     />
                     <div
-                      className={`absolute top-4 right-4 w-12 h-12 ${
-                        isPresident(selectedMember) 
-                          ? "bg-gradient-to-r from-yellow-400 to-orange-500" 
+                      className={`absolute top-4 right-4 w-12 h-12 ${isPresident(selectedMember)
+                          ? "bg-gradient-to-r from-yellow-400 to-orange-500"
                           : selectedMember.randomColor
-                      } rounded-full flex items-center justify-center border-4 border-white shadow-lg`}
+                        } rounded-full flex items-center justify-center border-4 border-white shadow-lg`}
                     >
                       <Crown className="w-6 h-6 text-white" />
                     </div>
@@ -645,11 +647,11 @@ export function MembersPage() {
                         <Users className="w-4 h-4 text-primary" />
                         <span className="text-muted-foreground">
                           النوع: {
-                            isPresident(selectedMember) 
-                              ? "الرئيس" 
-                              : selectedMember.type === "admin" 
-                              ? "مجلس الإدارة" 
-                              : "متطوع"
+                            isPresident(selectedMember)
+                              ? "الرئيس"
+                              : selectedMember.type === "admin"
+                                ? "مجلس الإدارة"
+                                : "متطوع"
                           }
                         </span>
                       </div>
@@ -665,19 +667,18 @@ export function MembersPage() {
                 <div className="space-y-6">
                   {/* Role and Type */}
                   <div>
-                    <Badge className={`${
-                      isPresident(selectedMember)
+                    <Badge className={`${isPresident(selectedMember)
                         ? "bg-gradient-to-r from-yellow-400 to-orange-500"
-                        : selectedMember.type === "admin" 
-                        ? "bg-primary" 
-                        : "bg-secondary"
-                    } text-white border-0 mb-2`}>
+                        : selectedMember.type === "admin"
+                          ? "bg-primary"
+                          : "bg-secondary"
+                      } text-white border-0 mb-2`}>
                       {
-                        isPresident(selectedMember) 
-                          ? "الرئيس" 
-                          : selectedMember.type === "admin" 
-                          ? "مجلس الإدارة" 
-                          : "متطوع"
+                        isPresident(selectedMember)
+                          ? "الرئيس"
+                          : selectedMember.type === "admin"
+                            ? "مجلس الإدارة"
+                            : "متطوع"
                       }
                     </Badge>
                     <h3 className="text-xl font-bold text-foreground">{selectedMember.role}</h3>
@@ -709,8 +710,8 @@ export function MembersPage() {
                   {/* Action Buttons */}
                   <div className="flex gap-3 pt-4">
                     <Button className="flex-1" onClick={() => router.push("/contact")}>
-                      <MessageCircle className="w-4 h-4 ml-2" 
-                      
+                      <MessageCircle className="w-4 h-4 ml-2"
+
                       />
                       إرسال رسالة
                     </Button>

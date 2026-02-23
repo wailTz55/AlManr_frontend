@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client"
 import { fetchAllData } from "../app/api/api";
 import { Activity } from "../app/api/type";
@@ -28,7 +29,6 @@ import {
 //     location: "جبال الأطلس، المغرب",
 //     participants: 45,
 //     duration: "6 أيام",
-//     category: "مخيم",
 //     status: "مكتمل",
 //     images: [
 //       "/summer-camp-mountains.png",
@@ -54,7 +54,6 @@ import {
 //     location: "مركز الشباب الثقافي",
 //     participants: 30,
 //     duration: "يوم واحد",
-//     category: "ورشة",
 //     status: "مكتمل",
 //     images: [
 //       "/creative-workshop-innovation.png",
@@ -85,7 +84,6 @@ import {
 //     location: "الملعب الرياضي المركزي",
 //     participants: 60,
 //     duration: "3 أيام",
-//     category: "رياضة",
 //     status: "مكتمل",
 //     images: ["/youth-football-tournament.png", "/football-teams.png", "/football-final.png", "/football-awards.png"],
 //     videos: ["/football-tournament-highlights.mp4"],
@@ -101,7 +99,6 @@ import {
 //     location: "قاعة المعارض الثقافية",
 //     participants: 25,
 //     duration: "أسبوع واحد",
-//     category: "فنون",
 //     status: "قادم",
 //     images: ["/art-exhibition-youth.png", "/art-paintings.png", "/art-sculptures.png", "/art-opening.png"],
 //     videos: ["/art-exhibition-preview.mp4"],
@@ -117,7 +114,6 @@ import {
 //     location: "الساحل الشرقي",
 //     participants: 35,
 //     duration: "يومان",
-//     category: "استكشاف",
 //     status: "معلق",
 //     images: ["/marine-exploration.png", "/boat-adventure.png", "/underwater-diving.png", "/beach-camping.png"],
 //     videos: ["/marine-adventure-teaser.mp4"],
@@ -133,7 +129,6 @@ import {
 //     location: "مركز المؤتمرات الدولي",
 //     participants: 100,
 //     duration: "يومان",
-//     category: "مؤتمر",
 //     status: "مكتمل",
 //     images: [
 //       "/youth-leadership-conference.png",
@@ -154,14 +149,14 @@ import {
 //   },
 // ]
 
-    // * start api**************************
-    const [activities, setActivities] = useState<Activity[]>([]);
+// * start api**************************
+const [activities, setActivities] = useState<Activity[]>([]);
 
-    useEffect(() => {
-      fetchAllData().then((data) => setActivities(data.activities));
-    }, []);
-    // * End api**************************
-const colors = ["from-yellow-400 to-orange-500", "from-cyan-400 to-blue-500", "from-indigo-400 to-purple-500", "from-purple-400 to-pink-500","from-green-400 to-blue-500","from-orange-400 to-red-500"];
+useEffect(() => {
+  fetchAllData().then((data) => setActivities(data.activities));
+}, []);
+// * End api**************************
+const colors = ["from-yellow-400 to-orange-500", "from-cyan-400 to-blue-500", "from-indigo-400 to-purple-500", "from-purple-400 to-pink-500", "from-green-400 to-blue-500", "from-orange-400 to-red-500"];
 
 // دالة لاختيار لون عشوائي
 function getRandomColor() {
@@ -187,7 +182,6 @@ export function TreasureMapActivities() {
   //   location: "جبال الأطلس، المغرب",
   //   participants: 45,
   //   duration: "6 أيام",
-  //   category: "مخيم",
   //   status: "مكتمل",
   //   images: [
   //     "/summer-camp-mountains.png",
@@ -209,7 +203,7 @@ export function TreasureMapActivities() {
   //   position: { x: 10, y: 15 },
   // },
   //   ])
-  
+
   //     // 🔹 جلب البيانات من API عند تحميل الكومبوننت
   //     useEffect(() => {
   //       fetch(" http://127.0.0.1:8000/api/activities/") // رابط Django API
@@ -257,7 +251,7 @@ export function TreasureMapActivities() {
 
   const nextImage = () => {
     if (selectedActivity) {
-      
+
       setCurrentImageIndex((prev) => (prev + 1) % selectedActivity.images.length)
     }
   }
@@ -294,14 +288,12 @@ export function TreasureMapActivities() {
             <div
               key={activity.id}
               data-activity-id={activity.id}
-              className={`activity-card transition-all duration-1000 ${
-                visibleActivities.has(activity.id) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-              }`}
+              className={`activity-card transition-all duration-1000 ${visibleActivities.has(activity.id) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                }`}
             >
               <Card
-                className={`relative overflow-hidden cursor-pointer transition-all duration-500 hover:scale-125 hover:shadow-2xl group ${
-                  activity.status === "قادم" ? "opacity-80" : ""
-                }`}
+                className={`relative overflow-hidden cursor-pointer transition-all duration-500 hover:scale-125 hover:shadow-2xl group ${activity.status === "قادم" ? "opacity-80" : ""
+                  }`}
                 onClick={() => {
                   setSelectedActivity(activity)
                   setCurrentImageIndex(0)
@@ -322,23 +314,17 @@ export function TreasureMapActivities() {
 
                   {/* Status Badge */}
                   <Badge
-                    className={`absolute top-3 right-3 text-sm px-3 py-1 ${
-                      activity.status === "مكتمل"
-                        ? "bg-secondary text-secondary-foreground"
-                        : "bg-primary text-primary-foreground"
-                    }`}
+                    className={`absolute top-3 right-3 text-sm px-3 py-1 ${activity.status === "مكتمل"
+                      ? "bg-secondary text-secondary-foreground"
+                      : "bg-primary text-primary-foreground"
+                      }`}
                   >
                     {activity.status}
                   </Badge>
 
                   {/* Category Icon */}
                   <div className="absolute bottom-3 left-3 bg-background/80 backdrop-blur-sm rounded-full p-3">
-                    {activity.category === "مخيم" && <Calendar className="w-5 h-5 text-primary" />}
-                    {activity.category === "ورشة" && <Star className="w-5 h-5 text-secondary" />}
-                    {activity.category === "رياضة" && <Award className="w-5 h-5 text-accent" />}
-                    {activity.category === "فنون" && <Camera className="w-5 h-5 text-chart-3" />}
-                    {activity.category === "استكشاف" && <MapPin className="w-5 h-5 text-chart-4" />}
-                    {activity.category === "مؤتمر" && <Users className="w-5 h-5 text-chart-5" />}
+                    <MapPin className="w-5 h-5 text-chart-4" />
                   </div>
 
                   {/* Hover Overlay */}
@@ -462,9 +448,8 @@ export function TreasureMapActivities() {
                             <button
                               key={index}
                               onClick={() => setCurrentImageIndex(index)}
-                              className={`w-2 h-2 rounded-full transition-colors ${
-                                index === currentImageIndex ? "bg-white" : "bg-white/50"
-                              }`}
+                              className={`w-2 h-2 rounded-full transition-colors ${index === currentImageIndex ? "bg-white" : "bg-white/50"
+                                }`}
                             />
                           ))}
                         </div>

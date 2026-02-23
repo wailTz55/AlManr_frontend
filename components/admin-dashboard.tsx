@@ -2,6 +2,65 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+
+// --- Export Helpers ---
+const exportToWord = (htmlContent: string, filename: string) => {
+  const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>${filename}</title></head><body>`;
+  const footer = "</body></html>";
+  const sourceHTML = header + htmlContent + footer;
+
+  const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+  const fileDownload = document.createElement("a");
+  document.body.appendChild(fileDownload);
+  fileDownload.href = source;
+  fileDownload.download = `${filename}.doc`;
+  fileDownload.click();
+  document.body.removeChild(fileDownload);
+};
+
+const exportToPDF = (htmlContent: string, title: string) => {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'absolute';
+  iframe.style.width = '0px';
+  iframe.style.height = '0px';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (doc) {
+    doc.open();
+    doc.write(`
+      <html dir="rtl" lang="ar">
+        <head>
+          <title>${title}</title>
+          <style>
+            body { font-family: 'Arial', sans-serif; padding: 20px; text-align: right; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+            th, td { border: 1px solid #ddd; padding: 10px; text-align: right; }
+            th { background-color: #f2f2f2; font-weight: bold; }
+            h1, h2, h3 { text-align: center; color: #333; }
+            p { text-align: center; color: #555; }
+            .header-info { margin-bottom: 20px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          ${htmlContent}
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    }, 500);
+  }
+};
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -181,7 +240,9 @@ interface Member {
   name: string
   email: string
   phone: string
-  address: string
+  memberType: "Association Member" | "Staff" | string
+  role: "President" | "Treasurer" | "Secretary" | "Staff" | string
+  bio: string
   joinDate: string
   lastActive: string
   status: "active" | "inactive" | "pending"
@@ -191,6 +252,36 @@ interface Member {
 export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPassword] = useState("")
+
+  const handleImageOptimize = (file: File, callback: (url: string) => void) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH) {
+          height = Math.floor(height * (MAX_WIDTH / width));
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          // Convert to highly optimized WebP format to save space and bandwidth
+          const dataUrl = canvas.toDataURL("image/webp", 0.8);
+          callback(dataUrl);
+        }
+      };
+      if (e.target?.result) img.src = e.target.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
   const [showPassword, setShowPassword] = useState(false)
   const [activeSection, setActiveSection] = useState("dashboard")
 
@@ -566,7 +657,9 @@ export function AdminDashboard() {
       name: "أحمد محمد",
       email: "ahmed@example.com",
       phone: "+961 70 123 456",
-      address: "بيروت، لبنان",
+      memberType: "Association Member",
+      role: "President",
+      bio: "رئيس الجمعية ومؤسسها.",
       joinDate: "2024-01-15",
       lastActive: "منذ 5 دقائق",
       status: "active",
@@ -577,7 +670,9 @@ export function AdminDashboard() {
       name: "فاطمة علي",
       email: "fatima@example.com",
       phone: "+961 71 987 654",
-      address: "طرابلس، لبنان",
+      memberType: "Staff",
+      role: "Secretary",
+      bio: "مسؤولة العمليات.",
       joinDate: "2024-02-20",
       lastActive: "منذ ساعة",
       status: "active",
@@ -588,13 +683,53 @@ export function AdminDashboard() {
       name: "محمد حسن",
       email: "mohammed@example.com",
       phone: "+961 76 555 123",
-      address: "صيدا، لبنان",
+      memberType: "Association Member",
+      role: "Treasurer",
+      bio: "أمين الصندوق المعني بالمالية.",
       joinDate: "2024-03-10",
       lastActive: "منذ يومين",
-      status: "inactive",
+      status: "pending",
       avatar: "/young-arab-man-sports.png",
     },
   ])
+
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false)
+  const [selectedMemberObj, setSelectedMemberObj] = useState<Member | null>(null)
+  const [newMemberObj, setNewMemberObj] = useState<Partial<Member>>({
+    name: "",
+    email: "",
+    phone: "",
+    memberType: "Association Member",
+    role: "Staff",
+    bio: "",
+    status: "active",
+    avatar: "",
+  })
+
+  const handleAddMemberObj = () => {
+    if (!newMemberObj.name || !newMemberObj.email) return;
+    const newM = {
+      ...(newMemberObj as Member),
+      id: members.length > 0 ? Math.max(...members.map(m => m.id)) + 1 : 1,
+      joinDate: new Date().toISOString().split("T")[0],
+      lastActive: "الآن",
+      avatar: newMemberObj.avatar || "/placeholder.svg",
+    }
+    setMembers([...members, newM])
+    setShowAddMemberModal(false)
+    setNewMemberObj({ name: "", email: "", phone: "", memberType: "Association Member", role: "Staff", bio: "", status: "active", avatar: "" })
+  }
+
+  const handleEditMemberObj = () => {
+    if (selectedMemberObj) {
+      setMembers(members.map((m) => (m.id === selectedMemberObj.id ? { ...m, ...selectedMemberObj } : m)))
+      setSelectedMemberObj(null)
+    }
+  }
+
+  const handleDeleteMemberObj = (id: number) => {
+    setMembers(members.filter((m) => m.id !== id))
+  }
 
   const handleLogin = () => {
     if (password === "admin123") {
@@ -1081,6 +1216,158 @@ export function AdminDashboard() {
     { id: "settings", label: "الإعدادات", icon: Settings },
   ]
 
+  // --- Export Handlers for Activities ---
+  const generateAssociationsHTML = (activity: any, regs: any[]) => {
+    return `
+      <div class="header-info">
+        <h1>الجمعيات المسجلة</h1>
+        <h2>النشاط: ${activity.title}</h2>
+        <p>تاريخ الاستخراج: ${new Date().toLocaleDateString('ar-DZ')}</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>اسم الجمعية</th>
+            <th>البريد الإلكتروني</th>
+            <th>الهاتف</th>
+            <th>تاريخ التسجيل</th>
+            <th>الحالة</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${regs.map((reg, index) => `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${reg.associationName}</td>
+              <td>${reg.associationEmail}</td>
+              <td>${reg.associationPhone}</td>
+              <td>${new Date(reg.registrationDate).toLocaleDateString('ar-DZ')}</td>
+              <td>${reg.status === 'approved' ? 'مقبول' : reg.status === 'rejected' ? 'مرفوض' : 'قيد الانتظار'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  };
+
+  const generateParticipantsHTML = (activity: any, regs: any[]) => {
+    const approvedRegs = regs.filter(r => r.status === 'approved');
+    let participantsRows = '';
+    let counter = 1;
+    approvedRegs.forEach(reg => {
+      reg.participants.forEach((p: any) => {
+        participantsRows += `
+          <tr>
+            <td>${counter++}</td>
+            <td>${p.firstName}</td>
+            <td>${p.lastName}</td>
+            <td>${new Date(p.dateOfBirth).toLocaleDateString('ar-DZ')}</td>
+            <td>${reg.associationName}</td>
+          </tr>
+        `;
+      });
+    });
+
+    return `
+      <div class="header-info">
+        <h1>المشاركون المسجلون</h1>
+        <h2>النشاط: ${activity.title}</h2>
+        <p>تاريخ الاستخراج: ${new Date().toLocaleDateString('ar-DZ')}</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الاسم</th>
+            <th>اللقب</th>
+            <th>تاريخ الميلاد</th>
+            <th>الجمعية</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${participantsRows || '<tr><td colspan="5" style="text-align:center;">لا يوجد مشاركين</td></tr>'}
+        </tbody>
+      </table>
+    `;
+  };
+
+  const generateGroupedParticipantsHTML = (activity: any, regs: any[]) => {
+    const approvedRegs = regs.filter(r => r.status === 'approved');
+    if (!activity.categories || activity.categories.length === 0) return generateParticipantsHTML(activity, regs);
+
+    let html = `
+      <div class="header-info">
+        <h1>المشاركون المسجلون (حسب الفئة)</h1>
+        <h2>النشاط: ${activity.title}</h2>
+        <p>تاريخ الاستخراج: ${new Date().toLocaleDateString('ar-DZ')}</p>
+      </div>
+    `;
+
+    activity.categories.forEach((cat: any) => {
+      let participantsRows = '';
+      let counter = 1;
+      approvedRegs.forEach(reg => {
+        const catParticipants = reg.participants.filter((p: any) => p.category === cat);
+        catParticipants.forEach((p: any) => {
+          participantsRows += `
+            <tr>
+              <td>${counter++}</td>
+              <td>${p.firstName}</td>
+              <td>${p.lastName}</td>
+              <td>${new Date(p.dateOfBirth).toLocaleDateString('ar-DZ')}</td>
+              <td>${reg.associationName}</td>
+            </tr>
+          `;
+        });
+      });
+
+      html += `
+        <h3>الفئة: ${cat}</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الاسم</th>
+              <th>اللقب</th>
+              <th>تاريخ الميلاد</th>
+              <th>الجمعية</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${participantsRows || '<tr><td colspan="5" style="text-align:center;">لا يوجد مشاركين في هذه الفئة</td></tr>'}
+          </tbody>
+        </table>
+        <br/>
+      `;
+    });
+
+    return html;
+  };
+
+  const handleExportAssociations = (format: 'pdf' | 'word') => {
+    if (!viewingRegistrationsActivity) return;
+    const regs = getActivityRegistrations(viewingRegistrationsActivity.id);
+    const html = generateAssociationsHTML(viewingRegistrationsActivity, regs);
+    const filename = `الجمعيات_المسجلة_${viewingRegistrationsActivity.title.replace(/\s+/g, '_')}`;
+    if (format === 'pdf') exportToPDF(html, filename);
+    else exportToWord(html, filename);
+  };
+
+  const handleExportParticipants = (format: 'pdf' | 'word') => {
+    if (!viewingRegistrationsActivity) return;
+    const regs = getActivityRegistrations(viewingRegistrationsActivity.id);
+    let html = '';
+    if (templateNeedsCategories(viewingRegistrationsActivity.activityTemplate)) {
+      html = generateGroupedParticipantsHTML(viewingRegistrationsActivity, regs);
+    } else {
+      html = generateParticipantsHTML(viewingRegistrationsActivity, regs);
+    }
+    const filename = `المشاركون_${viewingRegistrationsActivity.title.replace(/\s+/g, '_')}`;
+    if (format === 'pdf') exportToPDF(html, filename);
+    else exportToWord(html, filename);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
       {/* Sidebar */}
@@ -1146,7 +1433,7 @@ export function AdminDashboard() {
                 <CardTitle>النشاط الأخير</CardTitle>
                 <CardDescription>آخر العمليات في النظام</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="space-y-4">
                   {[
                     { action: "تم إضافة عضو جديد", user: "أحمد محمد", time: "منذ 5 دقائق", type: "member" },
@@ -1287,8 +1574,9 @@ export function AdminDashboard() {
                         <input id="add-image-upload" type="file" accept="image/*" className="hidden" onChange={(e) => {
                           const file = e.target.files?.[0]
                           if (file) {
-                            const url = URL.createObjectURL(file)
-                            setNewActivity({ ...newActivity, image: url })
+                            handleImageOptimize(file, (optimizedUrl) => {
+                              setNewActivity({ ...newActivity, image: optimizedUrl })
+                            })
                           }
                         }} />
                         {newActivity.image && (
@@ -1492,8 +1780,9 @@ export function AdminDashboard() {
                       <input id="edit-image-upload" type="file" accept="image/*" className="hidden" onChange={(e) => {
                         const file = e.target.files?.[0]
                         if (file) {
-                          const url = URL.createObjectURL(file)
-                          setNewActivity({ ...newActivity, image: url })
+                          handleImageOptimize(file, (optimizedUrl) => {
+                            setNewActivity({ ...newActivity, image: optimizedUrl })
+                          })
                         }
                       }} />
                       {newActivity.image && (
@@ -1594,13 +1883,46 @@ export function AdminDashboard() {
             <Dialog open={!!viewingRegistrationsActivity} onOpenChange={(open) => { if (!open) { setViewingRegistrationsActivity(null); setExpandedRegistrationId(null) } }}>
               <DialogContent className="max-w-5xl md:max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-6 md:p-8" dir="rtl">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-amber-600" />
-                    تسجيلات النشاط: {viewingRegistrationsActivity?.title}
-                  </DialogTitle>
-                  <DialogDescription>
-                    إدارة طلبات تسجيل الجمعيات — القبول يحفظ التسجيل، الرفض يحذفه نهائياً
-                  </DialogDescription>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5 text-amber-600" />
+                        تسجيلات النشاط: {viewingRegistrationsActivity?.title}
+                      </DialogTitle>
+                      <DialogDescription>
+                        إدارة طلبات تسجيل الجمعيات — القبول يحفظ التسجيل، الرفض يحذفه نهائياً
+                      </DialogDescription>
+                    </div>
+                    {/* Export Buttons */}
+                    {viewingRegistrationsActivity && templateNeedsReg(viewingRegistrationsActivity.activityTemplate) && (
+                      <div className="flex flex-wrap items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-gray-700 ml-2">
+                            تصدير الجمعيات:
+                          </span>
+                          <Button size="sm" className="h-9 px-3 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all flex items-center gap-2" onClick={() => handleExportAssociations('word')}>
+                            <FileDown className="h-4 w-4" /> Word
+                          </Button>
+                          <Button size="sm" className="h-9 px-3 bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all flex items-center gap-2" onClick={() => handleExportAssociations('pdf')}>
+                            <Printer className="h-4 w-4" /> PDF
+                          </Button>
+                        </div>
+                        {templateNeedsParticipants(viewingRegistrationsActivity.activityTemplate) && (
+                          <div className="flex items-center gap-2 border-r pr-3 border-gray-300">
+                            <span className="text-sm font-semibold text-gray-700 ml-2">
+                              تصدير المشاركين:
+                            </span>
+                            <Button size="sm" className="h-9 px-3 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all flex items-center gap-2" onClick={() => handleExportParticipants('word')}>
+                              <FileDown className="h-4 w-4" /> Word
+                            </Button>
+                            <Button size="sm" className="h-9 px-3 bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all flex items-center gap-2" onClick={() => handleExportParticipants('pdf')}>
+                              <Printer className="h-4 w-4" /> PDF
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </DialogHeader>
                 <div className="space-y-3 mt-4">
                   {viewingRegistrationsActivity && getActivityRegistrations(viewingRegistrationsActivity.id).length === 0 && (
@@ -1782,7 +2104,7 @@ export function AdminDashboard() {
                 <CardTitle>قائمة الرسائل</CardTitle>
                 <CardDescription>جميع الرسائل الواردة من نموذج الاتصال</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="space-y-4">
                   {filteredMessages.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
@@ -1928,13 +2250,13 @@ export function AdminDashboard() {
           <div className="space-y-6">
             {/* ── Export Print Styles (hidden except when printing) ── */}
             <style>{`
-              @media print {
-                body > *:not(#membership-print-area) { display: none !important; }
-                #membership-print-area { display: block !important; }
-                .no-print { display: none !important; }
-              }
-              #membership-print-area { display: none; }
-            `}</style>
+    @media print {
+      body > *:not(#membership-print-area) { display: none !important; }
+      #membership-print-area { display: block !important; }
+      .no-print { display: none !important; }
+    }
+    #membership-print-area { display: none; }
+`}</style>
 
             {/* ── Header ── */}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center no-print">
@@ -1990,7 +2312,7 @@ export function AdminDashboard() {
                           const approved = partnerships.filter((p) => p.status === "approved")
                           // Build printable HTML
                           const rows = approved.map((p) => `
-                            <div style="page-break-inside:avoid;margin-bottom:32px;border:1px solid #e5e7eb;border-radius:8px;padding:20px">
+  < div style = "page-break-inside:avoid;margin-bottom:32px;border:1px solid #e5e7eb;border-radius:8px;padding:20px" >
                               <h2 style="font-size:18px;font-weight:700;color:#d97706;margin-bottom:12px;border-bottom:2px solid #d97706;padding-bottom:6px">${p.associationName}</h2>
                               <table style="width:100%;border-collapse:collapse;font-size:13px">
                                 <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;width:35%;border:1px solid #e5e7eb">المؤسسة المشرفة</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.institutionName}</td></tr>
@@ -2004,8 +2326,8 @@ export function AdminDashboard() {
                                 <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">رقم الهاتف</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.phone}</td></tr>
                                 <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">تاريخ الموافقة</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.reviewDate ? new Date(p.reviewDate).toLocaleDateString("ar-DZ") : "-"}</td></tr>
                               </table>
-                            </div>
-                          `).join("")
+                            </div >
+  `).join("")
                           const printWin = window.open("", "_blank", "width=900,height=700")
                           if (printWin) {
                             printWin.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>شراكات الجمعية المنار</title><style>body{font-family:Arial,sans-serif;padding:30px;direction:rtl} h1{color:#d97706;text-align:center;margin-bottom:6px} .subtitle{text-align:center;color:#6b7280;margin-bottom:24px}</style></head><body><h1>جمعية المنار للشباب</h1><p class="subtitle">قائمة الشراكات المعتمدة — ${new Date().toLocaleDateString("ar-DZ")}</p>${rows}</body></html>`)
@@ -2025,7 +2347,7 @@ export function AdminDashboard() {
                           setExportFormatOpen(false)
                           const approved = partnerships.filter((p) => p.status === "approved")
                           const tableRows = approved.map((p) => `
-                            <h2>${p.associationName}</h2>
+  < h2 > ${p.associationName}</h2 >
                             <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%">
                               <tr style="background:#fef9f0"><td><b>المؤسسة المشرفة</b></td><td>${p.institutionName}</td></tr>
                               <tr><td><b>رئيس الجمعية</b></td><td>${p.presidentName}</td></tr>
@@ -2038,8 +2360,8 @@ export function AdminDashboard() {
                               <tr style="background:#fef9f0"><td><b>رقم الهاتف</b></td><td>${p.phone}</td></tr>
                               <tr><td><b>تاريخ الموافقة</b></td><td>${p.reviewDate ? new Date(p.reviewDate).toLocaleDateString("ar-DZ") : "-"}</td></tr>
                             </table><br/>
-                          `).join("")
-                          const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>شراكات</title><style>body{font-family:Arial;direction:rtl} table{border-collapse:collapse;width:100%} td{padding:6px 10px} h2{color:#d97706}</style></head><body><h1 style="text-align:center;color:#d97706">جمعية المنار للشباب — الشراكات المعتمدة</h1><p style="text-align:center;color:#6b7280">${new Date().toLocaleDateString("ar-DZ")}</p><hr/>${tableRows}</body></html>`
+`).join("")
+                          const html = `< html xmlns: o = "urn:schemas-microsoft-com:office:office" xmlns: w = "urn:schemas-microsoft-com:office:word" xmlns = "http://www.w3.org/TR/REC-html40" ><head><meta charset="utf-8"><title>شراكات</title><style>body{font-family:Arial;direction:rtl} table{border-collapse:collapse;width:100%} td{padding:6px 10px} h2{color:#d97706}</style></head><body><h1 style="text-align:center;color:#d97706">جمعية المنار للشباب — الشراكات المعتمدة</h1><p style="text-align:center;color:#6b7280">${new Date().toLocaleDateString("ar-DZ")}</p><hr/>${tableRows}</body></html > `
                           const blob = new Blob(["\ufeff" + html], { type: "application/msword" })
                           const url = URL.createObjectURL(blob)
                           const a = document.createElement("a")
@@ -2108,7 +2430,7 @@ export function AdminDashboard() {
                     جمعيات مرفوضة مؤقتاً — سيتم حذفها نهائياً خلال {GRACE_DAYS} أيام
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-6">
                   <div className="space-y-3">
                     {rejectedPartnerships.map((p) => {
                       const remaining = p.rejectedAt ? getRemainingDays(p.rejectedAt) : GRACE_DAYS
@@ -2158,7 +2480,7 @@ export function AdminDashboard() {
                 <CardTitle>قائمة الشراكات</CardTitle>
                 <CardDescription>جميع طلبات الشراكة المقدمة من الجمعيات</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="space-y-4">
                   {filteredPartnerships.length === 0 ? (
                     <div className="text-center py-10 text-gray-500">
@@ -2312,7 +2634,7 @@ export function AdminDashboard() {
                         <Label className="text-sm font-medium text-gray-600">حالة الطلب</Label>
                         <Badge
                           className={`mt-1 ${selectedPartnership.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
+                            ? "bg-yellow-100 text-yellow-800 border-yellow-200"
                             : "bg-green-100 text-green-800"
                             }`}
                         >
@@ -2487,34 +2809,15 @@ export function AdminDashboard() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="news-category">التصنيف</Label>
-                          <Select
-                            value={newNews.category}
-                            onValueChange={(value) => setNewNews({ ...newNews, category: value })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="اختر التصنيف" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="أخبار">أخبار</SelectItem>
-                              <SelectItem value="فعاليات">فعاليات</SelectItem>
-                              <SelectItem value="تعليم">تعليم</SelectItem>
-                              <SelectItem value="تدريب">تدريب</SelectItem>
-                              <SelectItem value="إعلانات">إعلانات</SelectItem>
-                              <SelectItem value="تطوع">تطوع</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Label htmlFor="news-excerpt">المقدمة</Label>
+                          <Textarea
+                            id="news-excerpt"
+                            value={newNews.excerpt}
+                            onChange={(e) => setNewNews({ ...newNews, excerpt: e.target.value })}
+                            placeholder="مقدمة مختصرة عن المقال"
+                            rows={2}
+                          />
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="news-excerpt">المقدمة</Label>
-                        <Textarea
-                          id="news-excerpt"
-                          value={newNews.excerpt}
-                          onChange={(e) => setNewNews({ ...newNews, excerpt: e.target.value })}
-                          placeholder="مقدمة مختصرة عن المقال"
-                          rows={2}
-                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="news-content">محتوى المقال</Label>
@@ -2556,13 +2859,25 @@ export function AdminDashboard() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="news-image">رابط الصورة</Label>
+                        <Label htmlFor="news-image">صورة المقال (يتم ضغطها تلقائياً)</Label>
                         <Input
                           id="news-image"
-                          value={newNews.image}
-                          onChange={(e) => setNewNews({ ...newNews, image: e.target.value })}
-                          placeholder="رابط صورة المقال"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleImageOptimize(file, (optimizedUrl) => {
+                                setNewNews({ ...newNews, image: optimizedUrl });
+                              });
+                            }
+                          }}
                         />
+                        {newNews.image && (
+                          <div className="mt-2 border rounded-md p-2 bg-gray-50 flex justify-center w-full overflow-hidden">
+                            <img src={newNews.image} alt="Preview" className="max-h-40 rounded-md object-contain" />
+                          </div>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="news-tags">الكلمات المفتاحية</Label>
@@ -2681,7 +2996,6 @@ export function AdminDashboard() {
                         <div>
                           <h4 className="font-semibold text-lg text-gray-900 line-clamp-2">{article.title}</h4>
                           <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline">{article.category}</Badge>
                             <span className="text-xs text-gray-500">{article.views} مشاهدة</span>
                           </div>
                         </div>
@@ -2819,12 +3133,25 @@ export function AdminDashboard() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-news-image">رابط الصورة</Label>
+                    <Label htmlFor="edit-news-image">صورة المقال (تحديث - يتم ضغطها تلقائياً)</Label>
                     <Input
                       id="edit-news-image"
-                      value={newNews.image}
-                      onChange={(e) => setNewNews({ ...newNews, image: e.target.value })}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleImageOptimize(file, (optimizedUrl) => {
+                            setNewNews({ ...newNews, image: optimizedUrl });
+                          });
+                        }
+                      }}
                     />
+                    {newNews.image && (
+                      <div className="mt-2 border rounded-md p-2 bg-gray-50 flex justify-center w-full overflow-hidden">
+                        <img src={newNews.image} alt="Preview" className="max-h-40 rounded-md object-contain" />
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-news-tags">الكلمات المفتاحية</Label>
@@ -2867,7 +3194,7 @@ export function AdminDashboard() {
                     {selectedNews?.title}
                   </DialogTitle>
                   <DialogDescription>
-                    {selectedNews?.category} • بواسطة {selectedNews?.author}
+                    بواسطة {selectedNews?.author}
                   </DialogDescription>
                 </DialogHeader>
                 {selectedNews && (
@@ -2929,6 +3256,166 @@ export function AdminDashboard() {
                     </div>
                   </div>
                 )}
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
+
+        {activeSection === "members" && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">إدارة الأعضاء</h2>
+                <p className="text-gray-600 mt-1">إدارة بيانات وأدوار أعضاء ومتطوعي الجمعية</p>
+              </div>
+              <Button onClick={() => setShowAddMemberModal(true)} className="bg-primary hover:bg-primary/90">
+                <Plus className="h-4 w-4 ml-2" />
+                إضافة عضو جديد
+              </Button>
+            </div>
+
+            <Card className="border-0 shadow-sm overflow-hidden">
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-right">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">العضو</th>
+                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">النوع</th>
+                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">الدور</th>
+                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">الحالة</th>
+                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">تاريخ الانضمام</th>
+                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">إجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {members.map((member) => (
+                        <tr key={member.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <img src={member.avatar || "/placeholder.svg"} alt={member.name} className="w-10 h-10 rounded-full" />
+                              <div>
+                                <p className="font-medium text-gray-900">{member.name}</p>
+                                <p className="text-xs text-gray-500">{member.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                              {member.memberType === "Association Member" ? "عضو جمعية" : "موظف / متطوع"}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 font-medium">{member.role}</td>
+                          <td className="px-6 py-4">
+                            <Badge className={member.status === "active" ? "bg-green-100 text-green-700 hover:bg-green-100" : member.status === "pending" ? "bg-amber-100 text-amber-700 hover:bg-amber-100" : "bg-red-100 text-red-700 hover:bg-red-100"}>
+                              {member.status === "active" ? "نشط" : member.status === "pending" ? "قيد الانتظار" : "غير نشط"}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{member.joinDate}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => setSelectedMemberObj({ ...member })}>
+                                <Edit className="w-4 h-4 text-blue-600" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteMemberObj(member.id)}>
+                                <Trash2 className="w-4 h-4 text-red-600" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {members.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                            لا يوجد أعضاء حالياً.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Dialog open={showAddMemberModal} onOpenChange={setShowAddMemberModal}>
+              <DialogContent className="max-w-2xl p-6" dir="rtl">
+                <DialogHeader><DialogTitle>إضافة عضو جديد</DialogTitle></DialogHeader>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2"><Label>الاسم</Label><Input value={newMemberObj.name} onChange={(e) => setNewMemberObj({ ...newMemberObj, name: e.target.value })} /></div>
+                  <div className="space-y-2"><Label>البريد الإلكتروني</Label><Input value={newMemberObj.email} onChange={(e) => setNewMemberObj({ ...newMemberObj, email: e.target.value })} /></div>
+                  <div className="space-y-2"><Label>رقم الهاتف</Label><Input value={newMemberObj.phone} onChange={(e) => setNewMemberObj({ ...newMemberObj, phone: e.target.value })} /></div>
+                  <div className="space-y-2">
+                    <Label>النوع</Label>
+                    <Select value={newMemberObj.memberType} onValueChange={(v) => setNewMemberObj({ ...newMemberObj, memberType: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent><SelectItem value="Association Member">عضو جمعية</SelectItem><SelectItem value="Staff">موظف / متطوع</SelectItem></SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>الدور</Label>
+                    <Select value={newMemberObj.role} onValueChange={(v) => setNewMemberObj({ ...newMemberObj, role: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="President">الرئيس (President)</SelectItem>
+                        <SelectItem value="Treasurer">أمين الصندوق (Treasurer)</SelectItem>
+                        <SelectItem value="Secretary">الكاتب العام (Secretary)</SelectItem>
+                        <SelectItem value="Staff">متطوع / موظف (Staff)</SelectItem>
+                        <SelectItem value="Custom">دور مخصص</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>الحالة</Label>
+                    <Select value={newMemberObj.status} onValueChange={(v) => setNewMemberObj({ ...newMemberObj, status: v as "active" | "inactive" | "pending" })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent><SelectItem value="active">نشط / معتمد</SelectItem><SelectItem value="pending">قيد الانتظار</SelectItem><SelectItem value="inactive">غير نشط / مرفوض</SelectItem></SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-2 space-y-2"><Label>نبذة (Bio)</Label><Textarea value={newMemberObj.bio} onChange={(e) => setNewMemberObj({ ...newMemberObj, bio: e.target.value })} /></div>
+                </div>
+                <div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setShowAddMemberModal(false)}>إلغاء</Button><Button onClick={handleAddMemberObj}>إضافة</Button></div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={!!selectedMemberObj} onOpenChange={(open) => !open && setSelectedMemberObj(null)}>
+              <DialogContent className="max-w-2xl p-6" dir="rtl">
+                <DialogHeader><DialogTitle>تعديل بيانات العضو</DialogTitle></DialogHeader>
+                {selectedMemberObj && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2"><Label>الاسم</Label><Input value={selectedMemberObj.name} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, name: e.target.value })} /></div>
+                    <div className="space-y-2"><Label>البريد الإلكتروني</Label><Input value={selectedMemberObj.email} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, email: e.target.value })} /></div>
+                    <div className="space-y-2"><Label>رقم الهاتف</Label><Input value={selectedMemberObj.phone} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, phone: e.target.value })} /></div>
+                    <div className="space-y-2">
+                      <Label>النوع</Label>
+                      <Select value={selectedMemberObj.memberType} onValueChange={(v) => setSelectedMemberObj({ ...selectedMemberObj, memberType: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent><SelectItem value="Association Member">عضو جمعية</SelectItem><SelectItem value="Staff">موظف / متطوع</SelectItem></SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>الدور</Label>
+                      <Select value={selectedMemberObj.role} onValueChange={(v) => setSelectedMemberObj({ ...selectedMemberObj, role: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="President">الرئيس (President)</SelectItem>
+                          <SelectItem value="Treasurer">أمين الصندوق (Treasurer)</SelectItem>
+                          <SelectItem value="Secretary">الكاتب العام (Secretary)</SelectItem>
+                          <SelectItem value="Staff">متطوع / موظف (Staff)</SelectItem>
+                          <SelectItem value="Custom">دور مخصص</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>الحالة</Label>
+                      <Select value={selectedMemberObj.status} onValueChange={(v) => setSelectedMemberObj({ ...selectedMemberObj, status: v as "active" | "inactive" | "pending" })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent><SelectItem value="active">نشط / معتمد</SelectItem><SelectItem value="pending">قيد الانتظار</SelectItem><SelectItem value="inactive">غير نشط / مرفوض</SelectItem></SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-2 space-y-2"><Label>نبذة (Bio)</Label><Textarea value={selectedMemberObj.bio} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, bio: e.target.value })} /></div>
+                  </div>
+                )}
+                <div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setSelectedMemberObj(null)}>إلغاء</Button><Button onClick={handleEditMemberObj}>حفظ التغييرات</Button></div>
               </DialogContent>
             </Dialog>
           </div>
@@ -3020,7 +3507,7 @@ export function AdminDashboard() {
                   فريق الإدارة
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="space-y-4">
                   {adminTeam.map((admin) => (
                     <div
@@ -3096,7 +3583,7 @@ export function AdminDashboard() {
                   مصفوفة الصلاحيات
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
@@ -3303,12 +3790,12 @@ export function AdminDashboard() {
                             if (e.target.checked) {
                               setSelectedAdmin({
                                 ...selectedAdmin,
-                                permissions: [...selectedAdmin.permissions.filter((p) => p !== "all"), permission.id],
+                                permissions: [...selectedAdmin.permissions.filter((p: string) => p !== "all"), permission.id],
                               })
                             } else {
                               setSelectedAdmin({
                                 ...selectedAdmin,
-                                permissions: selectedAdmin.permissions.filter((p) => p !== permission.id),
+                                permissions: selectedAdmin.permissions.filter((p: string) => p !== permission.id),
                               })
                             }
                           }}
