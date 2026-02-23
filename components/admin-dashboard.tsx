@@ -1175,7 +1175,7 @@ export function AdminDashboard() {
             <CardTitle className="text-2xl font-bold text-amber-600">لوحة التحكم الإدارية</CardTitle>
             <CardDescription>يرجى إدخال كلمة المرور للوصول إلى النظام الإداري</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6 p-6">
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
@@ -1660,7 +1660,7 @@ export function AdminDashboard() {
                       <Badge className={`absolute top-2 right-2 ${getStatusColor(activity.status)}`}>{getStatusText(activity.status)}</Badge>
                       <span className={`absolute top-2 left-2 text-xs px-2 py-1 rounded-full font-medium ${tmplMeta.color}`}>{tmplMeta.label}</span>
                     </div>
-                    <CardContent className="p-4 flex-1 flex flex-col">
+                    <CardContent className="p-6 flex-1 flex flex-col">
                       <div className="space-y-3 flex-1">
                         <div>
                           <h4 className="font-semibold text-lg text-gray-900">{activity.title}</h4>
@@ -2047,7 +2047,7 @@ export function AdminDashboard() {
             {/* Messages Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي الرسائل</p>
@@ -2058,7 +2058,7 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">غير مقروءة</p>
@@ -2071,7 +2071,7 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">تم الرد عليها</p>
@@ -2084,7 +2084,7 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">عالية الأولوية</p>
@@ -2383,7 +2383,7 @@ export function AdminDashboard() {
             {/* ── Stats Cards ── */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي الطلبات</p>
@@ -2394,7 +2394,7 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">قيد المراجعة</p>
@@ -2407,7 +2407,7 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">شراكات معتمدة</p>
@@ -2917,7 +2917,7 @@ export function AdminDashboard() {
             {/* News Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي المقالات</p>
@@ -2928,7 +2928,7 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">منشورة</p>
@@ -2941,7 +2941,7 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">مسودات</p>
@@ -2954,7 +2954,7 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي المشاهدات</p>
@@ -2991,7 +2991,7 @@ export function AdminDashboard() {
                         {article.featured && <Badge className="bg-amber-100 text-amber-800">مميز</Badge>}
                       </div>
                     </div>
-                    <CardContent className="p-4">
+                    <CardContent className="p-6">
                       <div className="space-y-3">
                         <div>
                           <h4 className="font-semibold text-lg text-gray-900 line-clamp-2">{article.title}</h4>
