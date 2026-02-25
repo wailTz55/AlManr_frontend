@@ -11,7 +11,7 @@ import { Home, Users, Calendar, FileText, UserPlus, Phone, Menu, X, Move } from 
 const navItems = [
   { id: "home", label: "الرئيسية", icon: Home, href: "/" },
   { id: "activities", label: "الأنشطة", icon: Calendar, href: "/activities" },
-  { id: "members", label: "الأعضاء", icon: Users, href: "/members" },
+  // { id: "members", label: "الأعضاء", icon: Users, href: "/members" },
   { id: "news", label: "الأخبار", icon: FileText, href: "/news" },
   { id: "register", label: "التسجيل", icon: UserPlus, href: "/register" },
   { id: "contact", label: "اتصل بنا", icon: Phone, href: "/contact" },
@@ -155,13 +155,12 @@ export function EnhancedFloatingNavbar() {
       {/* Desktop Navigation */}
       <nav
         ref={navRef}
-        className={`fixed z-50 transition-all duration-500 hidden md:block ${
-          isScrolled ? "scale-95 opacity-95" : "scale-100 opacity-100"
-        } ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+        className={`fixed z-50 transition-all duration-500 hidden md:block ${isScrolled ? "scale-95 opacity-95" : "scale-100 opacity-100"
+          } ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
         style={{
-  left: navPosition.x,
-  top: navPosition.y,
-  transform: (!hasDragged && !isDragging) ? "translateX(-50%)" : "none",
+          left: navPosition.x,
+          top: navPosition.y,
+          transform: (!hasDragged && !isDragging) ? "translateX(-50%)" : "none",
         }}
       >
         <div className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-full px-8 py-4 shadow-2xl hover-glow">
@@ -185,11 +184,10 @@ export function EnhancedFloatingNavbar() {
                   variant={isActive ? "default" : "ghost"}
                   size="sm"
                   onClick={() => scrollToSection(item.id, item.href)}
-                  className={`relative rounded-full transition-all duration-300 hover-lift !cursor-pointer ${
-                    isActive
+                  className={`relative rounded-full transition-all duration-300 hover-lift !cursor-pointer ${isActive
                       ? "bg-primary text-primary-foreground animate-pulse-glow"
                       : "hover:bg-accent hover:text-accent-foreground"
-                  }`}
+                    }`}
                   style={{
                     animationDelay: `${index * 0.1}s`,
                   }}
@@ -230,9 +228,8 @@ export function EnhancedFloatingNavbar() {
                     variant={isActive ? "default" : "ghost"}
                     size="sm"
                     onClick={() => scrollToSection(item.id, item.href)}
-                    className={`w-full justify-start rounded-xl transition-all duration-300  ${
-                      isActive ? "animate-pulse-glow" : ""
-                    }`}
+                    className={`w-full justify-start rounded-xl transition-all duration-300  ${isActive ? "animate-pulse-glow" : ""
+                      }`}
                     style={{
                       animationDelay: `${index * 0.05}s`,
                     }}

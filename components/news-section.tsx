@@ -12,7 +12,7 @@ import Image from "next/image"
 // مصفوفات القيم العشوائية للأيقونات والألوان
 const colorOptions = [
   "text-primary",
-  "text-secondary", 
+  "text-secondary",
   "text-accent",
   "text-chart-3",
   "text-chart-4"
@@ -21,22 +21,13 @@ const colorOptions = [
 const bgColorOptions = [
   "bg-primary/10",
   "bg-secondary/10",
-  "bg-accent/10", 
+  "bg-accent/10",
   "bg-chart-3/10",
   "bg-chart-4/10"
 ];
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const iconOptions = [Megaphone, Users, Star, Bell, Trophy];
-
-// صور افتراضية للأخبار
-const defaultImages = [
-  "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop&crop=entropy&auto=format&q=80",
-  "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop&crop=entropy&auto=format&q=80",
-  "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800&h=600&fit=crop&crop=entropy&auto=format&q=80",
-  "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&h=600&fit=crop&crop=entropy&auto=format&q=80",
-  "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=600&fit=crop&crop=entropy&auto=format&q=80"
-];
 
 // دوال للحصول على قيم عشوائية
 const getRandomColor = () => colorOptions[Math.floor(Math.random() * colorOptions.length)];
@@ -49,7 +40,7 @@ const generateRandomProps = (newsItem: News, index: number) => ({
   randomColor: getRandomColor(),
   randomBgColor: getRandomBgColor(),
   randomIcon: getRandomIcon(),
-  randomImage: newsItem.image || defaultImages[index % defaultImages.length]
+  randomImage: newsItem.image ? newsItem.image : "/placeholder.svg"
 });
 
 // نوع محدث للأخبار مع الخصائص العشوائية
@@ -80,7 +71,7 @@ export function NewsSection() {
           const latest3News = data.news
             .slice(0, 3)
             .map((newsItem, index) => generateRandomProps(newsItem, index))
-          
+
           setLatestNews(latest3News)
         } else {
           throw new Error('البيانات المستلمة غير صحيحة')
@@ -109,7 +100,7 @@ export function NewsSection() {
   // دالة للتعامل مع النقر على البطاقة
   const handleCardClick = (item: NewsWithRandomProps) => {
     const isCurrentlyExpanded = expandedNews === item.id
-    
+
     if (isCurrentlyExpanded) {
       // إذا كان الخبر موسعاً، انتقل إلى صفحة الأخبار مع تفاصيل الخبر
       navigateToNewsPage(item.id)
@@ -135,7 +126,7 @@ export function NewsSection() {
           </p>
           <div className="w-24 h-1 bg-secondary mx-auto mt-6 rounded-full" />
         </div>
-        
+
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">جاري تحميل الأخبار...</p>
@@ -150,11 +141,11 @@ export function NewsSection() {
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">الأخبار والإعلانات</h2>
         </div>
-        
+
         <div className="text-center py-12">
           <p className="text-lg text-red-500 mb-4">{error}</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             variant="outline"
           >
             إعادة المحاولة
@@ -174,7 +165,7 @@ export function NewsSection() {
           </p>
           <div className="w-24 h-1 bg-secondary mx-auto mt-6 rounded-full" />
         </div>
-        
+
         <div className="text-center py-12">
           <p className="text-lg text-muted-foreground">لا توجد أخبار متاحة حالياً</p>
         </div>
@@ -205,9 +196,8 @@ export function NewsSection() {
             return (
               <div
                 key={item.id}
-                className={`relative flex items-center ${
-                  index % 2 === 0 ? "justify-start" : "justify-end"
-                } animate-fade-in`}
+                className={`relative flex items-center ${index % 2 === 0 ? "justify-start" : "justify-end"
+                  } animate-fade-in`}
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 {/* Timeline Node */}
@@ -217,21 +207,20 @@ export function NewsSection() {
 
                 {/* News Card */}
                 <Card
-                  className={`w-96 transition-all duration-500 cursor-pointer hover:shadow-xl ${
-                    index % 2 === 0 ? "ml-8" : "mr-8"
-                  } ${isExpanded ? "scale-105" : "hover:scale-102"} overflow-hidden`}
+                  className={`w-96 transition-all duration-500 cursor-pointer hover:shadow-xl ${index % 2 === 0 ? "ml-8" : "mr-8"
+                    } ${isExpanded ? "scale-105" : "hover:scale-102"} overflow-hidden`}
                   onClick={() => handleCardClick(item)}
                 >
                   {/* Image Section */}
                   <div className="relative h-48 overflow-hidden">
                     <Image
-                      src={item.image ? `${baseURL}${item.image}` : item.randomImage}
+                      src={item.randomImage.startsWith("/") && item.randomImage === "/placeholder.svg" ? item.randomImage : `${baseURL}${item.randomImage}`}
                       alt={item.title}
                       width={320}
                       height={192}
                       className="w-full h-full object-cover"
                     />
-                    
+
                     {/* Category Badge */}
                     <div
                       className={`absolute top-3 right-3 px-3 py-1 ${item.randomBgColor} ${item.randomColor} rounded-full text-sm font-medium backdrop-blur-sm`}
@@ -247,9 +236,8 @@ export function NewsSection() {
                     </h3>
 
                     <p
-                      className={`text-muted-foreground mb-4 transition-all duration-300 ${
-                        isExpanded ? "line-clamp-none" : "line-clamp-2"
-                      }`}
+                      className={`text-muted-foreground mb-4 transition-all duration-300 ${isExpanded ? "line-clamp-none" : "line-clamp-2"
+                        }`}
                     >
                       {isExpanded ? item.content : item.excerpt}
                     </p>
@@ -266,9 +254,9 @@ export function NewsSection() {
                         </div>
                       </div>
 
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="text-primary hover:bg-primary/10 !cursor-pointer"
                         onClick={(e) => handleMoreClick(e, item)}
                       >
@@ -286,9 +274,9 @@ export function NewsSection() {
 
       {/* Call to Action */}
       <div className="text-center mt-16">
-        <Button 
-          size="lg" 
-          variant="outline" 
+        <Button
+          size="lg"
+          variant="outline"
           className="text-lg px-8 py-4 rounded-full bg-transparent !cursor-pointer"
           onClick={() => navigateToNewsPage()}
         >

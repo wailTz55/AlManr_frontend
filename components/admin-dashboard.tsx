@@ -297,7 +297,7 @@ export function AdminDashboard() {
       capacity: 50,
       registered: 35,
       status: "active",
-      image: "/summer-camp-mountains.png",
+      image: "/placeholder.svg",
       activityTemplate: "announcement",
       categories: [],
     },
@@ -312,7 +312,7 @@ export function AdminDashboard() {
       capacity: 30,
       registered: 28,
       status: "completed",
-      image: "/creative-workshop-innovation.png",
+      image: "/placeholder.svg",
       activityTemplate: "announcement_reg",
       categories: [],
     },
@@ -327,7 +327,7 @@ export function AdminDashboard() {
       capacity: 100,
       registered: 67,
       status: "active",
-      image: "/youth-football-tournament.png",
+      image: "/placeholder.svg",
       activityTemplate: "special",
       categories: ["U12", "U16", "Senior"],
     },
@@ -524,7 +524,7 @@ export function AdminDashboard() {
       author: "إدارة الجمعية",
       publishDate: "2024-01-15T10:00:00",
       status: "published",
-      image: "/scholarship-announcement.png",
+      image: "/placeholder.svg",
       tags: ["منح", "تعليم", "طلاب"],
       views: 245,
       featured: true,
@@ -539,7 +539,7 @@ export function AdminDashboard() {
       author: "فريق الإعلام",
       publishDate: "2024-01-12T15:30:00",
       status: "published",
-      image: "/innovation-award-ceremony.png",
+      image: "/placeholder.svg",
       tags: ["تكريم", "متطوعين", "فعاليات"],
       views: 189,
       featured: false,
@@ -554,7 +554,7 @@ export function AdminDashboard() {
       author: "مجلس الإدارة",
       publishDate: "2024-01-10T09:00:00",
       status: "published",
-      image: "/general-assembly-meeting.png",
+      image: "/placeholder.svg",
       tags: ["جمعية عمومية", "اجتماع", "أعضاء"],
       views: 156,
       featured: false,
@@ -569,7 +569,7 @@ export function AdminDashboard() {
       author: "قسم التدريب",
       publishDate: "2024-01-08T14:00:00",
       status: "draft",
-      image: "/leadership-skills-workshop.png",
+      image: "/placeholder.svg",
       tags: ["قيادة", "تدريب", "شباب"],
       views: 0,
       featured: false,
@@ -596,31 +596,28 @@ export function AdminDashboard() {
   const [adminTeam, setAdminTeam] = useState([
     {
       id: 1,
-      name: "أحمد محمد",
+      name: "أحمد بنسعيد",
       email: "ahmed@almanar.org",
       role: "Super Admin",
       permissions: ["all"],
-      avatar: "/young-arab-president.png",
-      joinDate: "2024-01-15",
-      lastActive: "منذ 5 دقائق",
+      joinDate: "2023-01-15",
+      lastActive: "منذ ساعتين",
     },
     {
       id: 2,
-      name: "فاطمة علي",
+      name: "فاطمة الزهراء",
       email: "fatima@almanar.org",
       role: "Content Manager",
-      permissions: ["activities", "news"],
-      avatar: "/young-arab-woman-leader.png",
-      joinDate: "2024-02-20",
-      lastActive: "منذ ساعة",
+      permissions: ["activities", "news", "members"],
+      joinDate: "2023-06-20",
+      lastActive: "اليوم 10:30 ص",
     },
     {
       id: 3,
-      name: "محمد حسن",
+      name: "محمد علي",
       email: "mohammed@almanar.org",
       role: "Moderator",
       permissions: ["messages", "memberships"],
-      avatar: "/young-arab-man-sports.png",
       joinDate: "2024-03-10",
       lastActive: "منذ يومين",
     },
@@ -630,7 +627,10 @@ export function AdminDashboard() {
   const [showEditPermissionsModal, setShowEditPermissionsModal] = useState(false)
   const [selectedAdmin, setSelectedAdmin] = useState<any>(null)
   const [newAdminData, setNewAdminData] = useState({
-    memberId: "",
+    name: "",
+    username: "",
+    email: "",
+    password: "",
     role: "Viewer",
     permissions: [] as string[],
   })
@@ -779,7 +779,7 @@ export function AdminDashboard() {
         capacity: newActivity.capacity || 0,
         registered: 0,
         status: (newActivity.status as "active" | "completed" | "cancelled") || "active",
-        image: newActivity.image || "/diverse-group-activity.png",
+        image: newActivity.image ? newActivity.image : "/placeholder.svg",
         activityTemplate: newActivity.activityTemplate || "announcement",
         categories: newActivity.categories || [],
       }
@@ -932,7 +932,7 @@ export function AdminDashboard() {
         author: newNews.author || "إدارة الجمعية",
         publishDate: new Date().toISOString(),
         status: (newNews.status as "draft" | "published" | "archived") || "draft",
-        image: newNews.image || "/placeholder.svg",
+        image: newNews.image ? newNews.image : "/placeholder.svg",
         tags: newNews.tags || [],
         views: 0,
         featured: newNews.featured || false,
@@ -1210,7 +1210,7 @@ export function AdminDashboard() {
     { id: "activities", label: "إدارة الأنشطة", icon: Calendar },
     { id: "messages", label: "الرسائل", icon: MessageSquare },
     { id: "memberships", label: "إدارة العضويات", icon: UserCheck },
-    { id: "members", label: "إدارة الأعضاء", icon: Users },
+    // { id: "members", label: "إدارة الأعضاء", icon: Users },
     { id: "news", label: "إدارة الأخبار", icon: Newspaper },
     { id: "permissions", label: "الصلاحيات", icon: Shield },
     { id: "settings", label: "الإعدادات", icon: Settings },
@@ -1398,12 +1398,6 @@ export function AdminDashboard() {
 
       {/* Main Content */}
       <div className="mr-64 p-6">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {sidebarItems.find((item) => item.id === activeSection)?.label}
-          </h2>
-          <p className="text-gray-600">مرحباً بك في النظام الإداري لجمعية المنار للشباب</p>
-        </div>
 
         {activeSection === "dashboard" && (
           <div className="space-y-6">
@@ -1429,8 +1423,8 @@ export function AdminDashboard() {
 
             {/* Recent Activity */}
             <Card>
-              <CardHeader>
-                <CardTitle>النشاط الأخير</CardTitle>
+              <CardHeader className="p-6 pb-0">
+                <CardTitle className="text-lg">النشاط الأخير</CardTitle>
                 <CardDescription>آخر العمليات في النظام</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
@@ -1467,7 +1461,7 @@ export function AdminDashboard() {
                                 ? "نشاط"
                                 : "طلب"}
                         </Badge>
-                        <div>
+                        <div className="mr-2">
                           <p className="font-medium text-gray-900">{activity.action}</p>
                           <p className="text-sm text-gray-600">{activity.user}</p>
                         </div>
@@ -1485,9 +1479,11 @@ export function AdminDashboard() {
           <div className="space-y-6">
             {/* Header with Add Button */}
             <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">جميع الأنشطة</h3>
-                <p className="text-sm text-gray-600">إدارة وتنظيم أنشطة الجمعية</p>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {sidebarItems.find((item) => item.id === activeSection)?.label}
+                </h2>
+                <p className="text-black-600">مرحباً بك في النظام الإداري لجمعية المنار للشباب</p>
               </div>
               <Dialog open={isAddingActivity} onOpenChange={(open) => { setIsAddingActivity(open); if (!open) resetNewActivity() }}>
                 <DialogTrigger asChild>
@@ -1527,7 +1523,7 @@ export function AdminDashboard() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="add-type">تصنيف النشاط</Label>
-                        <Select value={newActivity.type} onValueChange={(value) => setNewActivity({ ...newActivity, type: value })}>
+                        <Select dir="rtl" value={newActivity.type} onValueChange={(value) => setNewActivity({ ...newActivity, type: value })}>
                           <SelectTrigger><SelectValue placeholder="اختر تصنيف النشاط" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="مخيم">مخيم</SelectItem>
@@ -1545,7 +1541,7 @@ export function AdminDashboard() {
                       <Textarea id="add-description" value={newActivity.description} onChange={(e) => setNewActivity({ ...newActivity, description: e.target.value })} placeholder="وصف مفصل عن النشاط وأهدافه" rows={3} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
+                      <div className="space-y-2" >
                         <Label htmlFor="add-date">تاريخ النشاط</Label>
                         <Input id="add-date" type="date" value={newActivity.date} onChange={(e) => setNewActivity({ ...newActivity, date: e.target.value })} />
                       </div>
@@ -1642,7 +1638,7 @@ export function AdminDashboard() {
                   </div>
                   <div className="flex justify-end space-x-2 space-x-reverse">
                     <Button variant="outline" onClick={() => { resetNewActivity(); setIsAddingActivity(false) }}>إلغاء</Button>
-                    <Button onClick={handleAddActivity} className="bg-amber-600 hover:bg-amber-700">إضافة النشاط</Button>
+                    <Button onClick={handleAddActivity} className="mr-2 bg-amber-600 hover:bg-amber-700">إضافة النشاط</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -1849,7 +1845,7 @@ export function AdminDashboard() {
                 </div>
                 <div className="flex justify-end space-x-2 space-x-reverse">
                   <Button variant="outline" onClick={() => { setEditingActivity(null); resetNewActivity() }}>إلغاء</Button>
-                  <Button onClick={handleUpdateActivity} className="bg-amber-600 hover:bg-amber-700">حفظ التغييرات</Button>
+                  <Button onClick={handleUpdateActivity} className="mr-2 bg-amber-600 hover:bg-amber-700">حفظ التغييرات</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -2016,9 +2012,11 @@ export function AdminDashboard() {
           <div className="space-y-6">
             {/* Header with Search and Filter */}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">الرسائل والاستفسارات</h3>
-                <p className="text-sm text-gray-600">إدارة رسائل الزوار والاستفسارات</p>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {sidebarItems.find((item) => item.id === activeSection)?.label}
+                </h2>
+                <p className="text-black-600">إدارة رسائل الزوار والاستفسارات</p>
               </div>
               <div className="flex gap-2">
                 <div className="relative">
@@ -2030,7 +2028,7 @@ export function AdminDashboard() {
                     className="pr-10 w-64"
                   />
                 </div>
-                <Select value={messageFilter} onValueChange={setMessageFilter}>
+                <Select dir="rtl" value={messageFilter} onValueChange={setMessageFilter}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
@@ -2083,7 +2081,7 @@ export function AdminDashboard() {
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="p-6">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -2099,13 +2097,13 @@ export function AdminDashboard() {
             </div>
 
             {/* Messages List */}
-            <Card>
-              <CardHeader>
-                <CardTitle>قائمة الرسائل</CardTitle>
+            <Card >
+              <CardHeader className="p-6 pb-0">
+                <CardTitle className="text-lg">قائمة الرسائل</CardTitle>
                 <CardDescription>جميع الرسائل الواردة من نموذج الاتصال</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-4">
+                <div className="space-y-4 ">
                   {filteredMessages.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
@@ -2250,22 +2248,21 @@ export function AdminDashboard() {
           <div className="space-y-6">
             {/* ── Export Print Styles (hidden except when printing) ── */}
             <style>{`
-    @media print {
-      body > *:not(#membership-print-area) { display: none !important; }
-      #membership-print-area { display: block !important; }
-      .no-print { display: none !important; }
-    }
-    #membership-print-area { display: none; }
-`}</style>
+                  @media print {
+                    body > *:not(#membership-print-area) { display: none !important; }
+                    #membership-print-area { display: block !important; }
+                    .no-print { display: none !important; }
+                  }
+                  #membership-print-area { display: none; }
+              `}</style>
 
             {/* ── Header ── */}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center no-print">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Link2 className="h-5 w-5 text-amber-600" />
-                  إدارة شراكات الجمعيات
-                </h3>
-                <p className="text-sm text-gray-600">مراجعة وإدارة طلبات الشراكة مع الجمعيات</p>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {sidebarItems.find((item) => item.id === activeSection)?.label}
+                </h2>
+                <p className="text-black-600">مراجعة وإدارة طلبات الشراكة مع الجمعيات</p>
               </div>
               <div className="flex gap-2 flex-wrap">
                 <div className="relative">
@@ -2277,11 +2274,11 @@ export function AdminDashboard() {
                     className="pr-10 w-56"
                   />
                 </div>
-                <Select value={partnershipFilter} onValueChange={setPartnershipFilter}>
+                <Select dir="rtl" value={partnershipFilter} onValueChange={setPartnershipFilter}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent >
                     <SelectItem value="all">جميع الطلبات</SelectItem>
                     <SelectItem value="pending">قيد المراجعة</SelectItem>
                     <SelectItem value="approved">مقبولة</SelectItem>
@@ -2475,12 +2472,12 @@ export function AdminDashboard() {
             )}
 
             {/* ── Partnerships List ── */}
-            <Card>
-              <CardHeader>
-                <CardTitle>قائمة الشراكات</CardTitle>
+            <Card >
+              <CardHeader className="p-6 pb-0">
+                <CardTitle className="text-lg">قائمة الشراكات</CardTitle>
                 <CardDescription>جميع طلبات الشراكة المقدمة من الجمعيات</CardDescription>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent >
                 <div className="space-y-4">
                   {filteredPartnerships.length === 0 ? (
                     <div className="text-center py-10 text-gray-500">
@@ -2491,7 +2488,7 @@ export function AdminDashboard() {
                     filteredPartnerships.map((p) => (
                       <div
                         key={p.id}
-                        className={`p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer ${p.status === "pending" ? "bg-yellow-50 border-yellow-200" : "bg-white border-gray-200"
+                        className={`p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer ${p.status === "pending" ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200"
                           }`}
                         onClick={() => setSelectedPartnership(p)}
                       >
@@ -2757,12 +2754,14 @@ export function AdminDashboard() {
         )}
 
         {activeSection === "news" && (
-          <div className="space-y-6">
+          <div className="space-y-6 " >
             {/* Header with Add Button */}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">إدارة الأخبار والمقالات</h3>
-                <p className="text-sm text-gray-600">إنشاء وإدارة أخبار ومقالات الجمعية</p>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {sidebarItems.find((item) => item.id === activeSection)?.label}
+                </h2>
+                <p className="text-black-600">إنشاء وإدارة أخبار ومقالات الجمعية</p>
               </div>
               <div className="flex gap-2">
                 <div className="relative">
@@ -2774,11 +2773,11 @@ export function AdminDashboard() {
                     className="pr-10 w-64"
                   />
                 </div>
-                <Select value={newsFilter} onValueChange={setNewsFilter}>
+                <Select dir="rtl" value={newsFilter} onValueChange={setNewsFilter}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent >
                     <SelectItem value="all">جميع المقالات</SelectItem>
                     <SelectItem value="published">منشورة</SelectItem>
                     <SelectItem value="draft">مسودات</SelectItem>
@@ -2841,7 +2840,7 @@ export function AdminDashboard() {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="news-status">الحالة</Label>
-                          <Select
+                          <Select dir="rtl"
                             value={newNews.status}
                             onValueChange={(value) =>
                               setNewNews({ ...newNews, status: value as "draft" | "published" | "archived" })
@@ -2850,7 +2849,7 @@ export function AdminDashboard() {
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent >
                               <SelectItem value="draft">مسودة</SelectItem>
                               <SelectItem value="published">منشور</SelectItem>
                               <SelectItem value="archived">مؤرشف</SelectItem>
@@ -2859,25 +2858,33 @@ export function AdminDashboard() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="news-image">صورة المقال (يتم ضغطها تلقائياً)</Label>
-                        <Input
-                          id="news-image"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              handleImageOptimize(file, (optimizedUrl) => {
-                                setNewNews({ ...newNews, image: optimizedUrl });
-                              });
-                            }
-                          }}
-                        />
-                        {newNews.image && (
-                          <div className="mt-2 border rounded-md p-2 bg-gray-50 flex justify-center w-full overflow-hidden">
-                            <img src={newNews.image} alt="Preview" className="max-h-40 rounded-md object-contain" />
-                          </div>
-                        )}
+                        <Label>صورة المقال (يتم ضغطها تلقائياً)</Label>
+                        <div className="flex items-center gap-3">
+                          <label htmlFor="news-image" className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 border-dashed border-gray-300 flex-1 justify-center">
+                            <Upload className="h-4 w-4 text-amber-600" />
+                            {newNews.image && newNews.image !== "/placeholder.svg" ? "تغيير الصورة" : "رفع صورة"}
+                          </label>
+                          <input
+                            id="news-image"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleImageOptimize(file, (optimizedUrl) => {
+                                  setNewNews({ ...newNews, image: optimizedUrl });
+                                });
+                              }
+                            }}
+                          />
+                          {newNews.image && newNews.image !== "/placeholder.svg" && (
+                            <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                              <img src={newNews.image} alt="Preview" className="w-full h-full object-cover" />
+                              <button type="button" onClick={() => setNewNews({ ...newNews, image: "/placeholder.svg" })} className="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-bl-lg">×</button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="news-tags">الكلمات المفتاحية</Label>
@@ -2898,14 +2905,14 @@ export function AdminDashboard() {
                           onChange={(e) => setNewNews({ ...newNews, featured: e.target.checked })}
                           className="rounded"
                         />
-                        <Label htmlFor="news-featured">مقال مميز</Label>
+                        <Label htmlFor="news-featured" className="mr-2">مقال مميز</Label>
                       </div>
                     </div>
                     <div className="flex justify-end space-x-2 space-x-reverse">
                       <Button variant="outline" onClick={() => setIsAddingNews(false)}>
                         إلغاء
                       </Button>
-                      <Button onClick={handleAddNews} className="bg-amber-600 hover:bg-amber-700">
+                      <Button onClick={handleAddNews} className="mr-2 bg-amber-600 hover:bg-amber-700">
                         إضافة المقال
                       </Button>
                     </div>
@@ -3036,7 +3043,7 @@ export function AdminDashboard() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleDeleteNews(article.id)}
-                              className="text-red-600 hover:text-red-700"
+                              className="mr-2 text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -3133,25 +3140,33 @@ export function AdminDashboard() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-news-image">صورة المقال (تحديث - يتم ضغطها تلقائياً)</Label>
-                    <Input
-                      id="edit-news-image"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          handleImageOptimize(file, (optimizedUrl) => {
-                            setNewNews({ ...newNews, image: optimizedUrl });
-                          });
-                        }
-                      }}
-                    />
-                    {newNews.image && (
-                      <div className="mt-2 border rounded-md p-2 bg-gray-50 flex justify-center w-full overflow-hidden">
-                        <img src={newNews.image} alt="Preview" className="max-h-40 rounded-md object-contain" />
-                      </div>
-                    )}
+                    <Label>صورة المقال (تحديث - يتم ضغطها تلقائياً)</Label>
+                    <div className="flex items-center gap-3">
+                      <label htmlFor="edit-news-image" className="flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 border-dashed border-gray-300 flex-1 justify-center">
+                        <Upload className="h-4 w-4 text-amber-600" />
+                        {newNews.image && newNews.image !== "/placeholder.svg" ? "تغيير الصورة" : "رفع صورة"}
+                      </label>
+                      <input
+                        id="edit-news-image"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageOptimize(file, (optimizedUrl) => {
+                              setNewNews({ ...newNews, image: optimizedUrl });
+                            });
+                          }
+                        }}
+                      />
+                      {newNews.image && newNews.image !== "/placeholder.svg" && (
+                        <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                          <img src={newNews.image} alt="Preview" className="w-full h-full object-cover" />
+                          <button type="button" onClick={() => setNewNews({ ...newNews, image: "/placeholder.svg" })} className="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-bl-lg">×</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-news-tags">الكلمات المفتاحية</Label>
@@ -3178,7 +3193,7 @@ export function AdminDashboard() {
                   <Button variant="outline" onClick={() => setEditingNews(null)}>
                     إلغاء
                   </Button>
-                  <Button onClick={handleUpdateNews} className="bg-amber-600 hover:bg-amber-700">
+                  <Button onClick={handleUpdateNews} className="mr-2 bg-amber-600 hover:bg-amber-700">
                     حفظ التغييرات
                   </Button>
                 </div>
@@ -3261,177 +3276,21 @@ export function AdminDashboard() {
           </div>
         )}
 
-        {activeSection === "members" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">إدارة الأعضاء</h2>
-                <p className="text-gray-600 mt-1">إدارة بيانات وأدوار أعضاء ومتطوعي الجمعية</p>
-              </div>
-              <Button onClick={() => setShowAddMemberModal(true)} className="bg-primary hover:bg-primary/90">
-                <Plus className="h-4 w-4 ml-2" />
-                إضافة عضو جديد
-              </Button>
-            </div>
-
-            <Card className="border-0 shadow-sm overflow-hidden">
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-right">
-                    <thead className="bg-gray-50 border-b border-gray-100">
-                      <tr>
-                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">العضو</th>
-                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">النوع</th>
-                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">الدور</th>
-                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">الحالة</th>
-                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">تاريخ الانضمام</th>
-                        <th className="px-6 py-4 text-sm font-semibold text-gray-600">إجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {members.map((member) => (
-                        <tr key={member.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <img src={member.avatar || "/placeholder.svg"} alt={member.name} className="w-10 h-10 rounded-full" />
-                              <div>
-                                <p className="font-medium text-gray-900">{member.name}</p>
-                                <p className="text-xs text-gray-500">{member.email}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                              {member.memberType === "Association Member" ? "عضو جمعية" : "موظف / متطوع"}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-4 font-medium">{member.role}</td>
-                          <td className="px-6 py-4">
-                            <Badge className={member.status === "active" ? "bg-green-100 text-green-700 hover:bg-green-100" : member.status === "pending" ? "bg-amber-100 text-amber-700 hover:bg-amber-100" : "bg-red-100 text-red-700 hover:bg-red-100"}>
-                              {member.status === "active" ? "نشط" : member.status === "pending" ? "قيد الانتظار" : "غير نشط"}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{member.joinDate}</td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="sm" onClick={() => setSelectedMemberObj({ ...member })}>
-                                <Edit className="w-4 h-4 text-blue-600" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteMemberObj(member.id)}>
-                                <Trash2 className="w-4 h-4 text-red-600" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {members.length === 0 && (
-                        <tr>
-                          <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                            لا يوجد أعضاء حالياً.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Dialog open={showAddMemberModal} onOpenChange={setShowAddMemberModal}>
-              <DialogContent className="max-w-2xl p-6" dir="rtl">
-                <DialogHeader><DialogTitle>إضافة عضو جديد</DialogTitle></DialogHeader>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>الاسم</Label><Input value={newMemberObj.name} onChange={(e) => setNewMemberObj({ ...newMemberObj, name: e.target.value })} /></div>
-                  <div className="space-y-2"><Label>البريد الإلكتروني</Label><Input value={newMemberObj.email} onChange={(e) => setNewMemberObj({ ...newMemberObj, email: e.target.value })} /></div>
-                  <div className="space-y-2"><Label>رقم الهاتف</Label><Input value={newMemberObj.phone} onChange={(e) => setNewMemberObj({ ...newMemberObj, phone: e.target.value })} /></div>
-                  <div className="space-y-2">
-                    <Label>النوع</Label>
-                    <Select value={newMemberObj.memberType} onValueChange={(v) => setNewMemberObj({ ...newMemberObj, memberType: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent><SelectItem value="Association Member">عضو جمعية</SelectItem><SelectItem value="Staff">موظف / متطوع</SelectItem></SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>الدور</Label>
-                    <Select value={newMemberObj.role} onValueChange={(v) => setNewMemberObj({ ...newMemberObj, role: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="President">الرئيس (President)</SelectItem>
-                        <SelectItem value="Treasurer">أمين الصندوق (Treasurer)</SelectItem>
-                        <SelectItem value="Secretary">الكاتب العام (Secretary)</SelectItem>
-                        <SelectItem value="Staff">متطوع / موظف (Staff)</SelectItem>
-                        <SelectItem value="Custom">دور مخصص</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>الحالة</Label>
-                    <Select value={newMemberObj.status} onValueChange={(v) => setNewMemberObj({ ...newMemberObj, status: v as "active" | "inactive" | "pending" })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent><SelectItem value="active">نشط / معتمد</SelectItem><SelectItem value="pending">قيد الانتظار</SelectItem><SelectItem value="inactive">غير نشط / مرفوض</SelectItem></SelectContent>
-                    </Select>
-                  </div>
-                  <div className="col-span-2 space-y-2"><Label>نبذة (Bio)</Label><Textarea value={newMemberObj.bio} onChange={(e) => setNewMemberObj({ ...newMemberObj, bio: e.target.value })} /></div>
-                </div>
-                <div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setShowAddMemberModal(false)}>إلغاء</Button><Button onClick={handleAddMemberObj}>إضافة</Button></div>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={!!selectedMemberObj} onOpenChange={(open) => !open && setSelectedMemberObj(null)}>
-              <DialogContent className="max-w-2xl p-6" dir="rtl">
-                <DialogHeader><DialogTitle>تعديل بيانات العضو</DialogTitle></DialogHeader>
-                {selectedMemberObj && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label>الاسم</Label><Input value={selectedMemberObj.name} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, name: e.target.value })} /></div>
-                    <div className="space-y-2"><Label>البريد الإلكتروني</Label><Input value={selectedMemberObj.email} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, email: e.target.value })} /></div>
-                    <div className="space-y-2"><Label>رقم الهاتف</Label><Input value={selectedMemberObj.phone} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, phone: e.target.value })} /></div>
-                    <div className="space-y-2">
-                      <Label>النوع</Label>
-                      <Select value={selectedMemberObj.memberType} onValueChange={(v) => setSelectedMemberObj({ ...selectedMemberObj, memberType: v })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent><SelectItem value="Association Member">عضو جمعية</SelectItem><SelectItem value="Staff">موظف / متطوع</SelectItem></SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>الدور</Label>
-                      <Select value={selectedMemberObj.role} onValueChange={(v) => setSelectedMemberObj({ ...selectedMemberObj, role: v })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="President">الرئيس (President)</SelectItem>
-                          <SelectItem value="Treasurer">أمين الصندوق (Treasurer)</SelectItem>
-                          <SelectItem value="Secretary">الكاتب العام (Secretary)</SelectItem>
-                          <SelectItem value="Staff">متطوع / موظف (Staff)</SelectItem>
-                          <SelectItem value="Custom">دور مخصص</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>الحالة</Label>
-                      <Select value={selectedMemberObj.status} onValueChange={(v) => setSelectedMemberObj({ ...selectedMemberObj, status: v as "active" | "inactive" | "pending" })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent><SelectItem value="active">نشط / معتمد</SelectItem><SelectItem value="pending">قيد الانتظار</SelectItem><SelectItem value="inactive">غير نشط / مرفوض</SelectItem></SelectContent>
-                      </Select>
-                    </div>
-                    <div className="col-span-2 space-y-2"><Label>نبذة (Bio)</Label><Textarea value={selectedMemberObj.bio} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, bio: e.target.value })} /></div>
-                  </div>
-                )}
-                <div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setSelectedMemberObj(null)}>إلغاء</Button><Button onClick={handleEditMemberObj}>حفظ التغييرات</Button></div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        )}
-
         {activeSection === "permissions" && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">إدارة الصلاحيات</h2>
-                <p className="text-gray-600 mt-1">إدارة فريق الإدارة والصلاحيات</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {sidebarItems.find((item) => item.id === activeSection)?.label || "إدارة الصلاحيات"}
+                </h2>
+                <p className="text-black-600">إدارة فريق الإدارة والصلاحيات</p>
               </div>
-              <Button onClick={() => setShowAddAdminModal(true)} className="bg-primary hover:bg-primary/90">
-                <Plus className="h-4 w-4 ml-2" />
-                إضافة مدير جديد
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setShowAddAdminModal(true)} className="bg-primary hover:bg-primary/90">
+                  <Plus className="h-4 w-4 ml-2" />
+                  إضافة مدير جديد
+                </Button>
+              </div>
             </div>
 
             {/* Admin Team Statistics */}
@@ -3502,8 +3361,8 @@ export function AdminDashboard() {
             {/* Admin Team List */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 p-6 pb-0">
+                  <Users className="h-5 w-5 text-lg" />
                   فريق الإدارة
                 </CardTitle>
               </CardHeader>
@@ -3515,11 +3374,9 @@ export function AdminDashboard() {
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center space-x-4 space-x-reverse">
-                        <img
-                          src={admin.avatar || "/placeholder.svg"}
-                          alt={admin.name}
-                          className="h-12 w-12 rounded-full object-cover"
-                        />
+                        <div className="ml-3 h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
+                          {admin.name.charAt(0)}
+                        </div>
                         <div>
                           <h3 className="font-medium text-gray-900">{admin.name}</h3>
                           <p className="text-sm text-gray-600">{admin.email}</p>
@@ -3577,22 +3434,22 @@ export function AdminDashboard() {
 
             {/* Permissions Matrix */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
+              <CardHeader className="p-6 pb-0">
+                <CardTitle className="flex items-center gap-2 ">
+                  <Shield className="h-5 w-5 text-lg" />
                   مصفوفة الصلاحيات
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-right p-3 font-medium text-gray-900">الصلاحية</th>
-                        <th className="text-center p-3 font-medium text-gray-900">مدير عام</th>
-                        <th className="text-center p-3 font-medium text-gray-900">مدير محتوى</th>
-                        <th className="text-center p-3 font-medium text-gray-900">مشرف</th>
-                        <th className="text-center p-3 font-medium text-gray-900">مشاهد</th>
+                    <thead className="bg-[#2a3b5c]/10">
+                      <tr>
+                        <th className="text-right p-3 font-semibold text-[#2a3b5c] rounded-tr-lg">الصلاحية</th>
+                        <th className="text-center p-3 font-semibold text-[#2a3b5c]">مدير عام</th>
+                        <th className="text-center p-3 font-semibold text-[#2a3b5c]">مدير محتوى</th>
+                        <th className="text-center p-3 font-semibold text-[#2a3b5c]">مشرف</th>
+                        <th className="text-center p-3 font-semibold text-[#2a3b5c] rounded-tl-lg">مشاهد</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3640,125 +3497,303 @@ export function AdminDashboard() {
           </div>
         )}
 
-        {/* Add Admin Modal */}
-        {showAddAdminModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">إضافة مدير جديد</h3>
-                <Button variant="ghost" size="sm" onClick={() => setShowAddAdminModal(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
+        {/* 
+        {activeSection === "members" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {sidebarItems.find((item) => item.id === activeSection)?.label || "إدارة الأعضاء"}
+                </h2>
+                <p className="text-black-600">إدارة بيانات وأدوار أعضاء ومتطوعي الجمعية</p>
               </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">اختيار العضو</label>
-                  <select
-                    value={newAdminData.memberId}
-                    onChange={(e) => setNewAdminData({ ...newAdminData, memberId: e.target.value })}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                  >
-                    <option value="">اختر عضو من القائمة</option>
-                    {members
-                      .filter((member) => !adminTeam.some((admin) => admin.email === member.email))
-                      .map((member) => (
-                        <option key={member.id} value={member.id}>
-                          {member.name} - {member.email}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">الدور الإداري</label>
-                  <select
-                    value={newAdminData.role}
-                    onChange={(e) => setNewAdminData({ ...newAdminData, role: e.target.value })}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                  >
-                    <option value="Viewer">مشاهد</option>
-                    <option value="Moderator">مشرف</option>
-                    <option value="Content Manager">مدير محتوى</option>
-                    <option value="Super Admin">مدير عام</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">الصلاحيات المخصصة</label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {availablePermissions.map((permission) => (
-                      <label key={permission.id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={newAdminData.permissions.includes(permission.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNewAdminData({
-                                ...newAdminData,
-                                permissions: [...newAdminData.permissions, permission.id],
-                              })
-                            } else {
-                              setNewAdminData({
-                                ...newAdminData,
-                                permissions: newAdminData.permissions.filter((p) => p !== permission.id),
-                              })
-                            }
-                          }}
-                          className="ml-2"
-                        />
-                        <span className="text-sm">{permission.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2 mt-6">
-                <Button
-                  onClick={() => {
-                    const selectedMember = members.find((m) => m.id === Number.parseInt(newAdminData.memberId))
-                    if (selectedMember) {
-                      const newAdmin = {
-                        id: adminTeam.length + 1,
-                        name: selectedMember.name,
-                        email: selectedMember.email,
-                        role: newAdminData.role,
-                        permissions:
-                          newAdminData.permissions.length > 0
-                            ? newAdminData.permissions
-                            : rolePermissions[newAdminData.role as keyof typeof rolePermissions],
-                        avatar: selectedMember.avatar,
-                        joinDate: new Date().toLocaleDateString("ar-SA"),
-                        lastActive: "الآن",
-                      }
-                      setAdminTeam([...adminTeam, newAdmin])
-                      setShowAddAdminModal(false)
-                      setNewAdminData({ memberId: "", role: "Viewer", permissions: [] })
-                    }
-                  }}
-                  className="flex-1 bg-primary hover:bg-primary/90"
-                >
-                  إضافة مدير
-                </Button>
-                <Button variant="outline" onClick={() => setShowAddAdminModal(false)} className="flex-1">
-                  إلغاء
+              <div className="flex gap-2">
+                <Button onClick={() => setShowAddMemberModal(true)} className="bg-primary hover:bg-primary/90">
+                  <Plus className="h-4 w-4 ml-2" />
+                  إضافة عضو جديد
                 </Button>
               </div>
             </div>
+
+            <Card className="border-0 shadow-sm overflow-hidden mt-6">
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-right">
+                    <thead className="bg-[#2a3b5c]/10">
+                      <tr>
+                        <th className="px-6 py-4 text-sm font-semibold text-[#2a3b5c] rounded-tr-lg">العضو</th>
+                        <th className="px-6 py-4 text-sm font-semibold text-[#2a3b5c]">النوع</th>
+                        <th className="px-6 py-4 text-sm font-semibold text-[#2a3b5c]">الدور</th>
+                        <th className="px-6 py-4 text-sm font-semibold text-[#2a3b5c]">الحالة</th>
+                        <th className="px-6 py-4 text-sm font-semibold text-[#2a3b5c]">تاريخ الانضمام</th>
+                        <th className="px-6 py-4 text-sm font-semibold text-[#2a3b5c] rounded-tl-lg">إجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {members.map((member) => (
+                        <tr key={member.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <img src={member.avatar || "/placeholder.svg"} alt={member.name} className="w-10 h-10 rounded-full" />
+                              <div>
+                                <p className="font-medium text-gray-900">{member.name}</p>
+                                <p className="text-xs text-gray-500">{member.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                              {member.memberType === "Association Member" ? "عضو جمعية" : "موظف / متطوع"}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 font-medium">{member.role}</td>
+                          <td className="px-6 py-4">
+                            <Badge className={member.status === "active" ? "bg-green-100 text-green-700 hover:bg-green-100" : member.status === "pending" ? "bg-amber-100 text-amber-700 hover:bg-amber-100" : "bg-red-100 text-red-700 hover:bg-red-100"}>
+                              {member.status === "active" ? "نشط" : member.status === "pending" ? "قيد الانتظار" : "غير نشط"}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{member.joinDate}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => setSelectedMemberObj({ ...member })}>
+                                <Edit className="w-4 h-4 text-blue-600" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteMemberObj(member.id)}>
+                                <Trash2 className="w-4 h-4 text-red-600" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {members.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                            لا يوجد أعضاء حالياً.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Dialog open={showAddMemberModal} onOpenChange={setShowAddMemberModal}>
+              <DialogContent className="max-w-2xl p-6" dir="rtl">
+                <DialogHeader><DialogTitle>إضافة عضو جديد</DialogTitle></DialogHeader>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2"><Label>الاسم</Label><Input value={newMemberObj.name} onChange={(e) => setNewMemberObj({ ...newMemberObj, name: e.target.value })} /></div>
+                  <div className="space-y-2"><Label>البريد الإلكتروني</Label><Input value={newMemberObj.email} onChange={(e) => setNewMemberObj({ ...newMemberObj, email: e.target.value })} /></div>
+                  <div className="space-y-2"><Label>رقم الهاتف</Label><Input value={newMemberObj.phone} onChange={(e) => setNewMemberObj({ ...newMemberObj, phone: e.target.value })} /></div>
+                  <div className="space-y-2">
+                    <Label>النوع</Label>
+                    <Select value={newMemberObj.memberType} onValueChange={(v) => setNewMemberObj({ ...newMemberObj, memberType: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent><SelectItem value="Association Member">عضو جمعية</SelectItem><SelectItem value="Staff">موظف / متطوع</SelectItem></SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>الدور</Label>
+                    <Select dir="rtl" value={newMemberObj.role} onValueChange={(v) => setNewMemberObj({ ...newMemberObj, role: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="President">الرئيس (President)</SelectItem>
+                        <SelectItem value="Treasurer">أمين الصندوق (Treasurer)</SelectItem>
+                        <SelectItem value="Secretary">الكاتب العام (Secretary)</SelectItem>
+                        <SelectItem value="Staff">متطوع / موظف (Staff)</SelectItem>
+                        <SelectItem value="Custom">دور مخصص</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>الحالة</Label>
+                    <Select value={newMemberObj.status} onValueChange={(v) => setNewMemberObj({ ...newMemberObj, status: v as "active" | "inactive" | "pending" })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent><SelectItem value="active">نشط / معتمد</SelectItem><SelectItem value="pending">قيد الانتظار</SelectItem><SelectItem value="inactive">غير نشط / مرفوض</SelectItem></SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-2 space-y-2"><Label>نبذة (Bio)</Label><Textarea value={newMemberObj.bio} onChange={(e) => setNewMemberObj({ ...newMemberObj, bio: e.target.value })} /></div>
+                </div>
+                <div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setShowAddMemberModal(false)}>إلغاء</Button><Button onClick={handleAddMemberObj}>إضافة</Button></div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={!!selectedMemberObj} onOpenChange={(open) => !open && setSelectedMemberObj(null)}>
+              <DialogContent className="max-w-2xl p-6" dir="rtl">
+                <DialogHeader><DialogTitle>تعديل بيانات العضو</DialogTitle></DialogHeader>
+                {selectedMemberObj && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2"><Label>الاسم</Label><Input value={selectedMemberObj.name} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, name: e.target.value })} /></div>
+                    <div className="space-y-2"><Label>البريد الإلكتروني</Label><Input value={selectedMemberObj.email} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, email: e.target.value })} /></div>
+                    <div className="space-y-2"><Label>رقم الهاتف</Label><Input value={selectedMemberObj.phone} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, phone: e.target.value })} /></div>
+                    <div className="space-y-2">
+                      <Label>النوع</Label>
+                      <Select value={selectedMemberObj.memberType} onValueChange={(v) => setSelectedMemberObj({ ...selectedMemberObj, memberType: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent><SelectItem value="Association Member">عضو جمعية</SelectItem><SelectItem value="Staff">موظف / متطوع</SelectItem></SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>الدور</Label>
+                      <Select value={selectedMemberObj.role} onValueChange={(v) => setSelectedMemberObj({ ...selectedMemberObj, role: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="President">الرئيس (President)</SelectItem>
+                          <SelectItem value="Treasurer">أمين الصندوق (Treasurer)</SelectItem>
+                          <SelectItem value="Secretary">الكاتب العام (Secretary)</SelectItem>
+                          <SelectItem value="Staff">متطوع / موظف (Staff)</SelectItem>
+                          <SelectItem value="Custom">دور مخصص</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>الحالة</Label>
+                      <Select value={selectedMemberObj.status} onValueChange={(v) => setSelectedMemberObj({ ...selectedMemberObj, status: v as "active" | "inactive" | "pending" })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent><SelectItem value="active">نشط / معتمد</SelectItem><SelectItem value="pending">قيد الانتظار</SelectItem><SelectItem value="inactive">غير نشط / مرفوض</SelectItem></SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-2 space-y-2"><Label>نبذة (Bio)</Label><Textarea value={selectedMemberObj.bio} onChange={(e) => setSelectedMemberObj({ ...selectedMemberObj, bio: e.target.value })} /></div>
+                  </div>
+                )}
+                <div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setSelectedMemberObj(null)}>إلغاء</Button><Button onClick={handleEditMemberObj}>حفظ التغييرات</Button></div>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
+        */
+        }
+
+
+
+
+        {/* Add Admin Modal */}
+        <Dialog open={showAddAdminModal} onOpenChange={setShowAddAdminModal}>
+          <DialogContent className="max-w-md p-6" dir="rtl">
+            <DialogHeader>
+              <DialogTitle>إضافة مدير جديد</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل</label>
+                <Input
+                  value={newAdminData.name}
+                  onChange={(e) => setNewAdminData({ ...newAdminData, name: e.target.value })}
+                  placeholder="الاسم الكامل"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">اسم المستخدم</label>
+                <Input
+                  value={newAdminData.username}
+                  onChange={(e) => setNewAdminData({ ...newAdminData, username: e.target.value })}
+                  placeholder="اسم المستخدم"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
+                <Input
+                  type="email"
+                  value={newAdminData.email}
+                  onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
+                  placeholder="البريد الإلكتروني"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">كلمة المرور</label>
+                <Input
+                  type="password"
+                  value={newAdminData.password}
+                  onChange={(e) => setNewAdminData({ ...newAdminData, password: e.target.value })}
+                  placeholder="كلمة المرور"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">الدور الإداري</label>
+                <select
+                  value={newAdminData.role}
+                  onChange={(e) => setNewAdminData({ ...newAdminData, role: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
+                  <option value="Viewer">مشاهد</option>
+                  <option value="Moderator">مشرف</option>
+                  <option value="Content Manager">مدير محتوى</option>
+                  <option value="Super Admin">مدير عام</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">الصلاحيات المخصصة</label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {availablePermissions.map((permission) => (
+                    <label key={permission.id} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={newAdminData.permissions.includes(permission.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setNewAdminData({
+                              ...newAdminData,
+                              permissions: [...newAdminData.permissions, permission.id],
+                            })
+                          } else {
+                            setNewAdminData({
+                              ...newAdminData,
+                              permissions: newAdminData.permissions.filter((p) => p !== permission.id),
+                            })
+                          }
+                        }}
+                        className="ml-2"
+                      />
+                      <span className="text-sm">{permission.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <Button
+                onClick={() => {
+                  if (newAdminData.name && newAdminData.email && newAdminData.password && newAdminData.username) {
+                    const newAdmin = {
+                      id: adminTeam.length + 1,
+                      name: newAdminData.name,
+                      email: newAdminData.email,
+                      username: newAdminData.username,
+                      role: newAdminData.role,
+                      permissions:
+                        newAdminData.permissions.length > 0
+                          ? newAdminData.permissions
+                          : rolePermissions[newAdminData.role as keyof typeof rolePermissions] || [],
+                      joinDate: new Date().toLocaleDateString("ar-SA"),
+                      lastActive: "الآن",
+                    }
+                    setAdminTeam([...adminTeam, newAdmin])
+                    setShowAddAdminModal(false)
+                    setNewAdminData({ name: "", username: "", email: "", password: "", role: "Viewer", permissions: [] })
+                  }
+                }}
+                className="flex-1 bg-primary hover:bg-primary/90"
+              >
+                إضافة مدير
+              </Button>
+              <Button variant="outline" onClick={() => setShowAddAdminModal(false)} className="flex-1">
+                إلغاء
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Edit Permissions Modal */}
-        {showEditPermissionsModal && selectedAdmin && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">تعديل صلاحيات {selectedAdmin.name}</h3>
-                <Button variant="ghost" size="sm" onClick={() => setShowEditPermissionsModal(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+        <Dialog open={showEditPermissionsModal && !!selectedAdmin} onOpenChange={setShowEditPermissionsModal}>
+          {selectedAdmin && (
+            <DialogContent className="max-w-md p-6" dir="rtl">
+              <DialogHeader>
+                <DialogTitle>تعديل صلاحيات {selectedAdmin.name}</DialogTitle>
+              </DialogHeader>
 
               <div className="space-y-4">
                 <div>
@@ -3816,7 +3851,7 @@ export function AdminDashboard() {
                     setShowEditPermissionsModal(false)
                     setSelectedAdmin(null)
                   }}
-                  className="flex-1 bg-primary hover:bg-primary/90"
+                  className=" flex-1 bg-primary hover:bg-primary/90"
                 >
                   حفظ التغييرات
                 </Button>
@@ -3824,15 +3859,17 @@ export function AdminDashboard() {
                   إلغاء
                 </Button>
               </div>
-            </div>
-          </div>
-        )}
+            </DialogContent>
+          )}
+        </Dialog>
 
         {activeSection !== "dashboard" &&
           activeSection !== "activities" &&
           activeSection !== "messages" &&
           activeSection !== "memberships" &&
-          activeSection !== "news" && (
+          activeSection !== "news" &&
+          activeSection !== "members" &&
+          activeSection !== "permissions" && (
             <Card>
               <CardContent className="p-8 text-center">
                 <div className="text-gray-400 mb-4">
@@ -3846,6 +3883,6 @@ export function AdminDashboard() {
             </Card>
           )}
       </div>
-    </div>
+    </div >
   )
 }
