@@ -125,7 +125,7 @@ export function ContactPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    
+
     // For phone field, only allow digits and limit to 10 characters
     if (name === 'phone') {
       const digitsOnly = value.replace(/\D/g, '')
@@ -141,7 +141,7 @@ export function ContactPage() {
         [name]: value,
       }))
     }
-    
+
     // Clear error for this field when user starts typing
     if (errors[name as keyof typeof errors]) {
       setErrors((prev) => ({
@@ -161,7 +161,7 @@ export function ContactPage() {
         }
       }, 500)
     }
-    
+
     // Real-time validation for phone
     if (name === 'phone') {
       const digitsOnly = value.replace(/\D/g, '')
@@ -209,75 +209,22 @@ export function ContactPage() {
     formDataToSend.append("contactReason", formData.contactReason)
 
     try {
-      const response = await fetch(`${baseURL}/api/contact/`, {
-        method: "POST",
-        body: formDataToSend,
+      /* API Disconnected for testing - simulate a success response */
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      setSuccessMessage("تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.")
+      console.log("Simulated server request with formData:", Object.fromEntries(formDataToSend))
+
+      // Reset form after successful submission
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+        contactReason: "",
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        setSuccessMessage("تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.")
-        console.log("Server response:", data)
-        
-        // Reset form after successful submission
-        setFormData({
-          name: "",
-          email: "",
-          phone: "",
-          subject: "",
-          message: "",
-          contactReason: "",
-        })
-      } else {
-        const errorData = await response.json()
-        console.error("خطأ في الإرسال:", errorData)
-
-        // Handle validation errors for specific fields
-        if (errorData.errors) {
-          const newErrors = { ...errors }
-          
-          Object.keys(errorData.errors).forEach((field) => {
-            const fieldErrors = errorData.errors[field]
-            if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
-              const errorMessage = fieldErrors[0]
-              
-              // Check for duplicate/existing data errors
-              if (errorMessage.includes("already exists") || 
-                  errorMessage.includes("موجود") || 
-                  errorMessage.includes("مستخدم") ||
-                  errorMessage.includes("email") ||
-                  errorMessage.includes("phone")) {
-                
-                if (field === "email") {
-                  newErrors.email = "هذا البريد الإلكتروني مستخدم مسبقاً"
-                } else if (field === "phone") {
-                  newErrors.phone = "رقم الهاتف هذا مستخدم مسبقاً"
-                } else if (field === "name") {
-                  newErrors.name = "هذا الاسم مسجل مسبقاً"
-                } else {
-                  newErrors[field as keyof typeof errors] = "هذه البيانات مستخدمة مسبقاً"
-                }
-              } else {
-                // Other validation errors
-                newErrors[field as keyof typeof errors] = errorMessage
-              }
-            }
-          })
-          
-          setErrors(newErrors)
-        } else if (errorData.message) {
-          // Handle general server messages
-          if (errorData.message.includes("duplicate") || 
-              errorData.message.includes("exists") ||
-              errorData.message.includes("موجود")) {
-            setGeneralError("بعض البيانات المدخلة مستخدمة مسبقاً. يرجى التحقق من البيانات.")
-          } else {
-            setGeneralError(errorData.message)
-          }
-        } else {
-          setGeneralError("حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.")
-        }
-      }
     } catch (error) {
       console.error("خطأ في الشبكة:", error)
       setGeneralError("تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.")
@@ -487,13 +434,12 @@ export function ContactPage() {
                   </div>
 
                   {/* Submit Button */}
-                  <Button 
+                  <Button
                     onClick={handleSubmit}
-                    className={`w-full transition-all duration-300 ${
-                      !isFormValid && !isSubmitting 
-                        ? 'opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400' 
+                    className={`w-full transition-all duration-300 ${!isFormValid && !isSubmitting
+                        ? 'opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400'
                         : 'opacity-100 cursor-pointer'
-                    }`}
+                      }`}
                     disabled={!isFormValid || isSubmitting}
                   >
                     {isSubmitting ? (
@@ -634,4 +580,5 @@ export function ContactPage() {
         </div>
       </div>
     </div>
-  )}
+  )
+}

@@ -13,7 +13,7 @@ const navItems = [
   { id: "activities", label: "الأنشطة", icon: Calendar, href: "/activities" },
   // { id: "members", label: "الأعضاء", icon: Users, href: "/members" },
   { id: "news", label: "الأخبار", icon: FileText, href: "/news" },
-  { id: "register", label: "التسجيل", icon: UserPlus, href: "/register" },
+  { id: "register", label: "التسجيل أو الدخول", icon: UserPlus, href: "/register" },
   { id: "contact", label: "اتصل بنا", icon: Phone, href: "/contact" },
 ]
 
@@ -30,6 +30,7 @@ export function EnhancedFloatingNavbar() {
   // Track if user has dragged the navbar
   const [navPosition, setNavPosition] = useState<{ x: string; y: number }>({ x: "50%", y: 24 })
   const [hasDragged, setHasDragged] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   // Center horizontally on resize
   useEffect(() => {
@@ -42,6 +43,17 @@ export function EnhancedFloatingNavbar() {
   const navRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // Check initial login state
+    const checkLoginState = () => {
+      const token = localStorage.getItem("almanar_session")
+      setIsLoggedIn(!!token)
+    }
+
+    checkLoginState()
+
+    // Listen for storage changes from other tabs or components
+    window.addEventListener("storage", checkLoginState)
+
     // Set active nav item based on current pathname
     const path = window.location.pathname
     const found = navItems.find(item => item.href === path)
@@ -95,6 +107,7 @@ export function EnhancedFloatingNavbar() {
       window.removeEventListener("scroll", handleScroll)
       window.removeEventListener("mousemove", handleMouseMove)
       window.removeEventListener("mouseup", handleMouseUp)
+      window.removeEventListener("storage", checkLoginState)
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId)
       }
@@ -176,24 +189,32 @@ export function EnhancedFloatingNavbar() {
             </Button>
 
             {navItems.map((item, index) => {
+              // Modify label if the user is logged in
+              let label = item.label
+              let href = item.href
+              if (item.id === "register" && isLoggedIn) {
+                label = "حساب الجمعية"
+                href = "/register"
+              }
+
               const Icon = item.icon
-              const isActive = activeSection === item.id
+              const isActive = activeSection === item.id || (item.id === "register" && typeof window !== 'undefined' && window.location.pathname === "/register")
               return (
                 <Button
                   key={item.id}
                   variant={isActive ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => scrollToSection(item.id, item.href)}
+                  onClick={() => scrollToSection(item.id, href)}
                   className={`relative rounded-full transition-all duration-300 hover-lift !cursor-pointer ${isActive
-                      ? "bg-primary text-primary-foreground animate-pulse-glow"
-                      : "hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-primary text-primary-foreground animate-pulse-glow"
+                    : "hover:bg-accent hover:text-accent-foreground"
                     }`}
                   style={{
                     animationDelay: `${index * 0.1}s`,
                   }}
                 >
                   <Icon className="w-4 h-4 ml-2" />
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="text-sm font-medium">{label}</span>
                   {isActive && (
                     <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-primary rounded-full animate-bounce-gentle" />
                   )}
@@ -220,14 +241,20 @@ export function EnhancedFloatingNavbar() {
           <div className="absolute top-16 right-0 bg-card/95 backdrop-blur-xl border border-border rounded-2xl p-4 shadow-2xl animate-scale-in min-w-48">
             <div className="space-y-2 ">
               {navItems.map((item, index) => {
+                let label = item.label
+                let href = item.href
+                if (item.id === "register" && isLoggedIn) {
+                  label = "حساب الجمعية"
+                  href = "/register"
+                }
                 const Icon = item.icon
-                const isActive = activeSection === item.id
+                const isActive = activeSection === item.id || (item.id === "register" && typeof window !== 'undefined' && window.location.pathname === "/register")
                 return (
                   <Button
                     key={item.id}
                     variant={isActive ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => scrollToSection(item.id, item.href)}
+                    onClick={() => scrollToSection(item.id, href)}
                     className={`w-full justify-start rounded-xl transition-all duration-300  ${isActive ? "animate-pulse-glow" : ""
                       }`}
                     style={{
@@ -235,7 +262,7 @@ export function EnhancedFloatingNavbar() {
                     }}
                   >
                     <Icon className="w-4 h-4 ml-2" />
-                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="text-sm font-medium">{label}</span>
                   </Button>
                 )
               })}

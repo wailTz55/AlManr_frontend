@@ -3714,13 +3714,18 @@ export function AdminDashboard() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">الدور الإداري</label>
                 <select
                   value={newAdminData.role}
-                  onChange={(e) => setNewAdminData({ ...newAdminData, role: e.target.value })}
+                  onChange={(e) => {
+                    const role = e.target.value;
+                    const defaultPerms = role === "Custom" ? [] : (rolePermissions[role as keyof typeof rolePermissions] || []);
+                    setNewAdminData({ ...newAdminData, role, permissions: defaultPerms });
+                  }}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                 >
                   <option value="Viewer">مشاهد</option>
                   <option value="Moderator">مشرف</option>
                   <option value="Content Manager">مدير محتوى</option>
                   <option value="Super Admin">مدير عام</option>
+                  <option value="Custom">مخصص</option>
                 </select>
               </div>
 
@@ -3731,12 +3736,15 @@ export function AdminDashboard() {
                     <label key={permission.id} className="flex items-center">
                       <input
                         type="checkbox"
-                        checked={newAdminData.permissions.includes(permission.id)}
+                        checked={
+                          newAdminData.permissions.includes(permission.id) ||
+                          newAdminData.permissions.includes("all")
+                        }
                         onChange={(e) => {
                           if (e.target.checked) {
                             setNewAdminData({
                               ...newAdminData,
-                              permissions: [...newAdminData.permissions, permission.id],
+                              permissions: [...newAdminData.permissions.filter((p) => p !== "all"), permission.id],
                             })
                           } else {
                             setNewAdminData({
@@ -3745,6 +3753,7 @@ export function AdminDashboard() {
                             })
                           }
                         }}
+                        disabled={newAdminData.role !== "Custom"}
                         className="ml-2"
                       />
                       <span className="text-sm">{permission.label}</span>
@@ -3767,7 +3776,9 @@ export function AdminDashboard() {
                       permissions:
                         newAdminData.permissions.length > 0
                           ? newAdminData.permissions
-                          : rolePermissions[newAdminData.role as keyof typeof rolePermissions] || [],
+                          : newAdminData.role === "Custom"
+                            ? []
+                            : rolePermissions[newAdminData.role as keyof typeof rolePermissions] || [],
                       joinDate: new Date().toLocaleDateString("ar-SA"),
                       lastActive: "الآن",
                     }
@@ -3800,13 +3811,18 @@ export function AdminDashboard() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">الدور الإداري</label>
                   <select
                     value={selectedAdmin.role}
-                    onChange={(e) => setSelectedAdmin({ ...selectedAdmin, role: e.target.value })}
+                    onChange={(e) => {
+                      const role = e.target.value;
+                      const defaultPerms = role === "Custom" ? selectedAdmin.permissions : (rolePermissions[role as keyof typeof rolePermissions] || []);
+                      setSelectedAdmin({ ...selectedAdmin, role, permissions: defaultPerms });
+                    }}
                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                   >
                     <option value="Viewer">مشاهد</option>
                     <option value="Moderator">مشرف</option>
                     <option value="Content Manager">مدير محتوى</option>
                     <option value="Super Admin">مدير عام</option>
+                    <option value="Custom">مخصص</option>
                   </select>
                 </div>
 
@@ -3834,7 +3850,7 @@ export function AdminDashboard() {
                               })
                             }
                           }}
-                          disabled={selectedAdmin.permissions.includes("all")}
+                          disabled={selectedAdmin.role !== "Custom"}
                           className="ml-2"
                         />
                         <span className="text-sm">{permission.label}</span>

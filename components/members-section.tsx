@@ -23,7 +23,7 @@ const partners = [
     id: 2,
     name: "وزارة الشباب و الرياضة",
     type: "استراتيجي",
-    logo: "/وزرة الشباب.jpg",
+    logo: "/ministry_of_youth.jpg",
     description: "شراكة استراتيجية في برامج تطوير الشباب والقيادة",
     partnership_since: "2023",
     projects: ["البرامج الشبابية", "رخصة الجمعية و التمويل"],
@@ -35,10 +35,10 @@ const partners = [
     id: 3,
     name: "مركز التكوين المهني سعو زروق عين الكبيرة",
     type: "أكاديمي",
-    logo: "/مركز التكوين.jpg",
+    logo: "/training_center.jpg",
     description: "تعاون في التدريب المهني والبرامج الأكاديمية",
     partnership_since: "2024",
-    projects: [ "مبادرة التدريب المهني"],
+    projects: ["مبادرة التدريب المهني"],
     category: "academic",
     website: "https://www.facebook.com/CFPAAinElkebiraSETIF",
     color: "from-blue-600 to-indigo-600"
@@ -121,7 +121,7 @@ export function PartnersSection() {
       {/* Partners Showcase */}
       <div className="relative max-w-6xl mx-auto">
         {/* Main Featured Partner */}
-        <div 
+        <div
           className="relative overflow-hidden rounded-3xl mb-8"
           onMouseEnter={() => setIsAutoPlaying(false)}
           onMouseLeave={() => setIsAutoPlaying(true)}
@@ -129,11 +129,10 @@ export function PartnersSection() {
           {filteredPartners.map((partner, index) => (
             <div
               key={partner.id}
-              className={`transition-all duration-700 ${
-                index === currentSlide 
-                  ? "opacity-100 translate-x-0" 
+              className={`transition-all duration-700 ${index === currentSlide
+                  ? "opacity-100 translate-x-0"
                   : "opacity-0 translate-x-full absolute inset-0"
-              }`}
+                }`}
             >
               <div className={`bg-gradient-to-br ${partner.color} p-1 rounded-3xl`}>
                 <div className="bg-background rounded-3xl p-8 md:p-12">
@@ -148,7 +147,7 @@ export function PartnersSection() {
                             className="w-full h-full object-contain"
                           />
                         </div>
-                        <Badge 
+                        <Badge
                           className={`absolute -top-2 -right-2 bg-gradient-to-r ${partner.color} text-white border-0`}
                         >
                           {partner.type}
@@ -164,10 +163,10 @@ export function PartnersSection() {
                         <div className="text-sm text-muted-foreground">
                           <span className="font-semibold">شراكة منذ:</span> {partner.partnership_since}
                         </div>
-                        <Button variant="outline" 
-                        size="sm"
-                        className="rounded-full !cursor-pointer"
-                        onClick={() => window.open(`${partner.website}`, "_blank")}
+                        <Button variant="outline"
+                          size="sm"
+                          className="rounded-full !cursor-pointer"
+                          onClick={() => window.open(`${partner.website}`, "_blank")}
                         >
                           زيارة الموقع
                           <ExternalLink className="w-4 h-4 mr-2" />
@@ -183,7 +182,7 @@ export function PartnersSection() {
                       </h4>
                       <div className="space-y-3">
                         {partner.projects.map((project, idx) => (
-                          <div 
+                          <div
                             key={idx}
                             className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl hover:bg-muted transition-colors"
                           >
@@ -220,11 +219,10 @@ export function PartnersSection() {
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index === currentSlide 
-                  ? "bg-primary scale-125" 
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide
+                  ? "bg-primary scale-125"
                   : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-              }`}
+                }`}
             />
           ))}
         </div>
@@ -262,9 +260,9 @@ export function PartnersSection() {
             <p className="text-muted-foreground mb-6">
               انضم إلى شبكة شركائنا المتميزين وساهم في بناء مستقبل أفضل للشباب
             </p>
-            <Button size="lg" 
-            className="rounded-full bg-gradient-to-r from-primary to-secondary hover:scale-105 transition-transform !cursor-pointer"
-            onClick={() => router.push("/contact")}
+            <Button size="lg"
+              className="rounded-full bg-gradient-to-r from-primary to-secondary hover:scale-105 transition-transform !cursor-pointer"
+              onClick={() => router.push("/contact")}
             >
               تواصل للشراكة
               <Handshake className="w-5 h-5 mr-2" />
