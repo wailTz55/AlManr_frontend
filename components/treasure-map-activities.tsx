@@ -11,9 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, MapPin, Users, Camera, Video, Award, Clock, Star, ChevronLeft, ChevronRight, Play, UserCheck, CheckCircle, Building2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { Calendar, MapPin, Users, Camera, Video, Award, Clock, Star, ChevronLeft, ChevronRight, Play, UserCheck, CheckCircle, Building2, X, Plus } from "lucide-react"
 
 export function TreasureMapActivities() {
+  const { toast } = useToast()
   const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const searchParams = useSearchParams()
@@ -35,8 +37,7 @@ export function TreasureMapActivities() {
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const ITEMS_PER_LOAD = card_number;
 
-  // --- Registration / Participant UI state (ready to wire to real auth/API) ---
-  // isLoggedIn: simulate association login (set to false = show login prompt)
+  // isLoggedIn: simulate association login (set to false for mock purposes)
   const [isLoggedIn] = useState(false)
   // Track which activityId the current user's association is registered for
   const [registeredActivityIds, setRegisteredActivityIds] = useState<Set<number>>(new Set())
@@ -44,11 +45,9 @@ export function TreasureMapActivities() {
   const [registeringActivity, setRegisteringActivity] = useState<Activity | null>(null)
   const [regFormData, setRegFormData] = useState({ assocName: "", email: "", phone: "" })
   const [regSuccess, setRegSuccess] = useState(false)
-  // Participant form
-  const [showParticipantDialog, setShowParticipantDialog] = useState(false)
-  const [participantActivity, setParticipantActivity] = useState<Activity | null>(null)
-  const [participantForm, setParticipantForm] = useState({ name: "", age: "", category: "" })
-  const [participantSuccess, setParticipantSuccess] = useState(false)
+  // Participants list for the current registration
+  const [participantsList, setParticipantsList] = useState<{ id: string, name: string, age: string, category: string }[]>([])
+  const [currentParticipant, setCurrentParticipant] = useState({ name: "", age: "", category: "" })
 
   // جلب البيانات من API مع معالجة الأخطاء
   useEffect(() => {
@@ -571,23 +570,27 @@ export function TreasureMapActivities() {
                               <CheckCircle className="w-5 h-5 flex-shrink-0" />
                               <span className="text-sm font-medium">تم تسجيل جمعيتك في هذا النشاط — بانتظار المراجعة</span>
                             </div>
-                            {(selectedActivity.activityTemplate === "announcement_reg_participants" ||
-                              selectedActivity.activityTemplate === "special") && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="w-full text-purple-700 border-purple-200 hover:bg-purple-50"
-                                  onClick={() => { setParticipantActivity(selectedActivity); setParticipantForm({ name: "", age: "", category: "" }); setParticipantSuccess(false); setShowParticipantDialog(true) }}
-                                >
-                                  <UserCheck className="w-4 h-4 ml-2" />
-                                  إضافة مشاركين
-                                </Button>
-                              )}
+                            {/* We no longer use a separate dialog for adding participants later for mock purposes */}
                           </div>
                         ) : (
                           <Button
                             className="w-full bg-amber-600 hover:bg-amber-700 text-white"
-                            onClick={() => { setRegisteringActivity(selectedActivity); setRegFormData({ assocName: "", email: "", phone: "" }); setRegSuccess(false); setShowRegisterDialog(true) }}
+                            onClick={() => {
+                              if (!isLoggedIn) {
+                                toast({
+                                  title: "تسجيل الدخول مطلوب",
+                                  description: "الرجاء تسجيل الدخول كجمعية أولاً للتمكن من التسجيل في هذه الأنشطة.",
+                                  variant: "destructive",
+                                })
+                                return;
+                              }
+                              setRegisteringActivity(selectedActivity);
+                              setRegFormData({ assocName: "", email: "", phone: "" });
+                              setParticipantsList([]);
+                              setCurrentParticipant({ name: "", age: "", category: "" });
+                              setRegSuccess(false);
+                              setShowRegisterDialog(true);
+                            }}
                           >
                             <Building2 className="w-4 h-4 ml-2" />
                             تسجيل جمعيتك في النشاط
@@ -598,13 +601,9 @@ export function TreasureMapActivities() {
 
                   {/* Action Buttons */}
                   <div className="flex flex-col xs:flex-row gap-2 sm:gap-4 pt-2">
-                    <Button size="sm" className="flex-1 text-sm sm:text-lg py-2 sm:py-4 min-h-0">
+                    <Button size="sm" className="w-full text-sm sm:text-lg py-2 sm:py-4 min-h-0 bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200">
                       <Camera className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
                       <span className="truncate">عرض الصور</span>
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1 bg-transparent text-sm sm:text-lg py-2 sm:py-4 min-h-0">
-                      <Video className="w-4 h-4 sm:w-5 sm:h-5 ml-2 flex-shrink-0" />
-                      <span className="truncate">مشاهدة الفيديو</span>
                     </Button>
                   </div>
                 </div>
@@ -634,7 +633,7 @@ export function TreasureMapActivities() {
               <Button className="mt-4" onClick={() => setShowRegisterDialog(false)}>إغلاق</Button>
             </div>
           ) : (
-            <div className="space-y-4 py-4">
+            <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto px-1">
               <div className="space-y-2">
                 <Label>اسم الجمعية</Label>
                 <input className="w-full border rounded-md px-3 py-2 text-sm" placeholder="اسم جمعيتك" value={regFormData.assocName} onChange={(e) => setRegFormData({ ...regFormData, assocName: e.target.value })} />
@@ -647,14 +646,114 @@ export function TreasureMapActivities() {
                 <Label>رقم الهاتف</Label>
                 <input className="w-full border rounded-md px-3 py-2 text-sm" placeholder="0550000000" value={regFormData.phone} onChange={(e) => setRegFormData({ ...regFormData, phone: e.target.value })} />
               </div>
-              <div className="flex gap-2 pt-2">
+
+              {registeringActivity && (registeringActivity.activityTemplate === "announcement_reg_participants" || registeringActivity.activityTemplate === "special") && (
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                    <Users className="h-4 w-4 text-amber-600" />
+                    قائمة المشاركين
+                  </h4>
+
+                  {/* List of added participants */}
+                  {participantsList.length > 0 && (
+                    <div className="space-y-2 mb-4">
+                      {participantsList.map((p) => (
+                        <div key={p.id} className="flex items-center justify-between bg-gray-50 p-2 rounded-lg border text-sm">
+                          <div className="flex gap-3">
+                            <span className="font-medium">{p.name}</span>
+                            <span className="text-gray-500">العمر: {p.age}</span>
+                            {p.category && <span className="text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full text-xs">{p.category}</span>}
+                          </div>
+                          <button
+                            className="text-red-500 hover:text-red-700"
+                            onClick={() => setParticipantsList(participantsList.filter(item => item.id !== p.id))}
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add new participant form */}
+                  <div className="bg-white p-3 border rounded-lg space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">الاسم</Label>
+                        <input className="w-full border rounded-md px-2 py-1.5 text-sm" placeholder="الاسم الكامل" value={currentParticipant.name} onChange={(e) => setCurrentParticipant({ ...currentParticipant, name: e.target.value })} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">العمر</Label>
+                        <input className="w-full border rounded-md px-2 py-1.5 text-sm" placeholder="العمر" type="number" value={currentParticipant.age} onChange={(e) => setCurrentParticipant({ ...currentParticipant, age: e.target.value })} />
+                      </div>
+                    </div>
+                    {registeringActivity.activityTemplate === "special" && registeringActivity.categories && registeringActivity.categories.length > 0 && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">الفئة</Label>
+                        <select className="w-full border rounded-md px-2 py-1.5 text-sm bg-white" value={currentParticipant.category} onChange={(e) => setCurrentParticipant({ ...currentParticipant, category: e.target.value })}>
+                          <option value="">اختر الفئة...</option>
+                          {registeringActivity.categories.map((cat, i) => (
+                            <option key={i} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        if (currentParticipant.name && currentParticipant.age) {
+                          if (registeringActivity.activityTemplate === "special" && !currentParticipant.category) {
+                            toast({
+                              title: "خطأ",
+                              description: "يرجى اختيار فئة المشارك",
+                              variant: "destructive",
+                            })
+                            return;
+                          }
+                          setParticipantsList([...participantsList, { ...currentParticipant, id: Date.now().toString() }]);
+                          setCurrentParticipant({ name: "", age: "", category: "" });
+                        } else {
+                          toast({
+                            title: "معلومات ناقصة",
+                            description: "يرجى إدخال الاسم والعمر",
+                            variant: "destructive",
+                          })
+                        }
+                      }}
+                    >
+                      <Plus className="h-4 w-4 ml-1" />
+                      إضافة مشارك للقائمة
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-4">
                 <Button variant="outline" className="flex-1" onClick={() => setShowRegisterDialog(false)}>إلغاء</Button>
                 <Button
                   className="flex-1 bg-amber-600 hover:bg-amber-700"
                   onClick={() => {
                     if (regFormData.assocName && regFormData.email && registeringActivity) {
+                      if ((registeringActivity.activityTemplate === "announcement_reg_participants" || registeringActivity.activityTemplate === "special") && participantsList.length === 0) {
+                        toast({
+                          title: "لا يوجد مشاركين",
+                          description: "يرجى إضافة مشارك واحد على الأقل",
+                          variant: "destructive",
+                        })
+                        return;
+                      }
+                      console.log("Registered Association:", regFormData);
+                      console.log("Participants:", participantsList);
                       setRegisteredActivityIds(prev => new Set([...prev, registeringActivity.id]))
                       setRegSuccess(true)
+                    } else {
+                      toast({
+                        title: "معلومات ناقصة",
+                        description: "يرجى تعبئة جميع معلومات الجمعية",
+                        variant: "destructive",
+                      })
                     }
                   }}
                 >
@@ -666,65 +765,7 @@ export function TreasureMapActivities() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Participants Dialog */}
-      <Dialog open={showParticipantDialog} onOpenChange={(open) => { if (!open) setShowParticipantDialog(false) }}>
-        <DialogContent className="max-w-lg w-[95vw] p-6" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UserCheck className="h-5 w-5 text-purple-600" />
-              إضافة مشارك
-            </DialogTitle>
-            <DialogDescription>
-              إضافة مشارك لنشاط: {participantActivity?.title}
-            </DialogDescription>
-          </DialogHeader>
-          {participantSuccess ? (
-            <div className="text-center py-6">
-              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">تمت إضافة المشارك!</h3>
-              <div className="flex gap-2 mt-4 justify-center">
-                <Button variant="outline" onClick={() => { setParticipantForm({ name: "", age: "", category: "" }); setParticipantSuccess(false) }}>إضافة مشارك آخر</Button>
-                <Button onClick={() => setShowParticipantDialog(false)}>إغلاق</Button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>اسم المشارك</Label>
-                <input className="w-full border rounded-md px-3 py-2 text-sm" placeholder="الاسم الكامل" value={participantForm.name} onChange={(e) => setParticipantForm({ ...participantForm, name: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>العمر</Label>
-                <input className="w-full border rounded-md px-3 py-2 text-sm" placeholder="العمر" type="number" value={participantForm.age} onChange={(e) => setParticipantForm({ ...participantForm, age: e.target.value })} />
-              </div>
-              {participantActivity?.activityTemplate === "special" && participantActivity.categories && participantActivity.categories.length > 0 && (
-                <div className="space-y-2">
-                  <Label>الفئة</Label>
-                  <select className="w-full border rounded-md px-3 py-2 text-sm" value={participantForm.category} onChange={(e) => setParticipantForm({ ...participantForm, category: e.target.value })}>
-                    <option value="">اختر الفئة...</option>
-                    {participantActivity.categories.map((cat, i) => (
-                      <option key={i} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <div className="flex gap-2 pt-2">
-                <Button variant="outline" className="flex-1" onClick={() => setShowParticipantDialog(false)}>إلغاء</Button>
-                <Button
-                  className="flex-1 bg-purple-600 hover:bg-purple-700"
-                  onClick={() => {
-                    if (participantForm.name && participantForm.age) {
-                      setParticipantSuccess(true)
-                    }
-                  }}
-                >
-                  إضافة المشارك
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Old Add Participants Dialog Removed */}
     </div>
   );
 }

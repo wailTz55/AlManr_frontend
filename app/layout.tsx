@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Amiri, Cairo } from "next/font/google"
 import "./globals.css"
+import { Toaster } from "@/components/ui/toaster"
 
 const amiri = Amiri({
   subsets: ["arabic"],
@@ -39,7 +40,10 @@ html {
 }
         `}</style>
       </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        <Toaster />
+      </body>
     </html>
   )
 }

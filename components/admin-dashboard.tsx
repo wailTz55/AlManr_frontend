@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useToast } from "@/hooks/use-toast"
 
 // --- Export Helpers ---
 const exportToWord = (htmlContent: string, filename: string) => {
@@ -250,8 +251,36 @@ interface Member {
 }
 
 export function AdminDashboard() {
+  const { toast } = useToast()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+
+  const [adminSettings, setAdminSettings] = useState({
+    username: "admin",
+    password: "123",
+    email: "admin@almanar.org"
+  })
+
+  useEffect(() => {
+    const saved = localStorage.getItem("almanar_admin_settings");
+    if (saved) {
+      try {
+        setAdminSettings(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse admin settings", e);
+      }
+    }
+  }, []);
+
+  const handleSaveSettings = () => {
+    localStorage.setItem("almanar_admin_settings", JSON.stringify(adminSettings));
+    toast({
+      title: "نجاح",
+      description: "تم حفظ الإعدادات بنجاح",
+      variant: "default",
+    })
+  }
 
   const handleImageOptimize = (file: File, callback: (url: string) => void) => {
     const reader = new FileReader();
@@ -511,6 +540,8 @@ export function AdminDashboard() {
   const [partnershipSearchTerm, setPartnershipSearchTerm] = useState("")
   const [reviewNotes, setReviewNotes] = useState("")
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [messageDeleteConfirmId, setMessageDeleteConfirmId] = useState<string | null>(null)
+  const [newsDeleteConfirmId, setNewsDeleteConfirmId] = useState<string | null>(null)
   const [exportFormatOpen, setExportFormatOpen] = useState(false)
 
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([
@@ -732,10 +763,14 @@ export function AdminDashboard() {
   }
 
   const handleLogin = () => {
-    if (password === "admin123") {
+    if (username === adminSettings.username && password === adminSettings.password) {
       setIsAuthenticated(true)
     } else {
-      alert("كلمة مرور خاطئة")
+      toast({
+        title: "خطأ في تسجيل الدخول",
+        description: "اسم المستخدم أو كلمة المرور خاطئة",
+        variant: "destructive",
+      })
     }
   }
 
@@ -852,8 +887,13 @@ export function AdminDashboard() {
   }
 
   const handleDeleteMessage = (messageId: string) => {
-    if (confirm("هل أنت متأكد من حذف هذه الرسالة؟")) {
-      setMessages(messages.filter((msg) => msg.id !== messageId))
+    setMessageDeleteConfirmId(messageId)
+  }
+
+  const handleDeleteMessageConfirmed = () => {
+    if (messageDeleteConfirmId) {
+      setMessages(messages.filter((msg) => msg.id !== messageDeleteConfirmId))
+      setMessageDeleteConfirmId(null)
     }
   }
 
@@ -863,7 +903,10 @@ export function AdminDashboard() {
       setReplyText("")
       setSelectedMessage(null)
       // In a real app, this would send an email
-      alert("تم إرسال الرد بنجاح")
+      toast({
+        title: "تم الإرسال",
+        description: "تم إرسال الرد بنجاح",
+      })
     }
   }
 
@@ -981,8 +1024,13 @@ export function AdminDashboard() {
   }
 
   const handleDeleteNews = (id: string) => {
-    if (confirm("هل أنت متأكد من حذف هذا المقال؟")) {
-      setNewsArticles(newsArticles.filter((article) => article.id !== id))
+    setNewsDeleteConfirmId(id)
+  }
+
+  const handleDeleteNewsConfirmed = () => {
+    if (newsDeleteConfirmId) {
+      setNewsArticles(newsArticles.filter((article) => article.id !== newsDeleteConfirmId))
+      setNewsDeleteConfirmId(null)
     }
   }
 
@@ -1178,6 +1226,17 @@ export function AdminDashboard() {
           <CardContent className="space-y-6 p-6">
             <div className="relative">
               <Input
+                type="text"
+                placeholder="اسم المستخدم"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="pr-10"
+                dir="rtl"
+              />
+              <User className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            </div>
+            <div className="relative">
+              <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="كلمة المرور"
                 value={password}
@@ -1185,6 +1244,7 @@ export function AdminDashboard() {
                 className="pr-10"
                 dir="rtl"
               />
+              <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Button
                 type="button"
                 variant="ghost"
@@ -2241,6 +2301,28 @@ export function AdminDashboard() {
                 )}
               </DialogContent>
             </Dialog>
+
+            {/* Message Delete Confirmation Dialog */}
+            <Dialog open={!!messageDeleteConfirmId} onOpenChange={(open) => { if (!open) setMessageDeleteConfirmId(null) }}>
+              <DialogContent className="max-w-md w-[95vw] p-6" dir="rtl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-red-600">
+                    <Trash2 className="h-5 w-5" />
+                    تأكيد حذف الرسالة
+                  </DialogTitle>
+                  <DialogDescription>
+                    هل أنت متأكد من حذف هذه الرسالة؟ هذا الإجراء لا يمكن التراجع عنه.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline" onClick={() => setMessageDeleteConfirmId(null)}>إلغاء</Button>
+                  <Button variant="destructive" onClick={handleDeleteMessageConfirmed}>
+                    <Trash2 className="ml-2 h-4 w-4" />
+                    حذف الرسالة
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
 
@@ -3055,6 +3137,30 @@ export function AdminDashboard() {
                 ))
               )}
             </div>
+
+            {/* News Delete Confirmation Dialog */}
+            <Dialog open={!!newsDeleteConfirmId} onOpenChange={(open) => { if (!open) setNewsDeleteConfirmId(null) }}>
+              <DialogContent className="max-w-md w-[95vw] p-6" dir="rtl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-red-600">
+                    <Trash2 className="h-5 w-5" />
+                    تأكيد حذف المقال
+                  </DialogTitle>
+                  <DialogDescription>
+                    هل أنت متأكد من حذف هذا المقال؟{" "}
+                    <strong>{newsArticles.find((a) => a.id === newsDeleteConfirmId)?.title}</strong>؟
+                    {" "}هذا الإجراء لا يمكن التراجع عنه.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline" onClick={() => setNewsDeleteConfirmId(null)}>إلغاء</Button>
+                  <Button variant="destructive" onClick={handleDeleteNewsConfirmed}>
+                    <Trash2 className="ml-2 h-4 w-4" />
+                    حذف المقال
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             {/* Edit News Dialog */}
             <Dialog open={!!editingNews} onOpenChange={() => setEditingNews(null)}>
@@ -3879,13 +3985,59 @@ export function AdminDashboard() {
           )}
         </Dialog>
 
+        {activeSection === "settings" && (
+          <Card>
+            <CardHeader className="border-b pt-2">
+              <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                <Settings className="h-6 w-6 text-amber-600" />
+                إعدادات الحساب الإداري
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <div className="max-w-md space-y-4" dir="rtl">
+                <div className="space-y-2">
+                  <Label htmlFor="admin-username">اسم المستخدم</Label>
+                  <Input
+                    id="admin-username"
+                    value={adminSettings.username}
+                    onChange={(e) => setAdminSettings({ ...adminSettings, username: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="admin-email">البريد الإلكتروني</Label>
+                  <Input
+                    id="admin-email"
+                    type="email"
+                    value={adminSettings.email}
+                    onChange={(e) => setAdminSettings({ ...adminSettings, email: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="admin-password">كلمة المرور</Label>
+                  <Input
+                    id="admin-password"
+                    type="text"
+                    value={adminSettings.password}
+                    onChange={(e) => setAdminSettings({ ...adminSettings, password: e.target.value })}
+                  />
+                </div>
+                <Button onClick={handleSaveSettings} className="w-full mt-4 bg-amber-600 hover:bg-amber-700">
+                  <Check className="ml-2 h-4 w-4" />
+                  حفظ الإعدادات
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {activeSection !== "dashboard" &&
           activeSection !== "activities" &&
           activeSection !== "messages" &&
           activeSection !== "memberships" &&
           activeSection !== "news" &&
           activeSection !== "members" &&
-          activeSection !== "permissions" && (
+          activeSection !== "permissions" &&
+          activeSection !== "settings" && (
             <Card>
               <CardContent className="p-8 text-center">
                 <div className="text-gray-400 mb-4">

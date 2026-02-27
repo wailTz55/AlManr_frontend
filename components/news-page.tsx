@@ -19,15 +19,13 @@ import {
   Star,
   Users,
   ArrowLeft,
-  Eye,
-  Heart,
   Share2,
 } from "lucide-react"
 
 // خريطة ترجمة أنواع الأخبار
 const categoryTranslation = {
   "announcement": "إعلان",
-  "achievement": "إنجاز", 
+  "achievement": "إنجاز",
   "reminder": "تذكير",
   "workshop": "ورشة",
   "initiative": "مبادرة"
@@ -41,7 +39,7 @@ const getCategoryDisplayText = (category: string) => {
 // مصفوفات القيم العشوائية
 const colorOptions = [
   "text-primary",
-  "text-secondary", 
+  "text-secondary",
   "text-accent",
   "text-chart-3",
   "text-chart-4"
@@ -50,7 +48,7 @@ const colorOptions = [
 const bgColorOptions = [
   "bg-primary/10",
   "bg-secondary/10",
-  "bg-accent/10", 
+  "bg-accent/10",
   "bg-chart-3/10",
   "bg-chart-4/10"
 ];
@@ -92,7 +90,6 @@ export function NewsPage() {
   const [selectedArticle, setSelectedArticle] = useState<NewsWithRandomProps | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [likedArticles, setLikedArticles] = useState<number[]>([])
   const news_number_show = 6;
   // إعدادات التمرير اللامتناهي للأخبار العادية
   const [displayedRegularNews, setDisplayedRegularNews] = useState(news_number_show);
@@ -113,31 +110,31 @@ export function NewsPage() {
 
   // جلب البيانات من API
   useEffect(() => {
-      const loadNews = async () => {
-        try {
-          setIsLoading(true);
-          setError(null);
-          const data = await fetchAllData();
+    const loadNews = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await fetchAllData();
 
-          if (data && data.news && Array.isArray(data.news)) {
-            // إضافة الخصائص العشوائية لكل خبر
-            const newsWithRandomProps = data.news.map(newsItem => generateRandomProps(newsItem));
-            setNews(newsWithRandomProps);
-          } else {
-            throw new Error('البيانات المستلمة غير صحيحة');
-          }
-        } catch (err) {
-          console.error('خطأ في جلب البيانات:', err);
-          setError('حدث خطأ في تحميل البيانات');
-          setNews([]);
-        } finally {
-          setIsLoading(false);
-          setMounted(true);
+        if (data && data.news && Array.isArray(data.news)) {
+          // إضافة الخصائص العشوائية لكل خبر
+          const newsWithRandomProps = data.news.map(newsItem => generateRandomProps(newsItem));
+          setNews(newsWithRandomProps);
+        } else {
+          throw new Error('البيانات المستلمة غير صحيحة');
         }
-      };
+      } catch (err) {
+        console.error('خطأ في جلب البيانات:', err);
+        setError('حدث خطأ في تحميل البيانات');
+        setNews([]);
+      } finally {
+        setIsLoading(false);
+        setMounted(true);
+      }
+    };
 
-      loadNews();
-    }, []);
+    loadNews();
+  }, []);
 
   useEffect(() => {
     if (mounted && news.length > 0) {
@@ -160,10 +157,10 @@ export function NewsPage() {
     const matchesSearch =
       article.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.excerpt?.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     // مقارنة القيم الإنجليزية مباشرة
     const matchesCategory = selectedCategory === "all" || article.category === selectedCategory
-    
+
     return matchesSearch && matchesCategory
   })
 
@@ -185,7 +182,7 @@ export function NewsPage() {
           loadMoreRegularNews();
         }
       },
-      { 
+      {
         threshold: 0.1,
         rootMargin: '100px'
       }
@@ -201,22 +198,17 @@ export function NewsPage() {
   // دالة تحميل المزيد من الأخبار العادية
   const loadMoreRegularNews = async () => {
     if (isLoadingMore || !hasMoreRegular) return;
-    
+
     setIsLoadingMore(true);
-    
+
     // محاكاة تأخير التحميل
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     const newDisplayedCount = Math.min(displayedRegularNews + REGULAR_NEWS_PER_LOAD, regularNews.length);
     setDisplayedRegularNews(newDisplayedCount);
     setIsLoadingMore(false);
   };
 
-  const toggleLike = (articleId: number) => {
-    setLikedArticles((prev) =>
-      prev.includes(articleId) ? prev.filter((id) => id !== articleId) : [...prev, articleId],
-    )
-  }
 
   // إعادة تعيين عدد الأخبار المعروضة عند تغيير الفلتر
   useEffect(() => {
@@ -239,8 +231,8 @@ export function NewsPage() {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
           <p className="text-lg text-red-500">{error}</p>
-          <Button 
-            onClick={() => window.location.reload()} 
+          <Button
+            onClick={() => window.location.reload()}
             className="mt-4"
           >
             إعادة المحاولة
@@ -349,7 +341,7 @@ export function NewsPage() {
             عرض {currentRegularNews.length} من {regularNews.length}
           </Badge>
         </div>
-        
+
         {isLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
@@ -363,7 +355,7 @@ export function NewsPage() {
           <div className="space-y-6">
             {currentRegularNews.map((article, index) => {
               const Icon = article.randomIcon
-              const isLiked = likedArticles.includes(article.id)
+              const isLiked = false // likes removed
 
               return (
                 <Card
@@ -404,22 +396,6 @@ export function NewsPage() {
 
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Eye className="w-4 h-4" />
-                            {article.views || 0}
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              toggleLike(article.id)
-                            }}
-                            className={`flex items-center gap-1 transition-colors ${
-                              isLiked ? "text-red-500" : "hover:text-red-500"
-                            }`}
-                          >
-                            <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
-                            {(article.likes || 0) + (isLiked ? 1 : 0)}
-                          </button>
                           <button className="flex items-center gap-1 hover:text-primary transition-colors">
                             <Share2 className="w-4 h-4" />
                             مشاركة
@@ -441,8 +417,8 @@ export function NewsPage() {
 
         {/* مؤشر التحميل للأخبار العادية */}
         {hasMoreRegular && regularNews.length > 0 && (
-          <div 
-            ref={loadMoreRef} 
+          <div
+            ref={loadMoreRef}
             className="flex justify-center py-12"
           >
             {isLoadingMore ? (
@@ -522,21 +498,6 @@ export function NewsPage() {
                 <div className="flex items-center justify-between pt-6 border-t border-border">
                   <div className="text-sm text-muted-foreground">بواسطة: {selectedArticle.author || "غير محدد"}</div>
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Eye className="w-4 h-4" />
-                      {selectedArticle.views || 0} مشاهدة
-                    </div>
-                    <button
-                      onClick={() => toggleLike(selectedArticle.id)}
-                      className={`flex items-center gap-1 text-sm transition-colors ${
-                        likedArticles.includes(selectedArticle.id) ? "text-red-500" : "hover:text-red-500"
-                      }`}
-                    >
-                      <Heart
-                        className={`w-4 h-4 ${likedArticles.includes(selectedArticle.id) ? "fill-current" : ""}`}
-                      />
-                      {(selectedArticle.likes || 0) + (likedArticles.includes(selectedArticle.id) ? 1 : 0)} إعجاب
-                    </button>
                     <Button variant="outline" size="sm" className="bg-transparent">
                       <Share2 className="w-4 h-4 ml-1" />
                       مشاركة
