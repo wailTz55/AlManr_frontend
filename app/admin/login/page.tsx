@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { adminLogin } from "@/services/AdminAuthService"
 import { Eye, EyeOff, Shield, Loader2, AlertCircle } from "lucide-react"
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const redirectTo = searchParams.get("redirectTo") ?? "/admin"
@@ -132,5 +132,17 @@ export default function AdminLoginPage() {
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function AdminLoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+                <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+            </div>
+        }>
+            <AdminLoginForm />
+        </Suspense>
     )
 }
