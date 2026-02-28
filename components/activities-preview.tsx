@@ -16,7 +16,7 @@ export function ActivitiesPreview() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 
   // جلب البيانات من API عند تحميل الكومبوننت
   useEffect(() => {
@@ -172,7 +172,7 @@ export function ActivitiesPreview() {
             <div
               key={activity.id}
               className={`absolute top-0 left-0 w-full h-full transition-transform duration-700 ease-in-out ${index === currentSlide ? 'translate-x-0' :
-                  index < currentSlide ? '-translate-x-full' : 'translate-x-full'
+                index < currentSlide ? '-translate-x-full' : 'translate-x-full'
                 }`}
             >
               <Card
@@ -181,7 +181,7 @@ export function ActivitiesPreview() {
               >
                 <div className="absolute inset-0">
                   <img
-                    src={activity.images && activity.images[0] ? `${baseURL}${activity.images[0]}` : "/placeholder.svg"}
+                    src={activity.images && activity.images[0] ? activity.images[0] : "/placeholder.svg"}
                     alt={activity.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />

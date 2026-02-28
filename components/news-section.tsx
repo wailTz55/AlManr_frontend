@@ -26,7 +26,7 @@ const bgColorOptions = [
   "bg-chart-4/10"
 ];
 
-const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 const iconOptions = [Megaphone, Users, Star, Bell, Trophy];
 
 // دوال للحصول على قيم عشوائية
@@ -40,7 +40,8 @@ const generateRandomProps = (newsItem: News, index: number) => ({
   randomColor: getRandomColor(),
   randomBgColor: getRandomBgColor(),
   randomIcon: getRandomIcon(),
-  randomImage: newsItem.image ? newsItem.image : "/placeholder.svg"
+  // Use the image as-is (full URL from Supabase) or fallback to placeholder
+  randomImage: newsItem.image && newsItem.image.trim() !== "" ? newsItem.image : "/placeholder.svg"
 });
 
 // نوع محدث للأخبار مع الخصائص العشوائية
@@ -214,7 +215,7 @@ export function NewsSection() {
                   {/* Image Section */}
                   <div className="relative h-48 overflow-hidden">
                     <Image
-                      src={item.randomImage.startsWith("/") && item.randomImage === "/placeholder.svg" ? item.randomImage : `${baseURL}${item.randomImage}`}
+                      src={item.randomImage}
                       alt={item.title}
                       width={320}
                       height={192}

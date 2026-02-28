@@ -82,6 +82,36 @@ export async function rejectAssociation(
 }
 
 // ============================================================
+// Undo Reject Association (set back to pending)
+// ============================================================
+export async function undoRejectAssociation(associationId: string, adminId: string) {
+    const db = createServiceRoleClient()
+    const { data, error } = await db
+        .from("associations")
+        .update({
+            status: "pending",
+            rejection_reason: null,
+            approved_by: null,
+            approved_at: null,
+        })
+        .eq("id", associationId)
+        .select()
+        .single()
+
+    if (error) throw new Error("[AdminService] Failed to undo rejection: " + error.message)
+
+    await logAuditEvent({
+        adminId,
+        action: "UNDO_REJECT_ASSOCIATION",
+        entityType: "associations",
+        entityId: associationId,
+        metadata: { name: data.name },
+    })
+
+    return data
+}
+
+// ============================================================
 // Suspend Association
 // ============================================================
 export async function suspendAssociation(associationId: string, adminId: string) {

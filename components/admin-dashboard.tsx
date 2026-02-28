@@ -4,6 +4,11 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
+import {
+  addActivityAction, editActivityAction, removeActivityAction,
+  addNewsAction, editNewsAction, removeNewsAction,
+  approveAssociationAction, deleteAssociationAction, rejectAssociationAction, undoRejectAssociationAction
+} from "@/app/admin/actions"
 
 // --- Export Helpers ---
 const exportToWord = (htmlContent: string, filename: string) => {
@@ -250,7 +255,15 @@ interface Member {
   avatar: string
 }
 
-export function AdminDashboard() {
+export function AdminDashboard({
+  initialActivities = [],
+  initialNews = [],
+  initialAssociations = []
+}: {
+  initialActivities?: Activity[]
+  initialNews?: NewsArticle[]
+  initialAssociations?: AssociationPartnership[]
+}) {
   const { toast } = useToast()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [username, setUsername] = useState("")
@@ -314,94 +327,10 @@ export function AdminDashboard() {
   const [showPassword, setShowPassword] = useState(false)
   const [activeSection, setActiveSection] = useState("dashboard")
 
-  const [activities, setActivities] = useState<Activity[]>([
-    {
-      id: "1",
-      title: "المخيم الصيفي الشبابي",
-      description: "مخيم صيفي مليء بالأنشطة الترفيهية والتعليمية للشباب",
-      type: "مخيم",
-      date: "2024-07-15",
-      location: "جبال الشوف",
-      duration: "5 أيام",
-      capacity: 50,
-      registered: 35,
-      status: "active",
-      image: "/placeholder.svg",
-      activityTemplate: "announcement",
-      categories: [],
-    },
-    {
-      id: "2",
-      title: "ورشة الإبداع والابتكار",
-      description: "ورشة تدريبية لتطوير مهارات الإبداع والتفكير النقدي",
-      type: "ورشة",
-      date: "2024-06-20",
-      location: "مركز الجمعية",
-      duration: "يوم واحد",
-      capacity: 30,
-      registered: 28,
-      status: "completed",
-      image: "/placeholder.svg",
-      activityTemplate: "announcement_reg",
-      categories: [],
-    },
-    {
-      id: "3",
-      title: "بطولة كرة القدم الشبابية",
-      description: "بطولة كرة قدم للشباب من مختلف الأعمار",
-      type: "رياضة",
-      date: "2024-08-10",
-      location: "الملعب البلدي",
-      duration: "3 أيام",
-      capacity: 100,
-      registered: 67,
-      status: "active",
-      image: "/placeholder.svg",
-      activityTemplate: "special",
-      categories: ["U12", "U16", "Senior"],
-    },
-  ])
+  const [activities, setActivities] = useState<Activity[]>(initialActivities)
 
   // --- New Activity Registration State ---
-  const [activityRegistrations, setActivityRegistrations] = useState<ActivityRegistration[]>([
-    {
-      id: "reg-1",
-      activityId: "2",
-      associationName: "جمعية الأمل للشباب",
-      associationEmail: "amal@youth.dz",
-      associationPhone: "0551234567",
-      status: "pending",
-      registrationDate: "2024-06-01T10:00:00",
-      participants: [],
-    },
-    {
-      id: "reg-2",
-      activityId: "2",
-      associationName: "منتدى الإبداع الشبابي",
-      associationEmail: "ibdaa@forum.dz",
-      associationPhone: "0667891234",
-      status: "approved",
-      registrationDate: "2024-06-02T09:00:00",
-      participants: [
-        { id: "p-1", registrationId: "reg-2", name: "كريم بوعلي", age: 22, category: undefined },
-        { id: "p-2", registrationId: "reg-2", name: "نور الدين مسعود", age: 20, category: undefined },
-      ],
-    },
-    {
-      id: "reg-3",
-      activityId: "3",
-      associationName: "رابطة الطلاب الرياضيين",
-      associationEmail: "sport@students.dz",
-      associationPhone: "0773456789",
-      status: "approved",
-      registrationDate: "2024-07-15T14:00:00",
-      participants: [
-        { id: "p-3", registrationId: "reg-3", name: "أحمد زيد", age: 14, category: "U16" },
-        { id: "p-4", registrationId: "reg-3", name: "سامي علي", age: 11, category: "U12" },
-        { id: "p-5", registrationId: "reg-3", name: "يوسف محمد", age: 25, category: "Senior" },
-      ],
-    },
-  ])
+  const [activityRegistrations, setActivityRegistrations] = useState<ActivityRegistration[]>([])
 
   // --- UI state for new features ---
   const [activityDeleteConfirmId, setActivityDeleteConfirmId] = useState<string | null>(null)
@@ -425,115 +354,14 @@ export function AdminDashboard() {
     categories: [],
   })
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      name: "أحمد محمد علي",
-      email: "ahmed.mohamed@email.com",
-      phone: "+961 70 123 456",
-      subject: "استفسار عن المخيم الصيفي",
-      message: "السلام عليكم، أريد معرفة المزيد من التفاصيل حول المخيم الصيفي المقبل وشروط التسجيل.",
-      department: "الأنشطة",
-      date: "2024-01-15T10:30:00",
-      status: "unread",
-      priority: "medium",
-    },
-    {
-      id: "2",
-      name: "فاطمة حسن",
-      email: "fatima.hassan@email.com",
-      phone: "+961 71 987 654",
-      subject: "طلب انضمام للجمعية",
-      message: "مرحباً، أود الانضمام إلى الجمعية والمشاركة في الأنشطة التطوعية. كيف يمكنني التقديم؟",
-      department: "العضوية",
-      date: "2024-01-14T14:20:00",
-      status: "read",
-      priority: "high",
-    },
-    {
-      id: "3",
-      name: "محمد خالد",
-      email: "mohamed.khaled@email.com",
-      phone: "+961 76 555 123",
-      subject: "اقتراح نشاط جديد",
-      message: "لدي اقتراح لنشاط رياضي جديد يمكن أن يفيد الشباب في المنطقة. هل يمكننا مناقشة الأمر؟",
-      department: "الإدارة العامة",
-      date: "2024-01-13T09:15:00",
-      status: "replied",
-      priority: "low",
-    },
-    {
-      id: "4",
-      name: "سارة أحمد",
-      email: "sara.ahmed@email.com",
-      phone: "+961 78 444 789",
-      subject: "شكوى حول خدمة",
-      message: "أواجه مشكلة في التسجيل في الموقع الإلكتروني. الرجاء المساعدة في حل هذه المشكلة.",
-      department: "الدعم التقني",
-      date: "2024-01-12T16:45:00",
-      status: "unread",
-      priority: "high",
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
 
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
   const [replyText, setReplyText] = useState("")
   const [messageFilter, setMessageFilter] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
 
-  const [partnerships, setPartnerships] = useState<AssociationPartnership[]>([
-    {
-      id: "1",
-      associationName: "جمعية الأمل للشباب",
-      institutionName: "وزارة الشباب والرياضة",
-      presidentName: "محمد بن عبد الله",
-      presidentPhone: "0551234567",
-      treasurerName: "فاطمة زهراء",
-      treasurerPhone: "0559876543",
-      secretaryName: "عمر خالد",
-      secretaryPhone: "0554561234",
-      email: "amal.youth@gmail.com",
-      phone: "0551112233",
-      submissionDate: "2024-01-15T10:30:00",
-      status: "pending",
-    },
-    {
-      id: "2",
-      associationName: "منتدى الإبداع الشبابي",
-      institutionName: "المديرية العامة للثقافة",
-      presidentName: "سارة بن يوسف",
-      presidentPhone: "0667891234",
-      treasurerName: "كريم بوعلي",
-      treasurerPhone: "0662345678",
-      secretaryName: "نور الدين مسعود",
-      secretaryPhone: "0665678901",
-      email: "ibdaa.forum@outlook.com",
-      phone: "0661122334",
-      submissionDate: "2024-01-10T09:00:00",
-      status: "approved",
-      reviewedBy: "المدير العام",
-      reviewDate: "2024-01-12T11:00:00",
-      notes: "تتوافق أهداف المنتدى مع رسالة الجمعية",
-    },
-    {
-      id: "3",
-      associationName: "رابطة الطلاب المتطوعين",
-      institutionName: "جامعة سطيف",
-      presidentName: "يوسف بن حمزة",
-      presidentPhone: "0773456789",
-      treasurerName: "إيمان بلقاسم",
-      treasurerPhone: "0779012345",
-      secretaryName: "عبد الرحمن صالح",
-      secretaryPhone: "0776543210",
-      email: "volunteers@setif-univ.dz",
-      phone: "0770011223",
-      submissionDate: "2024-01-08T14:00:00",
-      status: "approved",
-      reviewedBy: "نائب الرئيس",
-      reviewDate: "2024-01-09T10:30:00",
-      notes: "شراكة ممتازة على مستوى الجامعة",
-    },
-  ])
+  const [partnerships, setPartnerships] = useState<AssociationPartnership[]>(initialAssociations)
 
   const [selectedPartnership, setSelectedPartnership] = useState<AssociationPartnership | null>(null)
   const [partnershipFilter, setPartnershipFilter] = useState("all")
@@ -544,68 +372,7 @@ export function AdminDashboard() {
   const [newsDeleteConfirmId, setNewsDeleteConfirmId] = useState<string | null>(null)
   const [exportFormatOpen, setExportFormatOpen] = useState(false)
 
-  const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([
-    {
-      id: "1",
-      title: "إطلاق برنامج المنح الدراسية الجديد",
-      content:
-        "يسعدنا أن نعلن عن إطلاق برنامج المنح الدراسية الجديد الذي يهدف إلى دعم الطلاب المتفوقين من أبناء المجتمع. يشمل البرنامج منح كاملة وجزئية للدراسة الجامعية في مختلف التخصصات. نحن نؤمن بأن التعليم هو الأساس لبناء مستقبل أفضل، ولذلك نسعى لتوفير الفرص التعليمية للجميع بغض النظر عن ظروفهم المالية.",
-      excerpt: "إطلاق برنامج جديد لدعم الطلاب المتفوقين بمنح دراسية كاملة وجزئية",
-      category: "تعليم",
-      author: "إدارة الجمعية",
-      publishDate: "2024-01-15T10:00:00",
-      status: "published",
-      image: "/placeholder.svg",
-      tags: ["منح", "تعليم", "طلاب"],
-      views: 245,
-      featured: true,
-    },
-    {
-      id: "2",
-      title: "حفل تكريم المتطوعين المتميزين",
-      content:
-        "أقامت جمعية المنار للشباب حفل تكريم للمتطوعين المتميزين الذين ساهموا بجهودهم الرائعة في إنجاح أنشطة الجمعية خلال العام الماضي. الحفل شهد حضور كبير من أعضاء الجمعية والمجتمع المحلي، وتم تكريم 25 متطوع ومتطوعة قدموا خدمات استثنائية في مختلف المجالات.",
-      excerpt: "تكريم 25 متطوع ومتطوعة لجهودهم المتميزة في خدمة المجتمع",
-      category: "فعاليات",
-      author: "فريق الإعلام",
-      publishDate: "2024-01-12T15:30:00",
-      status: "published",
-      image: "/placeholder.svg",
-      tags: ["تكريم", "متطوعين", "فعاليات"],
-      views: 189,
-      featured: false,
-    },
-    {
-      id: "3",
-      title: "الجمعية العمومية السنوية 2024",
-      content:
-        "تدعو جمعية المنار للشباب جميع أعضائها لحضور الجمعية العمومية السنوية التي ستعقد يوم السبت الموافق 20 يناير 2024 في مقر الجمعية. سيتم خلال الاجتماع مناقشة التقرير السنوي، الميزانية، والخطط المستقبلية للجمعية. حضوركم مهم لاتخاذ القرارات المصيرية للجمعية.",
-      excerpt: "دعوة لحضور الجمعية العمومية السنوية لمناقشة التقرير والخطط المستقبلية",
-      category: "إعلانات",
-      author: "مجلس الإدارة",
-      publishDate: "2024-01-10T09:00:00",
-      status: "published",
-      image: "/placeholder.svg",
-      tags: ["جمعية عمومية", "اجتماع", "أعضاء"],
-      views: 156,
-      featured: false,
-    },
-    {
-      id: "4",
-      title: "ورشة تطوير المهارات القيادية",
-      content:
-        "تنظم الجمعية ورشة تدريبية متخصصة في تطوير المهارات القيادية للشباب، تهدف إلى إعداد جيل من القادة الشباب القادرين على قيادة التغيير الإيجابي في المجتمع. الورشة ستغطي مواضيع متنوعة مثل القيادة الفعالة، إدارة الفرق، والتواصل الإيجابي.",
-      excerpt: "ورشة تدريبية لتطوير المهارات القيادية وإعداد جيل من القادة الشباب",
-      category: "تدريب",
-      author: "قسم التدريب",
-      publishDate: "2024-01-08T14:00:00",
-      status: "draft",
-      image: "/placeholder.svg",
-      tags: ["قيادة", "تدريب", "شباب"],
-      views: 0,
-      featured: false,
-    },
-  ])
+  const [newsArticles, setNewsArticles] = useState<NewsArticle[]>(initialNews)
 
   const [isAddingNews, setIsAddingNews] = useState(false)
   const [editingNews, setEditingNews] = useState<NewsArticle | null>(null)
@@ -801,26 +568,39 @@ export function AdminDashboard() {
       categories: [],
     })
 
-  const handleAddActivity = () => {
+  const handleAddActivity = async () => {
     if (newActivity.title && newActivity.description) {
-      const activity: Activity = {
-        id: Date.now().toString(),
-        title: newActivity.title,
-        description: newActivity.description,
-        type: newActivity.type || "عام",
-        date: newActivity.date || "",
-        location: newActivity.location || "",
-        duration: newActivity.duration || "",
-        capacity: newActivity.capacity || 0,
-        registered: 0,
-        status: (newActivity.status as "active" | "completed" | "cancelled") || "active",
-        image: newActivity.image ? newActivity.image : "/placeholder.svg",
-        activityTemplate: newActivity.activityTemplate || "announcement",
-        categories: newActivity.categories || [],
+      try {
+        const createdData = await addActivityAction({
+          title: newActivity.title,
+          description: newActivity.description,
+          date: newActivity.date || new Date().toISOString().split("T")[0],
+          location: newActivity.location || "غير محدد",
+          duration: newActivity.duration || "يوم واحد",
+          max_participants: newActivity.capacity || 0,
+          status: newActivity.status || "upcoming",
+          images: newActivity.image ? [newActivity.image] : [],
+          template: newActivity.activityTemplate || "announcement",
+          categories: [newActivity.type || "عام", ...(newActivity.categories || [])],
+        } as any)
+
+        // Ensure UI types match DB types
+        const activity: Activity = {
+          ...createdData,
+          id: createdData.id,
+          type: newActivity.type || "عام",
+          capacity: newActivity.capacity || 0,
+          image: newActivity.image || "/placeholder.svg",
+          activityTemplate: newActivity.activityTemplate || "announcement",
+          registered: 0
+        } as unknown as Activity
+        setActivities([activity, ...activities])
+        resetNewActivity()
+        setIsAddingActivity(false)
+        toast({ title: "تم الإضافة", description: "تمت إضافة النشاط بنجاح" })
+      } catch (err: any) {
+        toast({ title: "خطأ", description: err.message, variant: "destructive" })
       }
-      setActivities([...activities, activity])
-      resetNewActivity()
-      setIsAddingActivity(false)
     }
   }
 
@@ -829,23 +609,47 @@ export function AdminDashboard() {
     setNewActivity(activity)
   }
 
-  const handleUpdateActivity = () => {
+  const handleUpdateActivity = async () => {
     if (editingActivity && newActivity.title && newActivity.description) {
-      setActivities(
-        activities.map((activity) =>
-          activity.id === editingActivity.id ? ({ ...activity, ...newActivity } as Activity) : activity,
-        ),
-      )
-      setEditingActivity(null)
-      resetNewActivity()
+      try {
+        const updatedData = await editActivityAction(editingActivity.id, {
+          title: newActivity.title,
+          description: newActivity.description,
+          date: newActivity.date,
+          location: newActivity.location,
+          duration: newActivity.duration,
+          max_participants: newActivity.capacity,
+          status: newActivity.status,
+          images: newActivity.image ? [newActivity.image] : [],
+          template: newActivity.activityTemplate,
+          categories: newActivity.type ? [newActivity.type, ...(newActivity.categories || [])] : newActivity.categories,
+        } as any)
+
+        setActivities(
+          activities.map((activity) =>
+            activity.id === editingActivity.id ? ({ ...activity, ...newActivity } as Activity) : activity
+          )
+        )
+        setEditingActivity(null)
+        resetNewActivity()
+        toast({ title: "تم التعديل", description: "تم تعديل النشاط بنجاح" })
+      } catch (err: any) {
+        toast({ title: "خطأ", description: err.message, variant: "destructive" })
+      }
     }
   }
 
-  const handleDeleteActivityConfirmed = () => {
+  const handleDeleteActivityConfirmed = async () => {
     if (activityDeleteConfirmId) {
-      setActivities(activities.filter((a) => a.id !== activityDeleteConfirmId))
-      setActivityRegistrations(activityRegistrations.filter((r) => r.activityId !== activityDeleteConfirmId))
-      setActivityDeleteConfirmId(null)
+      try {
+        await removeActivityAction(activityDeleteConfirmId)
+        setActivities(activities.filter((a) => a.id !== activityDeleteConfirmId))
+        setActivityRegistrations(activityRegistrations.filter((r) => r.activityId !== activityDeleteConfirmId))
+        setActivityDeleteConfirmId(null)
+        toast({ title: "تم الحذف", description: "تم حذف النشاط بنجاح" })
+      } catch (err: any) {
+        toast({ title: "خطأ", description: err.message, variant: "destructive" })
+      }
     }
   }
 
@@ -910,89 +714,123 @@ export function AdminDashboard() {
     }
   }
 
-  const handleApprovePartnership = (partnershipId: string) => {
-    setPartnerships((prev) =>
-      prev.map((p) =>
-        p.id === partnershipId
-          ? {
-            ...p,
-            status: "approved" as const,
-            reviewedBy: "المدير العام",
-            reviewDate: new Date().toISOString(),
-            notes: reviewNotes || "تمت الموافقة على الشراكة",
-            rejectedAt: undefined,
-          }
-          : p,
-      ),
-    )
-    setReviewNotes("")
-    setSelectedPartnership(null)
+  const handleApprovePartnership = async (partnershipId: string) => {
+    try {
+      await approveAssociationAction(partnershipId)
+      setPartnerships((prev) =>
+        prev.map((p) =>
+          p.id === partnershipId
+            ? {
+              ...p,
+              status: "approved" as const,
+              reviewedBy: "المدير العام",
+              reviewDate: new Date().toISOString(),
+              notes: reviewNotes || "تمت الموافقة على الشراكة",
+              rejectedAt: undefined,
+            }
+            : p,
+        ),
+      )
+      setReviewNotes("")
+      setSelectedPartnership(null)
+      toast({ title: "تم", description: "تمت الموافقة بنجاح" })
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" })
+    }
   }
 
-  const handleRejectPartnership = (partnershipId: string) => {
-    setPartnerships((prev) =>
-      prev.map((p) =>
-        p.id === partnershipId
-          ? {
-            ...p,
-            status: "rejected" as const,
-            reviewedBy: "المدير العام",
-            reviewDate: new Date().toISOString(),
-            rejectedAt: new Date().toISOString(),
-            notes: reviewNotes || "تم رفض طلب الشراكة",
-          }
-          : p,
-      ),
-    )
-    setReviewNotes("")
-    setSelectedPartnership(null)
+  const handleRejectPartnership = async (partnershipId: string) => {
+    try {
+      await rejectAssociationAction(partnershipId, reviewNotes)
+      setPartnerships((prev) =>
+        prev.map((p) =>
+          p.id === partnershipId
+            ? {
+              ...p,
+              status: "rejected" as const,
+              reviewedBy: "المدير العام",
+              reviewDate: new Date().toISOString(),
+              rejectedAt: new Date().toISOString(),
+              notes: reviewNotes || "تم رفض طلب الشراكة",
+            }
+            : p,
+        ),
+      )
+      setReviewNotes("")
+      setSelectedPartnership(null)
+      toast({ title: "تم", description: "تم رفض الشراكة" })
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" })
+    }
   }
 
-  const handleUndoReject = (partnershipId: string) => {
-    setPartnerships((prev) =>
-      prev.map((p) =>
-        p.id === partnershipId
-          ? { ...p, status: "pending" as const, rejectedAt: undefined, reviewedBy: undefined, reviewDate: undefined, notes: undefined }
-          : p,
-      ),
-    )
+  const handleUndoReject = async (partnershipId: string) => {
+    try {
+      await undoRejectAssociationAction(partnershipId)
+      setPartnerships((prev) =>
+        prev.map((p) =>
+          p.id === partnershipId
+            ? { ...p, status: "pending" as const, rejectedAt: undefined, reviewedBy: undefined, reviewDate: undefined, notes: undefined }
+            : p,
+        ),
+      )
+      toast({ title: "تم", description: "تم التراجع عن الرفض" })
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" })
+    }
   }
 
-  const handleDeletePartnership = (partnershipId: string) => {
-    setPartnerships((prev) => prev.filter((p) => p.id !== partnershipId))
-    setDeleteConfirmId(null)
-    setSelectedPartnership(null)
+  const handleDeletePartnership = async (partnershipId: string) => {
+    try {
+      await deleteAssociationAction(partnershipId)
+      setPartnerships((prev) => prev.filter((p) => p.id !== partnershipId))
+      setDeleteConfirmId(null)
+      setSelectedPartnership(null)
+      toast({ title: "تم الحذف", description: "تم حذف الشراكة بنجاح" })
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" })
+    }
   }
 
-  const handleAddNews = () => {
+  const handleAddNews = async () => {
     if (newNews.title && newNews.content) {
-      const article: NewsArticle = {
-        id: Date.now().toString(),
-        title: newNews.title,
-        content: newNews.content,
-        excerpt: newNews.excerpt || newNews.content.substring(0, 150) + "...",
-        category: newNews.category || "عام",
-        author: newNews.author || "إدارة الجمعية",
-        publishDate: new Date().toISOString(),
-        status: (newNews.status as "draft" | "published" | "archived") || "draft",
-        image: newNews.image ? newNews.image : "/placeholder.svg",
-        tags: newNews.tags || [],
-        views: 0,
-        featured: newNews.featured || false,
+      try {
+        const isPublished = newNews.status === "published"
+        const createdData = await addNewsAction({
+          title: newNews.title,
+          content: newNews.content,
+          excerpt: newNews.excerpt || newNews.content.substring(0, 150) + "...",
+          category: newNews.category || "عام",
+          author: newNews.author || "إدارة الجمعية",
+          published_at: isPublished ? new Date().toISOString() : undefined,
+          image: newNews.image || "/placeholder.svg",
+          featured: newNews.featured || false,
+        } as any)
+
+        const article: NewsArticle = {
+          ...createdData,
+          id: createdData.id,
+          status: isPublished ? "published" : "draft",
+          tags: [],
+          views: 0
+        } as unknown as NewsArticle
+        setNewsArticles([article, ...newsArticles])
+        setNewNews({
+          title: "",
+          content: "",
+          excerpt: "",
+          category: "",
+          author: "",
+          status: "draft",
+          image: "",
+          tags: [],
+          featured: false,
+        })
+        setIsAddingNews(false)
+        toast({ title: "تم الإضافة", description: "تمت إضافة الخبر بنجاح" })
+      } catch (err: any) {
+        toast({ title: "خطأ", description: err.message, variant: "destructive" })
       }
-      setNewsArticles([...newsArticles, article])
-      setNewNews({
-        title: "",
-        content: "",
-        excerpt: "",
-        category: "",
-        author: "",
-        status: "draft",
-        image: "",
-        tags: [],
-        featured: false,
-      })
-      setIsAddingNews(false)
     }
   }
 
@@ -1001,25 +839,46 @@ export function AdminDashboard() {
     setNewNews(article)
   }
 
-  const handleUpdateNews = () => {
+  const handleUpdateNews = async () => {
     if (editingNews && newNews.title && newNews.content) {
-      setNewsArticles(
-        newsArticles.map((article) =>
-          article.id === editingNews.id ? ({ ...article, ...newNews } as NewsArticle) : article,
-        ),
-      )
-      setEditingNews(null)
-      setNewNews({
-        title: "",
-        content: "",
-        excerpt: "",
-        category: "",
-        author: "",
-        status: "draft",
-        image: "",
-        tags: [],
-        featured: false,
-      })
+      try {
+        const isPublished = newNews.status === "published"
+        const updatedData = await editNewsAction(editingNews.id, {
+          title: newNews.title,
+          content: newNews.content,
+          excerpt: newNews.excerpt,
+          category: newNews.category,
+          author: newNews.author,
+          published_at: isPublished ? (newNews.publishDate || new Date().toISOString()) : undefined,
+          image: newNews.image,
+          featured: newNews.featured,
+        } as any)
+
+        setNewsArticles(
+          newsArticles.map((article) =>
+            article.id === editingNews.id ? ({
+              ...article,
+              ...newNews,
+              publishDate: updatedData.published_at || article.publishDate
+            } as NewsArticle) : article,
+          ),
+        )
+        setEditingNews(null)
+        setNewNews({
+          title: "",
+          content: "",
+          excerpt: "",
+          category: "",
+          author: "",
+          status: "draft",
+          image: "",
+          tags: [],
+          featured: false,
+        })
+        toast({ title: "تم التعديل", description: "تم تعديل الخبر بنجاح" })
+      } catch (err: any) {
+        toast({ title: "خطأ", description: err.message, variant: "destructive" })
+      }
     }
   }
 
@@ -1027,29 +886,49 @@ export function AdminDashboard() {
     setNewsDeleteConfirmId(id)
   }
 
-  const handleDeleteNewsConfirmed = () => {
+  const handleDeleteNewsConfirmed = async () => {
     if (newsDeleteConfirmId) {
-      setNewsArticles(newsArticles.filter((article) => article.id !== newsDeleteConfirmId))
-      setNewsDeleteConfirmId(null)
+      try {
+        await removeNewsAction(newsDeleteConfirmId)
+        setNewsArticles(newsArticles.filter((article) => article.id !== newsDeleteConfirmId))
+        setNewsDeleteConfirmId(null)
+        toast({ title: "تم الحذف", description: "تم حذف الخبر بنجاح" })
+      } catch (err: any) {
+        toast({ title: "خطأ", description: err.message, variant: "destructive" })
+      }
     }
   }
 
-  const handlePublishNews = (id: string) => {
-    setNewsArticles(
-      newsArticles.map((article) =>
-        article.id === id ? { ...article, status: "published", publishDate: new Date().toISOString() } : article,
-      ),
-    )
+  const handlePublishNews = async (id: string) => {
+    try {
+      await editNewsAction(id, { published_at: new Date().toISOString() } as any)
+      setNewsArticles(
+        newsArticles.map((article) =>
+          article.id === id ? { ...article, status: "published", publishDate: new Date().toISOString() } : article,
+        ),
+      )
+      toast({ title: "تم", description: "تم نشر الخبر بنجاح" })
+    } catch { toast({ title: "خطأ", description: "فشل نشر الخبر", variant: "destructive" }) }
   }
 
-  const handleArchiveNews = (id: string) => {
-    setNewsArticles(newsArticles.map((article) => (article.id === id ? { ...article, status: "archived" } : article)))
+  const handleArchiveNews = async (id: string) => {
+    try {
+      await editNewsAction(id, { published_at: undefined } as any)
+      setNewsArticles(newsArticles.map((article) => (article.id === id ? { ...article, status: "archived" } : article)))
+      toast({ title: "تم", description: "تم أرشفة الخبر بنجاح" })
+    } catch { toast({ title: "خطأ", description: "فشل أرشفة الخبر", variant: "destructive" }) }
   }
 
-  const handleToggleFeatured = (id: string) => {
-    setNewsArticles(
-      newsArticles.map((article) => (article.id === id ? { ...article, featured: !article.featured } : article)),
-    )
+  const handleToggleFeatured = async (id: string) => {
+    const article = newsArticles.find(a => a.id === id)
+    if (article) {
+      try {
+        await editNewsAction(id, { featured: !article.featured } as any)
+        setNewsArticles(
+          newsArticles.map((a) => (a.id === id ? { ...a, featured: !a.featured } : a)),
+        )
+      } catch { toast({ title: "خطأ", description: "فشل تغيير حالة التمييز", variant: "destructive" }) }
+    }
   }
 
   const getStatusColor = (status: string) => {
