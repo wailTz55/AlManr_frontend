@@ -1,206 +1,134 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/admin"
-import bcrypt from "bcryptjs"
-import { cookies } from "next/headers"
+import { createSupabaseServerClient } from "@/lib/supabase/server"
+import { getServiceRoleClient } from "@/lib/supabase/admin"
 import { AdminLoginSchema } from "@/types/dto"
-import type { AdminSession, AuthResult } from "@/types/auth"
-import { logAuditEvent } from "./AuditService"
-import { checkRateLimit } from "./RateLimitService"
+import type { AuthResult } from "@/types/auth"
 
-const SESSION_COOKIE = "admin_session"
-const SESSION_MAX_AGE = 8 * 60 * 60 // 8 hours in seconds
+export interface AdminSession {
+    adminId: string   // Supabase Auth user.id
+    email: string
+    name: string | null
+}
 
 // ============================================================
-// Admin Login
+// Admin Login — Supabase Auth signInWithPassword
 // ============================================================
 export async function adminLogin(
-    formData: { email: string; password: string },
-    ipAddress?: string
+    formData: { email: string; password: string }
 ): Promise<AuthResult<AdminSession>> {
-    // 1. Validate input
     const parsed = AdminLoginSchema.safeParse(formData)
     if (!parsed.success) {
         return { success: false, error: parsed.error.errors[0].message }
     }
     const { email, password } = parsed.data
 
-    // 2. Rate limit check (5 attempts per IP per minute)
-    const rateLimitKey = `admin_login:${ipAddress ?? "unknown"}`
-    const rateLimited = await checkRateLimit(rateLimitKey, 5, 60)
-    if (rateLimited) {
-        return { success: false, error: "محاولات كثيرة. يرجى الانتظار دقيقة.", code: "RATE_LIMITED" }
+    // 1. Check against ADMIN_EMAIL before even touching the DB
+    const adminEmail = process.env.ADMIN_EMAIL
+    if (!adminEmail || email !== adminEmail) {
+        return { success: false, error: "البريد الإلكتروني أو كلمة المرور غير صحيحة", code: "INVALID_CREDENTIALS" }
     }
 
-    const db = createServiceRoleClient()
+    const supabase = await createSupabaseServerClient()
 
     try {
-        // 3. Find admin by email
-        const { data: admin, error } = await db
-            .from("admins")
-            .select("*")
-            .eq("email", email)
-            .eq("is_active", true)
-            .single()
+        // 2. Sign in via Supabase Auth (handles sessions, cookies, refresh tokens automatically)
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
-        if (error || !admin) {
+        if (error) {
+            // Supabase returns a generic error for invalid credentials — map to Arabic message
             return { success: false, error: "البريد الإلكتروني أو كلمة المرور غير صحيحة", code: "INVALID_CREDENTIALS" }
         }
 
-        // 4. Check if account is locked
-        if (admin.locked_until && new Date(admin.locked_until) > new Date()) {
-            return { success: false, error: "الحساب مؤقتاً مقفل. يرجى المحاولة لاحقاً.", code: "ACCOUNT_LOCKED" }
+        if (!data.user) {
+            return { success: false, error: "فشل تسجيل الدخول", code: "AUTH_ERROR" }
         }
 
-        // 5. Verify password
-        const passwordMatch = await bcrypt.compare(password, admin.password_hash)
-        if (!passwordMatch) {
-            // Increment login attempts
-            const attempts = admin.login_attempts + 1
-            const updateData: Record<string, unknown> = { login_attempts: attempts }
-            if (attempts >= 5) {
-                // Lock for 30 minutes
-                updateData.locked_until = new Date(Date.now() + 30 * 60 * 1000).toISOString()
-            }
-            await db.from("admins").update(updateData).eq("id", admin.id)
-            return { success: false, error: "البريد الإلكتروني أو كلمة المرور غير صحيحة", code: "INVALID_CREDENTIALS" }
+        const session: AdminSession = {
+            adminId: data.user.id,
+            email: data.user.email!,
+            name: data.user.user_metadata?.name ?? null,
         }
 
-        // 6. Create session record in DB
-        const expiresAt = new Date(Date.now() + SESSION_MAX_AGE * 1000).toISOString()
-        const { data: session, error: sessionError } = await db
-            .from("admin_sessions")
-            .insert({
-                admin_id: admin.id,
-                expires_at: expiresAt,
-                ip_address: ipAddress as unknown as string,
-            })
-            .select()
-            .single()
-
-        if (sessionError || !session) {
-            return { success: false, error: "فشل إنشاء الجلسة", code: "SESSION_ERROR" }
-        }
-
-        // 7. Reset login attempts on success
-        await db.from("admins").update({
-            login_attempts: 0,
-            locked_until: null,
-            last_login_at: new Date().toISOString(),
-        }).eq("id", admin.id)
-
-        // 8. Set HttpOnly cookie
-        const cookieStore = await cookies()
-        const sessionPayload: AdminSession = {
-            adminId: admin.id,
-            email: admin.email,
-            name: admin.name,
-            role: admin.role,
-            sessionToken: session.session_token,
-            expiresAt,
-        }
-
-        cookieStore.set(SESSION_COOKIE, JSON.stringify(sessionPayload), {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: SESSION_MAX_AGE,
-            path: "/",
-        })
-
-        // 9. Audit log
-        await logAuditEvent({
-            adminId: admin.id,
-            action: "ADMIN_LOGIN",
-            entityType: "admins",
-            entityId: admin.id,
-            ipAddress,
-            metadata: { email: admin.email, role: admin.role },
-        })
-
-        return { success: true, data: sessionPayload }
+        return { success: true, data: session }
     } catch (err) {
-        console.error("[AdminService] Login error:", err)
+        console.error("[AdminAuthService] Login error:", err)
         return { success: false, error: "خطأ في الخادم", code: "SERVER_ERROR" }
     }
 }
 
 // ============================================================
-// Admin Logout
+// Admin Logout — signs out from Supabase Auth
 // ============================================================
 export async function adminLogout(): Promise<void> {
-    const cookieStore = await cookies()
-    const sessionRaw = cookieStore.get(SESSION_COOKIE)?.value
-
-    if (sessionRaw) {
-        try {
-            const session: AdminSession = JSON.parse(sessionRaw)
-            const db = createServiceRoleClient()
-            // Revoke session in DB
-            await db
-                .from("admin_sessions")
-                .update({ revoked_at: new Date().toISOString() })
-                .eq("session_token", session.sessionToken)
-
-            await logAuditEvent({
-                adminId: session.adminId,
-                action: "ADMIN_LOGOUT",
-                entityType: "admins",
-                entityId: session.adminId,
-                metadata: {},
-            })
-        } catch {
-            // Silently ignore parse errors
-        }
-    }
-
-    cookieStore.delete(SESSION_COOKIE)
+    const supabase = await createSupabaseServerClient()
+    await supabase.auth.signOut()
 }
 
 // ============================================================
-// Get Admin Session (from cookie)
+// Get Admin Session — reads Supabase Auth session from cookie,
+// verifies user email matches ADMIN_EMAIL
 // ============================================================
 export async function getAdminSession(): Promise<AdminSession | null> {
     try {
-        const cookieStore = await cookies()
-        const raw = cookieStore.get(SESSION_COOKIE)?.value
-        if (!raw) return null
+        const supabase = await createSupabaseServerClient()
+        const { data: { user }, error } = await supabase.auth.getUser()
 
-        const session: AdminSession = JSON.parse(raw)
+        if (error || !user) return null
 
-        // Check expiry
-        if (new Date(session.expiresAt) < new Date()) {
-            await adminLogout()
-            return null
+        // Ensure only the designated admin email has admin access
+        const adminEmail = process.env.ADMIN_EMAIL
+        if (!adminEmail || user.email !== adminEmail) return null
+
+        return {
+            adminId: user.id,
+            email: user.email!,
+            name: user.user_metadata?.name ?? null,
         }
-
-        // Verify session token exists in DB and is not revoked
-        const db = createServiceRoleClient()
-        const { data } = await db
-            .from("admin_sessions")
-            .select("id, revoked_at")
-            .eq("session_token", session.sessionToken)
-            .single()
-
-        if (!data || data.revoked_at) {
-            await adminLogout()
-            return null
-        }
-
-        return session
     } catch {
         return null
     }
 }
 
 // ============================================================
-// Revoke All Sessions for Admin (force logout everywhere)
+// Verify Admin Action — Throws error if unauthorized.
+// Call at the top of every Server Action.
 // ============================================================
-export async function revokeAllAdminSessions(adminId: string): Promise<void> {
-    const db = createServiceRoleClient()
-    await db
-        .from("admin_sessions")
-        .update({ revoked_at: new Date().toISOString() })
-        .eq("admin_id", adminId)
-        .is("revoked_at", null)
+export async function verifyAdminAction(): Promise<AdminSession> {
+    const session = await getAdminSession()
+    if (!session) {
+        throw new Error("Unauthorized: Admin session required")
+    }
+    return session
+}
+
+// ============================================================
+// Revoke All Admin Sessions — Emergency use only.
+// Invalidates every active session for the admin user in Supabase.
+// Use this if the admin account is suspected to be compromised.
+// ============================================================
+export async function revokeAdminSessions(): Promise<{ success: boolean; error?: string }> {
+    try {
+        const session = await getAdminSession()
+        if (!session) {
+            return { success: false, error: "No active admin session found" }
+        }
+
+        const db = getServiceRoleClient()
+        // This signs out all devices/sessions for the admin user
+        const { error } = await db.auth.admin.signOut(session.adminId, "global")
+
+        if (error) {
+            return { success: false, error: error.message }
+        }
+
+        // Also clear the current server-side session
+        const supabase = await createSupabaseServerClient()
+        await supabase.auth.signOut()
+
+        return { success: true }
+    } catch (err) {
+        console.error("[AdminAuthService] Revoke sessions error:", err)
+        return { success: false, error: "Server error during session revocation" }
+    }
 }

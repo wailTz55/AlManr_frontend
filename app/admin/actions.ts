@@ -1,7 +1,7 @@
-// app/admin/actions.ts - Server actions for admin dashboard
+// app/admin/actions.ts — Server actions for admin dashboard
 "use server"
 
-import { adminLogout, getAdminSession } from "@/services/AdminAuthService"
+import { adminLogout, verifyAdminAction, revokeAdminSessions } from "@/services/AdminAuthService"
 import { redirect } from "next/navigation"
 
 import { createActivity, updateActivity, deleteActivity } from "@/services/ActivityService"
@@ -17,68 +17,74 @@ export async function logoutAction() {
     redirect("/admin/login")
 }
 
-// Helper to get session or throw
-async function getRequiredAdminSession() {
-    const session = await getAdminSession()
-    if (!session) throw new Error("Unauthorized: Admin session required")
-    return session
+/**
+ * Emergency action — invalidates ALL active sessions for the admin user.
+ * Call this if the admin account is suspected to be compromised.
+ */
+export async function revokeAllSessionsAction() {
+    await verifyAdminAction() // Must be called from a valid admin session
+    const result = await revokeAdminSessions()
+    if (result.success) {
+        redirect("/admin/login")
+    }
+    return result
 }
 
 // ============================================================
 // Activity Actions
 // ============================================================
 export async function addActivityAction(data: CreateActivityDTO) {
-    const session = await getRequiredAdminSession()
-    return createActivity(data, session.adminId)
+    await verifyAdminAction()
+    return createActivity(data)
 }
 
 export async function editActivityAction(id: string, data: UpdateActivityDTO) {
-    const session = await getRequiredAdminSession()
-    return updateActivity(id, data, session.adminId)
+    await verifyAdminAction()
+    return updateActivity(id, data)
 }
 
 export async function removeActivityAction(id: string) {
-    const session = await getRequiredAdminSession()
-    return deleteActivity(id, session.adminId)
+    await verifyAdminAction()
+    return deleteActivity(id)
 }
 
 // ============================================================
 // News Actions
 // ============================================================
 export async function addNewsAction(data: CreateNewsDTO) {
-    const session = await getRequiredAdminSession()
-    return createNews(data, session.adminId)
+    await verifyAdminAction()
+    return createNews(data)
 }
 
 export async function editNewsAction(id: string, data: UpdateNewsDTO) {
-    const session = await getRequiredAdminSession()
-    return updateNews(id, data, session.adminId)
+    await verifyAdminAction()
+    return updateNews(id, data)
 }
 
 export async function removeNewsAction(id: string) {
-    const session = await getRequiredAdminSession()
-    return deleteNews(id, session.adminId)
+    await verifyAdminAction()
+    return deleteNews(id)
 }
 
 // ============================================================
 // Association Actions
 // ============================================================
 export async function approveAssociationAction(id: string) {
-    const session = await getRequiredAdminSession()
-    return approveAssociation(id, session.adminId)
+    await verifyAdminAction()
+    return approveAssociation(id)
 }
 
 export async function rejectAssociationAction(id: string, reason?: string) {
-    const session = await getRequiredAdminSession()
-    return rejectAssociation(id, session.adminId, reason)
+    await verifyAdminAction()
+    return rejectAssociation(id, reason)
 }
 
 export async function undoRejectAssociationAction(id: string) {
-    const session = await getRequiredAdminSession()
-    return undoRejectAssociation(id, session.adminId)
+    await verifyAdminAction()
+    return undoRejectAssociation(id)
 }
 
 export async function deleteAssociationAction(id: string) {
-    const session = await getRequiredAdminSession()
-    return deleteAssociation(id, session.adminId)
+    await verifyAdminAction()
+    return deleteAssociation(id)
 }

@@ -41,9 +41,6 @@ function AdminLoginForm() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
-            {/* Background grid */}
-            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
-
             <div className="relative w-full max-w-md">
                 {/* Glow effect */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur-xl opacity-20" />
@@ -55,10 +52,10 @@ function AdminLoginForm() {
                             <Shield className="w-8 h-8 text-white" />
                         </div>
                         <h1 className="text-2xl font-bold text-white mb-1">لوحة التحكم</h1>
-                        <p className="text-slate-400 text-sm">دخول مخصص للمشرفين فقط</p>
+                        <p className="text-slate-400 text-sm">دخول مخصص للمشرف فقط</p>
                     </div>
 
-                    {/* Session expired / error banner */}
+                    {/* Error banner */}
                     {error && (
                         <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
                             <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
@@ -126,7 +123,7 @@ function AdminLoginForm() {
                     {/* Footer */}
                     <div className="mt-6 pt-6 border-t border-slate-700/50 text-center">
                         <p className="text-slate-500 text-xs">
-                            هذه الصفحة محمية ومخصصة للمشرفين المعتمدين فقط
+                            هذه الصفحة محمية ومخصصة للمشرف المعتمد فقط
                         </p>
                     </div>
                 </div>

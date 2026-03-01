@@ -1,19 +1,12 @@
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import type { AllDataResponse } from "./type"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-function getSupabaseClient() {
-    return createClient(supabaseUrl, supabaseAnonKey)
-}
-
 /**
- * Fetches all public data (activities, news, members/associations) from Supabase.
- * Uses the anon key — only returns data allowed by RLS (public SELECT policies).
+ * Fetches all public data using browser anon singleton client.
+ * Client → Supabase directly (no server hop).
  */
 export async function fetchAllData(): Promise<AllDataResponse> {
-    const db = getSupabaseClient()
+    const db = getSupabaseBrowserClient()
 
     const [activitiesResult, newsResult, membersResult] = await Promise.all([
         db

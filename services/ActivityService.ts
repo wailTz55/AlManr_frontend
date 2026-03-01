@@ -1,18 +1,18 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/admin"
+import { getServiceRoleClient } from "@/lib/supabase/admin"
 import type { CreateActivityDTO, UpdateActivityDTO } from "@/types/dto"
 import { CreateActivitySchema, UpdateActivitySchema } from "@/types/dto"
-import { logAuditEvent } from "./AuditService"
+import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 // ============================================================
-// Get All Activities (public — also callable from client)
+// Get All Activities (public — browser client, no server hop)
 // ============================================================
 export async function getActivities() {
-    const db = createServiceRoleClient()
+    const db = getSupabaseBrowserClient()
     const { data, error } = await db
         .from("activities")
-        .select("*")
+        .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya")
         .order("date", { ascending: false })
 
     if (error) throw new Error("[ActivityService] Failed to fetch activities: " + error.message)
@@ -20,13 +20,13 @@ export async function getActivities() {
 }
 
 // ============================================================
-// Get Single Activity
+// Get Single Activity (public)
 // ============================================================
 export async function getActivity(id: string) {
-    const db = createServiceRoleClient()
+    const db = getSupabaseBrowserClient()
     const { data, error } = await db
         .from("activities")
-        .select("*")
+        .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya, achievements, highlights, end_date")
         .eq("id", id)
         .single()
 
@@ -35,81 +35,47 @@ export async function getActivity(id: string) {
 }
 
 // ============================================================
-// Create Activity (admin only)
+// Create Activity (admin only — service role, bypasses RLS)
 // ============================================================
-export async function createActivity(
-    input: CreateActivityDTO,
-    adminId: string
-) {
+export async function createActivity(input: CreateActivityDTO) {
     const parsed = CreateActivitySchema.safeParse(input)
     if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 
-    const db = createServiceRoleClient()
+    const db = getServiceRoleClient()
     const { data, error } = await db
         .from("activities")
-        .insert({ ...parsed.data, created_by: adminId })
-        .select()
+        .insert({ ...parsed.data })
+        .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya")
         .single()
 
     if (error) throw new Error("[ActivityService] Failed to create activity: " + error.message)
-
-    await logAuditEvent({
-        adminId,
-        action: "CREATE_ACTIVITY",
-        entityType: "activities",
-        entityId: data.id,
-        metadata: { title: data.title },
-    })
-
     return data
 }
 
 // ============================================================
 // Update Activity (admin only)
 // ============================================================
-export async function updateActivity(
-    id: string,
-    input: UpdateActivityDTO,
-    adminId: string
-) {
+export async function updateActivity(id: string, input: UpdateActivityDTO) {
     const parsed = UpdateActivitySchema.safeParse(input)
     if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 
-    const db = createServiceRoleClient()
+    const db = getServiceRoleClient()
     const { data, error } = await db
         .from("activities")
         .update(parsed.data)
         .eq("id", id)
-        .select()
+        .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya")
         .single()
 
     if (error) throw new Error("[ActivityService] Failed to update activity: " + error.message)
-
-    await logAuditEvent({
-        adminId,
-        action: "UPDATE_ACTIVITY",
-        entityType: "activities",
-        entityId: id,
-        metadata: { updatedFields: Object.keys(parsed.data) },
-    })
-
     return data
 }
 
 // ============================================================
 // Delete Activity (admin only)
 // ============================================================
-export async function deleteActivity(id: string, adminId: string) {
-    const db = createServiceRoleClient()
+export async function deleteActivity(id: string) {
+    const db = getServiceRoleClient()
     const { error } = await db.from("activities").delete().eq("id", id)
-
     if (error) throw new Error("[ActivityService] Failed to delete activity: " + error.message)
-
-    await logAuditEvent({
-        adminId,
-        action: "DELETE_ACTIVITY",
-        entityType: "activities",
-        entityId: id,
-        metadata: {},
-    })
 }

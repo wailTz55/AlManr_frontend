@@ -1,14 +1,25 @@
 import { AdminDashboard } from "@/components/admin-dashboard"
-import { getActivities } from "@/services/ActivityService"
-import { getNews } from "@/services/NewsService"
-import { getAllAssociations } from "@/services/AdminService"
+import { getServiceRoleClient } from "@/lib/supabase/admin"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminPage() {
-  const rawActivities = await getActivities().catch(() => [])
-  const rawNews = await getNews().catch(() => [])
-  const rawAssociations = await getAllAssociations().catch(() => [])
+  const db = getServiceRoleClient()
+
+  const [rawActivities, rawNews, rawAssociations] = await Promise.all([
+    db.from("activities")
+      .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya")
+      .order("date", { ascending: false })
+      .then(r => r.data ?? []),
+    db.from("news")
+      .select("id, title, excerpt, content, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at, updated_at")
+      .order("created_at", { ascending: false })
+      .then(r => r.data ?? []),
+    db.from("associations")
+      .select("id, name, email, phone, city, wilaya, status, description, logo_url, rejection_reason, approved_by, approved_at, created_at, updated_at")
+      .order("created_at", { ascending: false })
+      .then(r => r.data ?? []),
+  ])
 
   const activities = rawActivities.map((a: any) => ({
     ...a,

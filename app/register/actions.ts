@@ -1,7 +1,6 @@
 "use server"
 
 import { associationRegister, associationLogin, associationLogout } from "@/services/AuthService"
-import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 /**
@@ -21,10 +20,7 @@ export async function registerAssociationAction(formData: {
     registration_number?: string
     description?: string
 }) {
-    const headersList = await headers()
-    const ip = headersList.get("x-forwarded-for") ?? headersList.get("x-real-ip") ?? undefined
-
-    return associationRegister(formData, ip)
+    return associationRegister(formData)
 }
 
 /**
@@ -35,10 +31,7 @@ export async function loginAssociationAction(formData: {
     email: string
     password: string
 }) {
-    const headersList = await headers()
-    const ip = headersList.get("x-forwarded-for") ?? headersList.get("x-real-ip") ?? undefined
-
-    return associationLogin(formData, ip)
+    return associationLogin(formData)
 }
 
 /**

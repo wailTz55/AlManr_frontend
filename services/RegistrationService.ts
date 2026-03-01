@@ -1,8 +1,7 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/admin"
+import { getServiceRoleClient } from "@/lib/supabase/admin"
 import { CreateRegistrationSchema, AddParticipantSchema, UpdateRegistrationStatusSchema } from "@/types/dto"
-import { logAuditEvent } from "./AuditService"
 
 // ============================================================
 // Register for Activity (association)
@@ -15,7 +14,7 @@ export async function registerForActivity(
     const parsed = CreateRegistrationSchema.safeParse({ activity_id: activityId, notes })
     if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 
-    const db = createServiceRoleClient()
+    const db = getServiceRoleClient()
 
     // Check activity allows registration
     const { data: activity } = await db
@@ -49,20 +48,13 @@ export async function registerForActivity(
             notes: parsed.data.notes,
             status: "pending",
         })
-        .select()
+        .select("id, activity_id, association_id, status, notes, created_at")
         .single()
 
     if (error) {
         if (error.code === "23505") throw new Error("لقد قمت بالتسجيل في هذا النشاط مسبقاً")
         throw new Error("[RegistrationService] Registration failed: " + error.message)
     }
-
-    await logAuditEvent({
-        action: "ASSOCIATION_REGISTER_ACTIVITY",
-        entityType: "activity_registrations",
-        entityId: data.id,
-        metadata: { activityId, associationId },
-    })
 
     return data
 }
@@ -71,13 +63,13 @@ export async function registerForActivity(
 // Get Registrations for Activity (admin)
 // ============================================================
 export async function getRegistrationsForActivity(activityId: string) {
-    const db = createServiceRoleClient()
+    const db = getServiceRoleClient()
     const { data, error } = await db
         .from("activity_registrations")
         .select(`
-      *,
+      id, status, notes, rejection_reason, created_at, updated_at,
       associations (id, name, email, phone, wilaya, city),
-      activity_participants (*)
+      activity_participants (id, name, age, category, notes)
     `)
         .eq("activity_id", activityId)
         .order("created_at", { ascending: false })
@@ -90,14 +82,14 @@ export async function getRegistrationsForActivity(activityId: string) {
 // Get All Registrations (admin)
 // ============================================================
 export async function getAllRegistrations() {
-    const db = createServiceRoleClient()
+    const db = getServiceRoleClient()
     const { data, error } = await db
         .from("activity_registrations")
         .select(`
-      *,
+      id, status, notes, rejection_reason, created_at, updated_at,
       associations (id, name, email, phone),
       activities (id, title, date),
-      activity_participants (*)
+      activity_participants (id, name, age, category)
     `)
         .order("created_at", { ascending: false })
 
@@ -109,13 +101,13 @@ export async function getAllRegistrations() {
 // Get My Registrations (association)
 // ============================================================
 export async function getMyRegistrations(associationId: string) {
-    const db = createServiceRoleClient()
+    const db = getServiceRoleClient()
     const { data, error } = await db
         .from("activity_registrations")
         .select(`
-      *,
+      id, status, notes, rejection_reason, created_at, updated_at,
       activities (id, title, date, location),
-      activity_participants (*)
+      activity_participants (id, name, age, category)
     `)
         .eq("association_id", associationId)
         .order("created_at", { ascending: false })
@@ -128,35 +120,24 @@ export async function getMyRegistrations(associationId: string) {
 // Update Registration Status (admin)
 // ============================================================
 export async function updateRegistrationStatus(
-    input: { id: string; status: "pending" | "approved" | "rejected" | "cancelled"; rejection_reason?: string },
-    adminId: string
+    input: { id: string; status: "pending" | "approved" | "rejected" | "cancelled"; rejection_reason?: string }
 ) {
     const parsed = UpdateRegistrationStatusSchema.safeParse(input)
     if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 
-    const db = createServiceRoleClient()
+    const db = getServiceRoleClient()
     const { data, error } = await db
         .from("activity_registrations")
         .update({
             status: parsed.data.status,
             rejection_reason: parsed.data.rejection_reason,
-            reviewed_by: adminId,
             reviewed_at: new Date().toISOString(),
         })
         .eq("id", parsed.data.id)
-        .select()
+        .select("id, status, rejection_reason, reviewed_at")
         .single()
 
     if (error) throw new Error("[RegistrationService] Status update failed: " + error.message)
-
-    await logAuditEvent({
-        adminId,
-        action: "UPDATE_REGISTRATION_STATUS",
-        entityType: "activity_registrations",
-        entityId: parsed.data.id,
-        metadata: { newStatus: parsed.data.status, reason: parsed.data.rejection_reason },
-    })
-
     return data
 }
 
@@ -167,36 +148,32 @@ export async function addParticipants(
     participants: Array<{ registration_id: string; name: string; age?: number; category?: string; notes?: string }>,
     associationId: string
 ) {
+    const db = getServiceRoleClient()
+
+    // Verify all registrations belong to this association in a single bulk query
+    const regIds = [...new Set(participants.map(p => p.registration_id))]
+    const { data: regs } = await db
+        .from("activity_registrations")
+        .select("id, status")
+        .in("id", regIds)
+        .eq("association_id", associationId)
+
+    const regMap = new Map((regs ?? []).map(r => [r.id, r]))
+
     for (const p of participants) {
         const parsed = AddParticipantSchema.safeParse(p)
         if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 
-        // Verify the registration belongs to this association
-        const db = createServiceRoleClient()
-        const { data: reg } = await db
-            .from("activity_registrations")
-            .select("id, status")
-            .eq("id", p.registration_id)
-            .eq("association_id", associationId)
-            .single()
-
+        const reg = regMap.get(p.registration_id)
         if (!reg) throw new Error("التسجيل غير موجود أو غير مرتبط بجمعيتك")
         if (reg.status !== "approved") throw new Error("يجب أن تكون حالة التسجيل 'مقبول' لإضافة المشاركين")
     }
 
-    const db = createServiceRoleClient()
     const { data, error } = await db
         .from("activity_participants")
         .insert(participants)
-        .select()
+        .select("id, name, age, category")
 
     if (error) throw new Error("[RegistrationService] Failed to add participants: " + error.message)
-
-    await logAuditEvent({
-        action: "ADD_PARTICIPANTS",
-        entityType: "activity_participants",
-        metadata: { count: participants.length, associationId },
-    })
-
     return data
 }

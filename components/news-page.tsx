@@ -78,7 +78,6 @@ type NewsWithRandomProps = News & {
 export function NewsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   // حالات البيانات من API
   const [news, setNews] = useState<NewsWithRandomProps[]>([]);
@@ -303,7 +302,7 @@ export function NewsPage() {
                 >
                   <div className="relative">
                     <img
-                      src={`${baseURL}${article.image || "/placeholder.svg"}`}
+                      src={article.image && article.image.trim() !== "" && !article.image.startsWith("/") ? article.image : article.image || "/placeholder.svg"}
                       alt={article.title}
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
                     />
@@ -366,7 +365,7 @@ export function NewsPage() {
                 >
                   <div className="flex flex-col md:flex-row">
                     <img
-                      src={`${baseURL}${article.image || "/placeholder.svg"}`}
+                      src={article.image && article.image.trim() !== "" && !article.image.startsWith("/") ? article.image : article.image || "/placeholder.svg"}
                       alt={article.title}
                       className="w-full md:w-48 h-32 md:h-auto object-cover"
                       loading={index < news_number_show ? "eager" : "lazy"}
@@ -482,7 +481,7 @@ export function NewsPage() {
 
               <div className="space-y-6">
                 <img
-                  src={`${baseURL}${selectedArticle.image || "/placeholder.svg"}`}
+                  src={selectedArticle.image && selectedArticle.image.trim() !== "" && !selectedArticle.image.startsWith("/") ? selectedArticle.image : selectedArticle.image || "/placeholder.svg"}
                   alt={selectedArticle.title}
                   className="w-full h-64 object-cover rounded-lg"
                 />

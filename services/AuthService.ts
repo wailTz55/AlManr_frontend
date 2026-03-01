@@ -1,18 +1,15 @@
 "use server"
 
 import { createSupabaseServerClient } from "@/lib/supabase/server"
-import { createServiceRoleClient } from "@/lib/supabase/admin"
+import { getServiceRoleClient } from "@/lib/supabase/admin"
 import { LoginAssociationSchema, RegisterAssociationSchema } from "@/types/dto"
 import type { AuthResult, AssociationSession } from "@/types/auth"
-import { logAuditEvent } from "./AuditService"
-import { checkRateLimit } from "./RateLimitService"
 
 // ============================================================
 // Association Register (via Supabase Auth)
 // ============================================================
 export async function associationRegister(
     formData: unknown,
-    ipAddress?: string
 ): Promise<AuthResult<AssociationSession>> {
     const parsed = RegisterAssociationSchema.safeParse(formData)
     if (!parsed.success) {
@@ -20,14 +17,8 @@ export async function associationRegister(
     }
     const { email, password, name, phone, address, city, wilaya, registration_number, description } = parsed.data
 
-    // Rate limit: 5 registrations per IP per 10 minutes
-    const rateLimited = await checkRateLimit(`assoc_register:${ipAddress ?? "unknown"}`, 5, 600)
-    if (rateLimited) {
-        return { success: false, error: "محاولات كثيرة. يرجى الانتظار.", code: "RATE_LIMITED" }
-    }
-
     const supabase = await createSupabaseServerClient()
-    const adminDb = createServiceRoleClient()
+    const adminDb = getServiceRoleClient()
 
     try {
         // 1. Create auth user
@@ -65,7 +56,7 @@ export async function associationRegister(
                 description,
                 status: "pending",
             })
-            .select()
+            .select("id, name, email, status")
             .single()
 
         if (assocError || !assoc) {
@@ -73,14 +64,6 @@ export async function associationRegister(
             await adminDb.auth.admin.deleteUser(authData.user.id)
             return { success: false, error: "فشل إنشاء ملف الجمعية", code: "PROFILE_ERROR" }
         }
-
-        await logAuditEvent({
-            action: "ASSOCIATION_REGISTER",
-            entityType: "associations",
-            entityId: assoc.id,
-            ipAddress,
-            metadata: { email, name },
-        })
 
         return {
             success: true,
@@ -103,7 +86,6 @@ export async function associationRegister(
 // ============================================================
 export async function associationLogin(
     formData: unknown,
-    ipAddress?: string
 ): Promise<AuthResult<AssociationSession>> {
     const parsed = LoginAssociationSchema.safeParse(formData)
     if (!parsed.success) {
@@ -111,13 +93,8 @@ export async function associationLogin(
     }
     const { email, password } = parsed.data
 
-    const rateLimited = await checkRateLimit(`assoc_login:${ipAddress ?? "unknown"}`, 10, 60)
-    if (rateLimited) {
-        return { success: false, error: "محاولات كثيرة. يرجى الانتظار دقيقة.", code: "RATE_LIMITED" }
-    }
-
     const supabase = await createSupabaseServerClient()
-    const adminDb = createServiceRoleClient()
+    const adminDb = getServiceRoleClient()
 
     try {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -141,14 +118,6 @@ export async function associationLogin(
             await supabase.auth.signOut()
             return { success: false, error: "لم يتم العثور على ملف الجمعية", code: "NO_PROFILE" }
         }
-
-        await logAuditEvent({
-            action: "ASSOCIATION_LOGIN",
-            entityType: "associations",
-            entityId: assoc.id,
-            ipAddress,
-            metadata: { email },
-        })
 
         return {
             success: true,
@@ -184,7 +153,7 @@ export async function getAssociationSession(): Promise<AssociationSession | null
 
         if (!user) return null
 
-        const adminDb = createServiceRoleClient()
+        const adminDb = getServiceRoleClient()
         const { data: assoc } = await adminDb
             .from("associations")
             .select("id, name, email, status")

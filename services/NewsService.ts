@@ -1,30 +1,35 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/admin"
+import { getServiceRoleClient } from "@/lib/supabase/admin"
+import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import type { CreateNewsDTO, UpdateNewsDTO } from "@/types/dto"
 import { CreateNewsSchema, UpdateNewsSchema } from "@/types/dto"
-import { logAuditEvent } from "./AuditService"
 
 // ============================================================
-// Get All News
+// Get All News (public — browser client)
 // ============================================================
 export async function getNews() {
-    const db = createServiceRoleClient()
+    const db = getSupabaseBrowserClient()
     const { data, error } = await db
         .from("news")
-        .select("*")
-        .order("created_at", { ascending: false })
+        .select("id, title, excerpt, content, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at")
+        .not("published_at", "is", null)
+        .order("published_at", { ascending: false })
 
     if (error) throw new Error("[NewsService] Failed to fetch news: " + error.message)
     return data ?? []
 }
 
 // ============================================================
-// Get Single News Item
+// Get Single News Item (public)
 // ============================================================
 export async function getNewsItem(id: string) {
-    const db = createServiceRoleClient()
-    const { data, error } = await db.from("news").select("*").eq("id", id).single()
+    const db = getSupabaseBrowserClient()
+    const { data, error } = await db
+        .from("news")
+        .select("id, title, excerpt, content, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at")
+        .eq("id", id)
+        .single()
     if (error) throw new Error("[NewsService] News item not found: " + error.message)
     return data
 }
@@ -32,86 +37,60 @@ export async function getNewsItem(id: string) {
 // ============================================================
 // Create News (admin only)
 // ============================================================
-export async function createNews(input: CreateNewsDTO, adminId: string) {
+export async function createNews(input: CreateNewsDTO) {
     const parsed = CreateNewsSchema.safeParse(input)
     if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 
-    const db = createServiceRoleClient()
+    const db = getServiceRoleClient()
     const { data, error } = await db
         .from("news")
         .insert({
             ...parsed.data,
-            created_by: adminId,
             published_at: parsed.data.published_at ?? new Date().toISOString(),
         })
-        .select()
+        .select("id, title, excerpt, content, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at")
         .single()
 
     if (error) throw new Error("[NewsService] Failed to create news: " + error.message)
-
-    await logAuditEvent({
-        adminId,
-        action: "CREATE_NEWS",
-        entityType: "news",
-        entityId: data.id,
-        metadata: { title: data.title },
-    })
-
     return data
 }
 
 // ============================================================
 // Update News (admin only)
 // ============================================================
-export async function updateNews(id: string, input: UpdateNewsDTO, adminId: string) {
+export async function updateNews(id: string, input: UpdateNewsDTO) {
     const parsed = UpdateNewsSchema.safeParse(input)
     if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 
-    const db = createServiceRoleClient()
+    const db = getServiceRoleClient()
     const { data, error } = await db
         .from("news")
         .update(parsed.data)
         .eq("id", id)
-        .select()
+        .select("id, title, excerpt, content, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at")
         .single()
 
     if (error) throw new Error("[NewsService] Failed to update news: " + error.message)
-
-    await logAuditEvent({
-        adminId,
-        action: "UPDATE_NEWS",
-        entityType: "news",
-        entityId: id,
-        metadata: { updatedFields: Object.keys(parsed.data) },
-    })
-
     return data
 }
 
 // ============================================================
 // Delete News (admin only)
 // ============================================================
-export async function deleteNews(id: string, adminId: string) {
-    const db = createServiceRoleClient()
+export async function deleteNews(id: string) {
+    const db = getServiceRoleClient()
     const { error } = await db.from("news").delete().eq("id", id)
     if (error) throw new Error("[NewsService] Failed to delete news: " + error.message)
-
-    await logAuditEvent({
-        adminId,
-        action: "DELETE_NEWS",
-        entityType: "news",
-        entityId: id,
-        metadata: {},
-    })
 }
 
 // ============================================================
-// Increment Views
+// Increment Views (fire and forget)
 // ============================================================
 export async function incrementNewsViews(id: string) {
-    const db = createServiceRoleClient()
+    const db = getSupabaseBrowserClient()
     const { data } = await db.from("news").select("views").eq("id", id).single()
     if (data) {
-        await db.from("news").update({ views: data.views + 1 }).eq("id", id)
+        const serviceDb = getServiceRoleClient()
+        await serviceDb.from("news").update({ views: data.views + 1 }).eq("id", id)
     }
 }
