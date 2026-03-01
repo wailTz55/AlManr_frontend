@@ -3,12 +3,9 @@
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { adminLogin } from "@/services/AdminAuthService"
-import { Eye, EyeOff, Shield, Loader2, AlertCircle, LogIn, User } from "lucide-react"
+import { Eye, EyeOff, Shield, Loader2, AlertCircle } from "lucide-react"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-
+// ─── Inner form uses useSearchParams → must be wrapped in Suspense ────────────
 function AdminLoginForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -25,11 +22,12 @@ function AdminLoginForm() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
+        if (loading) return
         setLoading(true)
         setError(null)
 
         try {
-            const result = await adminLogin({ email, password })
+            const result = await adminLogin({ email: email.trim(), password })
             if (result.success) {
                 router.push(redirectTo)
                 router.refresh()
@@ -44,100 +42,125 @@ function AdminLoginForm() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-50 to-emerald-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-md shadow-xl border-amber-200/50">
-                <CardHeader className="text-center pb-2">
-                    <div className="flex justify-center mb-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/30">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
+            <div className="relative w-full max-w-md">
+                {/* Ambient glow */}
+                <div
+                    aria-hidden="true"
+                    className="absolute -inset-1 rounded-2xl blur-xl opacity-20"
+                    style={{ background: "linear-gradient(to right, #2563eb, #06b6d4)" }}
+                />
+
+                <div className="relative bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
+
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                        <div
+                            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg"
+                            style={{ background: "linear-gradient(135deg, #2563eb, #06b6d4)" }}
+                        >
                             <Shield className="w-8 h-8 text-white" />
                         </div>
+                        <h1 className="text-2xl font-bold text-white mb-1">لوحة التحكم</h1>
+                        <p className="text-slate-400 text-sm">دخول مخصص للمشرف فقط</p>
                     </div>
-                    <CardTitle className="text-2xl font-bold text-amber-600">لوحة التحكم الإدارية</CardTitle>
-                    <CardDescription className="text-gray-600 mt-2">يرجى تسجيل الدخول للوصول إلى النظام الإداري</CardDescription>
-                </CardHeader>
 
-                <CardContent className="space-y-6 p-6 pt-4">
-                    {/* Error banner */}
+                    {/* Error Banner */}
                     {error && (
-                        <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
-                            <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                            <p className="text-red-700 text-sm font-medium" dir="rtl">{error}</p>
+                        <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
+                            <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                            <p className="text-red-300 text-sm" dir="rtl">{error}</p>
                         </div>
                     )}
 
+                    {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-5" dir="rtl">
-                        <div className="space-y-1">
-                            <label className="text-sm font-medium text-gray-700 mr-1">البريد الإلكتروني</label>
-                            <div className="relative">
-                                <Input
-                                    type="email"
-                                    placeholder="admin@almanar.org"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="pr-10 border-gray-300 focus:border-amber-500 focus:ring-amber-500/20"
-                                    required
-                                    dir="ltr"
-                                />
-                                <User className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                            </div>
+                        {/* Email */}
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                                البريد الإلكتروني
+                            </label>
+                            <input
+                                id="email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                autoComplete="email"
+                                placeholder="example@domain.com"
+                                className="w-full bg-slate-800/60 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                            />
                         </div>
 
-                        <div className="space-y-1">
-                            <label className="text-sm font-medium text-gray-700 mr-1">كلمة المرور</label>
+                        {/* Password */}
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+                                كلمة المرور
+                            </label>
                             <div className="relative">
-                                <Input
+                                <input
+                                    id="password"
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="pr-10 border-gray-300 focus:border-amber-500 focus:ring-amber-500/20"
                                     required
-                                    dir="ltr"
+                                    autoComplete="current-password"
+                                    placeholder="••••••••"
+                                    className="w-full bg-slate-800/60 border border-slate-600/50 rounded-xl px-4 py-3 pr-12 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                 />
-                                <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                <Button
+                                <button
                                     type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
-                                    onClick={() => setShowPassword(!showPassword)}
+                                    id="toggle-password"
+                                    onClick={() => setShowPassword((v) => !v)}
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                                    aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
                                 >
-                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
                             </div>
                         </div>
 
-                        <Button
+                        {/* Submit */}
+                        <button
+                            id="login-submit"
                             type="submit"
-                            disabled={loading || !email || !password}
-                            className="w-full bg-amber-600 hover:bg-amber-700 text-white shadow-md shadow-amber-600/20 h-11 text-base mt-2"
+                            disabled={loading}
+                            className="w-full text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{ background: "linear-gradient(to right, #2563eb, #06b6d4)" }}
                         >
                             {loading ? (
                                 <>
-                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                    جارٍ التحقق...
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <span>جارٍ التحقق...</span>
                                 </>
                             ) : (
-                                <>
-                                    <LogIn className="ml-2 h-5 w-5" />
-                                    تسجيل الدخول
-                                </>
+                                <span>تسجيل الدخول</span>
                             )}
-                        </Button>
+                        </button>
                     </form>
-                </CardContent>
-            </Card>
+
+                    {/* Footer note */}
+                    <div className="mt-6 pt-6 border-t border-slate-700/50 text-center">
+                        <p className="text-slate-500 text-xs">
+                            هذه الصفحة محمية ومخصصة للمشرف المعتمد فقط
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
 
+// ─── Page root — wraps with Suspense for useSearchParams ─────────────────────
 export default function AdminLoginPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-gradient-to-br from-amber-50 to-emerald-50 flex items-center justify-center p-4">
-                <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
-            </div>
-        }>
+        <Suspense
+            fallback={
+                <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                </div>
+            }
+        >
             <AdminLoginForm />
         </Suspense>
     )
