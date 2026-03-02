@@ -2,8 +2,19 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import type { AllDataResponse } from "./type"
 
 /**
+ * Limits for homepage sections.
+ * Change these values to adjust how many items appear on the homepage.
+ */
+export const HOMEPAGE_LIMITS = {
+    activities: 10,
+    news: 10,
+    members: 20,
+} as const
+
+/**
  * Fetches all public data using browser anon singleton client.
  * Client → Supabase directly (no server hop).
+ * Used by non-homepage pages (activities page, news page) where SSR is not applied.
  */
 export async function fetchAllData(): Promise<AllDataResponse> {
     const db = getSupabaseBrowserClient()
@@ -12,17 +23,20 @@ export async function fetchAllData(): Promise<AllDataResponse> {
         db
             .from("activities")
             .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants")
-            .order("date", { ascending: false }),
+            .order("date", { ascending: false })
+            .limit(HOMEPAGE_LIMITS.activities),
         db
             .from("news")
-            .select("id, title, excerpt, content, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at")
+            .select("id, title, excerpt, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at")
             .not("published_at", "is", null)
-            .order("published_at", { ascending: false }),
+            .order("published_at", { ascending: false })
+            .limit(HOMEPAGE_LIMITS.news),
         db
             .from("associations")
             .select("id, name, email, phone, description, logo_url, status")
             .eq("status", "approved")
-            .order("created_at", { ascending: false }),
+            .order("created_at", { ascending: false })
+            .limit(HOMEPAGE_LIMITS.members),
     ])
 
     const activities = (activitiesResult.data ?? []).map((a: any) => ({
@@ -48,7 +62,7 @@ export async function fetchAllData(): Promise<AllDataResponse> {
         id: n.id,
         title: n.title,
         excerpt: n.excerpt ?? "",
-        content: n.content,
+        content: "", // not fetched on homepage — load on detail page only
         date: n.published_at ?? n.created_at,
         time: "",
         author: n.author,

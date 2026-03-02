@@ -1,95 +1,61 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { fetchAllData } from "../app/api/api"
-import { News } from "../app/api/type"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Image from "next/image"
+import type { News } from "../app/api/type"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, Clock, ArrowLeft, Bell, Megaphone, Trophy, Users, Star } from "lucide-react"
-import Image from "next/image"
 
-// مصفوفات القيم العشوائية للأيقونات والألوان
 const colorOptions = [
   "text-primary",
   "text-secondary",
   "text-accent",
   "text-chart-3",
-  "text-chart-4"
-];
+  "text-chart-4",
+]
 
 const bgColorOptions = [
   "bg-primary/10",
   "bg-secondary/10",
   "bg-accent/10",
   "bg-chart-3/10",
-  "bg-chart-4/10"
-];
+  "bg-chart-4/10",
+]
 
+const iconOptions = [Megaphone, Users, Star, Bell, Trophy]
 
-const iconOptions = [Megaphone, Users, Star, Bell, Trophy];
+// Stable deterministic values based on index to avoid hydration mismatches
+const getStableColor = (index: number) => colorOptions[index % colorOptions.length]
+const getStableBgColor = (index: number) => bgColorOptions[index % bgColorOptions.length]
+const getStableIcon = (index: number) => iconOptions[index % iconOptions.length]
 
-// دوال للحصول على قيم عشوائية
-const getRandomColor = () => colorOptions[Math.floor(Math.random() * colorOptions.length)];
-const getRandomBgColor = () => bgColorOptions[Math.floor(Math.random() * bgColorOptions.length)];
-const getRandomIcon = () => iconOptions[Math.floor(Math.random() * iconOptions.length)];
+type NewsWithProps = News & {
+  stableColor: string
+  stableBgColor: string
+  stableIcon: React.ComponentType<{ className?: string }>
+  displayImage: string
+}
 
-// دالة لتوليد خصائص عشوائية للخبر
-const generateRandomProps = (newsItem: News, index: number) => ({
-  ...newsItem,
-  randomColor: getRandomColor(),
-  randomBgColor: getRandomBgColor(),
-  randomIcon: getRandomIcon(),
-  // Use the image as-is (full URL from Supabase) or fallback to placeholder
-  randomImage: newsItem.image && newsItem.image.trim() !== "" ? newsItem.image : "/placeholder.svg"
-});
+interface Props {
+  /** Pre-fetched news from the server (RSC). No loading state needed on first render. */
+  initialNews?: News[]
+}
 
-// نوع محدث للأخبار مع الخصائص العشوائية
-type NewsWithRandomProps = News & {
-  randomColor: string;
-  randomBgColor: string;
-  randomIcon: React.ComponentType<{ className?: string }>;
-  randomImage: string;
-};
-
-export function NewsSection() {
+export function NewsSection({ initialNews = [] }: Props) {
   const router = useRouter()
   const [expandedNews, setExpandedNews] = useState<number | null>(null)
-  const [latestNews, setLatestNews] = useState<NewsWithRandomProps[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  // جلب أحدث 3 أخبار من API
-  useEffect(() => {
-    const loadLatestNews = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const data = await fetchAllData()
+  // Enrich with stable (deterministic) visual properties — no random() calls to avoid hydration issues
+  const latestNews: NewsWithProps[] = initialNews.map((item, index) => ({
+    ...item,
+    stableColor: getStableColor(index),
+    stableBgColor: getStableBgColor(index),
+    stableIcon: getStableIcon(index),
+    displayImage: item.image && item.image.trim() !== "" ? item.image : "/placeholder.svg",
+  }))
 
-        if (data && data.news && Array.isArray(data.news)) {
-          // أخذ أول 3 أخبار (الأحدث) مع إضافة الخصائص العشوائية
-          const latest3News = data.news
-            .slice(0, 3)
-            .map((newsItem, index) => generateRandomProps(newsItem, index))
-
-          setLatestNews(latest3News)
-        } else {
-          throw new Error('البيانات المستلمة غير صحيحة')
-        }
-      } catch (err) {
-        console.error('خطأ في جلب البيانات:', err)
-        setError('حدث خطأ في تحميل الأخبار')
-        setLatestNews([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadLatestNews()
-  }, [])
-
-  // دالة للانتقال إلى صفحة الأخبار مع تمرير معرف الخبر
   const navigateToNewsPage = (newsId?: number) => {
     if (newsId) {
       router.push(`/news?articleId=${newsId}`)
@@ -98,62 +64,18 @@ export function NewsSection() {
     }
   }
 
-  // دالة للتعامل مع النقر على البطاقة
-  const handleCardClick = (item: NewsWithRandomProps) => {
+  const handleCardClick = (item: NewsWithProps) => {
     const isCurrentlyExpanded = expandedNews === item.id
-
     if (isCurrentlyExpanded) {
-      // إذا كان الخبر موسعاً، انتقل إلى صفحة الأخبار مع تفاصيل الخبر
       navigateToNewsPage(item.id)
     } else {
-      // وسع الخبر أولاً
       setExpandedNews(item.id)
     }
   }
 
-  // دالة للتعامل مع النقر على زر "المزيد"
-  const handleMoreClick = (e: React.MouseEvent, item: NewsWithRandomProps) => {
-    e.stopPropagation() // منع تفعيل النقر على البطاقة
+  const handleMoreClick = (e: React.MouseEvent, item: NewsWithProps) => {
+    e.stopPropagation()
     navigateToNewsPage(item.id)
-  }
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">الأخبار والإعلانات</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            ابق على اطلاع بآخر أخبار الجمعية وفعالياتها القادمة
-          </p>
-          <div className="w-24 h-1 bg-secondary mx-auto mt-6 rounded-full" />
-        </div>
-
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">جاري تحميل الأخبار...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">الأخبار والإعلانات</h2>
-        </div>
-
-        <div className="text-center py-12">
-          <p className="text-lg text-red-500 mb-4">{error}</p>
-          <Button
-            onClick={() => window.location.reload()}
-            variant="outline"
-          >
-            إعادة المحاولة
-          </Button>
-        </div>
-      </div>
-    )
   }
 
   if (latestNews.length === 0) {
@@ -166,7 +88,6 @@ export function NewsSection() {
           </p>
           <div className="w-24 h-1 bg-secondary mx-auto mt-6 rounded-full" />
         </div>
-
         <div className="text-center py-12">
           <p className="text-lg text-muted-foreground">لا توجد أخبار متاحة حالياً</p>
         </div>
@@ -191,14 +112,13 @@ export function NewsSection() {
 
         <div className="space-y-12">
           {latestNews.map((item, index) => {
-            const Icon = item.randomIcon
+            const Icon = item.stableIcon
             const isExpanded = expandedNews === item.id
 
             return (
               <div
                 key={item.id}
-                className={`relative flex items-center ${index % 2 === 0 ? "justify-start" : "justify-end"
-                  } animate-fade-in`}
+                className={`relative flex items-center ${index % 2 === 0 ? "justify-start" : "justify-end"} animate-fade-in`}
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 {/* Timeline Node */}
@@ -215,16 +135,15 @@ export function NewsSection() {
                   {/* Image Section */}
                   <div className="relative h-48 overflow-hidden">
                     <Image
-                      src={item.randomImage}
+                      src={item.displayImage}
                       alt={item.title}
                       width={320}
                       height={192}
                       className="w-full h-full object-cover"
                     />
-
                     {/* Category Badge */}
                     <div
-                      className={`absolute top-3 right-3 px-3 py-1 ${item.randomBgColor} ${item.randomColor} rounded-full text-sm font-medium backdrop-blur-sm`}
+                      className={`absolute top-3 right-3 px-3 py-1 ${item.stableBgColor} ${item.stableColor} rounded-full text-sm font-medium backdrop-blur-sm`}
                     >
                       {item.category}
                     </div>
@@ -240,7 +159,7 @@ export function NewsSection() {
                       className={`text-muted-foreground mb-4 transition-all duration-300 ${isExpanded ? "line-clamp-none" : "line-clamp-2"
                         }`}
                     >
-                      {isExpanded ? item.content : item.excerpt}
+                      {isExpanded ? item.excerpt : item.excerpt}
                     </p>
 
                     <div className="flex items-center justify-between text-sm text-muted-foreground">

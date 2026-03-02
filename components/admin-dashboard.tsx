@@ -92,7 +92,6 @@ import {
   Shield,
   Eye,
   EyeOff,
-  LogIn,
   Plus,
   Edit,
   Trash2,
@@ -265,35 +264,7 @@ export function AdminDashboard({
   initialAssociations?: AssociationPartnership[]
 }) {
   const { toast } = useToast()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
 
-  const [adminSettings, setAdminSettings] = useState({
-    username: "admin",
-    password: "123",
-    email: "admin@almanar.org"
-  })
-
-  useEffect(() => {
-    const saved = localStorage.getItem("almanar_admin_settings");
-    if (saved) {
-      try {
-        setAdminSettings(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse admin settings", e);
-      }
-    }
-  }, []);
-
-  const handleSaveSettings = () => {
-    localStorage.setItem("almanar_admin_settings", JSON.stringify(adminSettings));
-    toast({
-      title: "نجاح",
-      description: "تم حفظ الإعدادات بنجاح",
-      variant: "default",
-    })
-  }
 
   const handleImageOptimize = (file: File, callback: (url: string) => void) => {
     const reader = new FileReader();
@@ -529,17 +500,7 @@ export function AdminDashboard({
     setMembers(members.filter((m) => m.id !== id))
   }
 
-  const handleLogin = () => {
-    if (username === adminSettings.username && password === adminSettings.password) {
-      setIsAuthenticated(true)
-    } else {
-      toast({
-        title: "خطأ في تسجيل الدخول",
-        description: "اسم المستخدم أو كلمة المرور خاطئة",
-        variant: "destructive",
-      })
-    }
-  }
+
 
   // --- Activity helper ---
   const getTemplateMeta = (template: ActivityTemplate) =>
@@ -1094,55 +1055,6 @@ export function AdminDashboard({
     },
   ]
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-emerald-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-amber-600">لوحة التحكم الإدارية</CardTitle>
-            <CardDescription>يرجى إدخال كلمة المرور للوصول إلى النظام الإداري</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6 p-6">
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="اسم المستخدم"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="pr-10"
-                dir="rtl"
-              />
-              <User className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            </div>
-            <div className="relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="كلمة المرور"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pr-10"
-                dir="rtl"
-              />
-              <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-            <Button onClick={handleLogin} className="w-full bg-amber-600 hover:bg-amber-700">
-              <LogIn className="ml-2 h-4 w-4" />
-              دخول
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
 
   const sidebarItems = [
     { id: "dashboard", label: "لوحة التحكم", icon: BarChart3 },

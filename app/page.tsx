@@ -5,8 +5,19 @@ import { NewsSection } from "@/components/news-section"
 import { RegistrationSection } from "@/components/registration-section"
 import { PartnersSection } from "@/components/members-section"
 import { ScrollAnimation } from "@/components/scroll-animations"
+import { fetchHomepageData } from "@/lib/data/homepage"
 
-export default function HomePage() {
+/**
+ * ISR: rebuild this page on the server at most once every 60 seconds.
+ * Between rebuilds, all users get the cached HTML — zero Supabase queries per visit.
+ * Change the value (in seconds) to adjust freshness vs. performance trade-off.
+ */
+export const revalidate = 60
+
+export default async function HomePage() {
+  // All 3 datasets fetched in parallel, server-side, before HTML is sent to browser
+  const { activities, news, members } = await fetchHomepageData()
+
   return (
     <main className="min-h-screen">
       <EnhancedFloatingNavbar />
@@ -17,13 +28,13 @@ export default function HomePage() {
 
       <ScrollAnimation animation="fade-in">
         <section id="activities" className="py-20">
-          <ActivitiesPreview />
+          <ActivitiesPreview initialActivities={activities} />
         </section>
       </ScrollAnimation>
 
       <ScrollAnimation animation="slide-in-right" delay={200}>
         <section id="news" className="py-20 bg-muted/30">
-          <NewsSection />
+          <NewsSection initialNews={news} />
         </section>
       </ScrollAnimation>
 

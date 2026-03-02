@@ -1,86 +1,95 @@
+import { createSupabaseServerClient } from "@/lib/supabase/server"
+import { HOMEPAGE_LIMITS } from "@/app/api/api"
+import type { Activity, News, Member } from "@/app/api/type"
+
 /**
- * getHomePageData — single function for homepage data needs.
- * Uses browser anon client with Promise.all — no server hop, no cold start.
+ * Server-side homepage data fetcher.
+ * Called from app/page.tsx (React Server Component).
+ * Runs on the server — data arrives in the initial HTML, zero client fetch waterfall.
+ * Cached by Next.js ISR (revalidate = 60 in page.tsx).
+ *
+ * To change how many items appear on the homepage, edit HOMEPAGE_LIMITS in app/api/api.ts.
  */
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
+export async function fetchHomepageData(): Promise<{
+    activities: Activity[]
+    news: News[]
+    members: Member[]
+}> {
+    const db = await createSupabaseServerClient()
 
-export interface HomeActivity {
-    id: string
-    title: string
-    date: string
-    location: string | null
-    description: string | null
-    images: string[] | null
-    videos: string[] | null
-    duration: string | null
-    status: string
-    categories: string[] | null
-    template: string
-    allow_association_registration: boolean
-    allow_participant_registration: boolean
-    max_participants: number | null
-}
-
-export interface HomeNews {
-    id: string
-    title: string
-    excerpt: string | null
-    content: string
-    author: string
-    category: string | null
-    type: string | null
-    icon: string | null
-    color: string | null
-    bg_color: string | null
-    image: string | null
-    views: number
-    likes: number
-    featured: boolean
-    published_at: string | null
-    created_at: string
-}
-
-export interface HomePartner {
-    id: string
-    name: string
-    email: string
-    phone: string | null
-    description: string | null
-    logo_url: string | null
-    status: string
-}
-
-export interface HomePageData {
-    activities: HomeActivity[]
-    news: HomeNews[]
-    partners: HomePartner[]
-}
-
-export async function getHomePageData(): Promise<HomePageData> {
-    const db = getSupabaseBrowserClient()
-
-    const [activitiesRes, newsRes, partnersRes] = await Promise.all([
+    const [activitiesResult, newsResult, membersResult] = await Promise.all([
         db
             .from("activities")
-            .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants")
+            .select(
+                "id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants"
+            )
             .order("date", { ascending: false })
-            .limit(10),
+            .limit(HOMEPAGE_LIMITS.activities),
+
         db
             .from("news")
-            .select("id, title, excerpt, content, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at")
+            .select(
+                "id, title, excerpt, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at"
+            )
             .not("published_at", "is", null)
             .order("published_at", { ascending: false })
-            .limit(10),
+            .limit(HOMEPAGE_LIMITS.news),
+
         db
             .from("associations")
-            .select("id, name, email, phone, description, logo_url, status")
+            .select("id, name, description, logo_url")
             .eq("status", "approved")
-            .order("created_at", { ascending: false }),
+            .order("created_at", { ascending: false })
+            .limit(HOMEPAGE_LIMITS.members),
     ])
 
-    return {
-        activities: (activitiesRes.data ?? []) as HomeActivity[],
-        news: (newsRes.data ?? []) as HomeNews[],
-        partners: (partnersRes.data ?? []) as HomePartner[],
-    }
+    const activities: Activity[] = (activitiesResult.data ?? []).map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        date: a.date,
+        location: a.location ?? "",
+        participants: a.max_participants ?? 0,
+        duration: a.duration ?? "",
+        status: a.status,
+        images: a.images ?? [],
+        videos: a.videos ?? [],
+        description: a.description ?? "",
+        achievements: [],
+        highlights: [],
+        activityTemplate: a.template ?? "announcement",
+        allowAssociationRegistration: a.allow_association_registration ?? false,
+        allowParticipantRegistration: a.allow_participant_registration ?? false,
+        categories: a.categories ?? [],
+    }))
+
+    const news: News[] = (newsResult.data ?? []).map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        excerpt: n.excerpt ?? "",
+        content: "", // not fetched on homepage — loaded on detail page only
+        date: n.published_at ?? n.created_at,
+        time: "",
+        author: n.author,
+        category: n.category ?? "عام",
+        type: n.type ?? "news",
+        icon: n.icon ?? "newspaper",
+        color: n.color ?? "#3B82F6",
+        bgColor: n.bg_color ?? "#EFF6FF",
+        image: n.image ?? "",
+        views: n.views ?? 0,
+        likes: n.likes ?? 0,
+        featured: n.featured ?? false,
+    }))
+
+    const members: Member[] = (membersResult.data ?? []).map((m: any) => ({
+        id: m.id,
+        name: m.name,
+        role: "جمعية",
+        image: m.logo_url ?? "/placeholder.svg",
+        bio: m.description ?? "",
+        memberType: "association" as const,
+        status: "approved" as const,
+    }))
+
+    return { activities, news, members }
 }

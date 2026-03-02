@@ -2,48 +2,24 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { fetchAllData } from "../app/api/api"
-import { Activity } from "../app/api/type"
+import Image from "next/image"
+import type { Activity } from "../app/api/type"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Calendar, MapPin, Users, ArrowLeft, Camera, Video, ChevronLeft, ChevronRight } from "lucide-react"
 
-export function ActivitiesPreview() {
+interface Props {
+  /** Pre-fetched activities from the server (RSC). No loading state needed on first render. */
+  initialActivities?: Activity[]
+}
+
+export function ActivitiesPreview({ initialActivities = [] }: Props) {
   const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
   const [showControls, setShowControls] = useState(false)
-  const [activities, setActivities] = useState<Activity[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-
-  // جلب البيانات من API عند تحميل الكومبوننت
-  useEffect(() => {
-    const loadActivities = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const data = await fetchAllData()
-
-        if (data && data.activities && Array.isArray(data.activities)) {
-          // أخذ أول 5 أنشطة
-          const firstFiveActivities = data.activities.slice(0, 5)
-          setActivities(firstFiveActivities)
-        } else {
-          throw new Error('البيانات المستلمة غير صحيحة')
-        }
-      } catch (err) {
-        console.error('خطأ في جلب البيانات:', err)
-        setError('حدث خطأ في تحميل الأنشطة')
-        setActivities([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadActivities()
-  }, [])
+  // Start immediately with server data — no loading spinner on first render
+  const [activities] = useState<Activity[]>(initialActivities)
 
   useEffect(() => {
     if (!isAutoPlaying || activities.length === 0) return
@@ -55,7 +31,6 @@ export function ActivitiesPreview() {
     return () => clearInterval(timer)
   }, [isAutoPlaying, activities.length])
 
-  // دالة للانتقال إلى صفحة الأنشطة مع تمرير معرف النشاط
   const navigateToActivityPage = (activityId?: number) => {
     if (activityId) {
       router.push(`/activities?activityId=${activityId}`)
@@ -64,12 +39,10 @@ export function ActivitiesPreview() {
     }
   }
 
-  // دالة للتعامل مع النقر على البطاقة
   const handleCardClick = (activity: Activity) => {
     navigateToActivityPage(activity.id)
   }
 
-  // دالة للتعامل مع النقر على زر "اعرف المزيد"
   const handleMoreClick = (e: React.MouseEvent, activity: Activity) => {
     e.stopPropagation()
     navigateToActivityPage(activity.id)
@@ -90,48 +63,6 @@ export function ActivitiesPreview() {
     setIsAutoPlaying(false)
   }
 
-  // معالجة حالة التحميل
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">أنشطتنا المميزة</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            اكتشف عالماً من الأنشطة الشبابية المثيرة والتجارب التي لا تُنسى
-          </p>
-          <div className="w-24 h-1 bg-primary mx-auto mt-6 rounded-full" />
-        </div>
-
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">جاري تحميل الأنشطة...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // معالجة حالة الخطأ
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">أنشطتنا المميزة</h2>
-        </div>
-
-        <div className="text-center py-12">
-          <p className="text-lg text-red-500 mb-4">{error}</p>
-          <Button
-            onClick={() => window.location.reload()}
-            variant="outline"
-          >
-            إعادة المحاولة
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  // معالجة حالة عدم وجود أنشطة
   if (activities.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -142,7 +73,6 @@ export function ActivitiesPreview() {
           </p>
           <div className="w-24 h-1 bg-primary mx-auto mt-6 rounded-full" />
         </div>
-
         <div className="text-center py-12">
           <p className="text-lg text-muted-foreground">لا توجد أنشطة متاحة حالياً</p>
         </div>
@@ -160,19 +90,18 @@ export function ActivitiesPreview() {
         <div className="w-24 h-1 bg-primary mx-auto mt-6 rounded-full" />
       </div>
 
-      {/* Auto-Slider Design */}
+      {/* Auto-Slider */}
       <div
         className="relative max-w-6xl mx-auto"
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
       >
-        {/* Main Slider Container */}
         <div className="relative w-full h-96 overflow-hidden rounded-2xl">
           {activities.map((activity, index) => (
             <div
               key={activity.id}
               className={`absolute top-0 left-0 w-full h-full transition-transform duration-700 ease-in-out ${index === currentSlide ? 'translate-x-0' :
-                index < currentSlide ? '-translate-x-full' : 'translate-x-full'
+                  index < currentSlide ? '-translate-x-full' : 'translate-x-full'
                 }`}
             >
               <Card
@@ -180,10 +109,14 @@ export function ActivitiesPreview() {
                 onClick={() => handleCardClick(activity)}
               >
                 <div className="absolute inset-0">
-                  <img
-                    src={activity.images && activity.images[0] ? activity.images[0] : "/placeholder.svg"}
+                  {/* Next.js Image for automatic WebP, resizing, and lazy loading */}
+                  <Image
+                    src={activity.images?.[0] ?? "/placeholder.svg"}
                     alt={activity.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    priority={index === 0}   // preload first (visible) slide only
+                    sizes="(max-width: 768px) 100vw, 1152px"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 </div>
@@ -235,9 +168,7 @@ export function ActivitiesPreview() {
         </div>
 
         {/* Navigation Controls */}
-        <div
-          className={`absolute inset-y-0 left-4 flex items-center transition-opacity duration-300 z-20 ${showControls ? "opacity-100" : "opacity-0"}`}
-        >
+        <div className={`absolute inset-y-0 left-4 flex items-center transition-opacity duration-300 z-20 ${showControls ? "opacity-100" : "opacity-0"}`}>
           <Button
             variant="ghost"
             size="lg"
@@ -248,9 +179,7 @@ export function ActivitiesPreview() {
           </Button>
         </div>
 
-        <div
-          className={`absolute inset-y-0 right-4 flex items-center transition-opacity duration-300 z-20 ${showControls ? "opacity-100" : "opacity-0"}`}
-        >
+        <div className={`absolute inset-y-0 right-4 flex items-center transition-opacity duration-300 z-20 ${showControls ? "opacity-100" : "opacity-0"}`}>
           <Button
             variant="ghost"
             size="lg"
@@ -273,7 +202,7 @@ export function ActivitiesPreview() {
           ))}
         </div>
 
-        <div className="flex justify-center mt-6 ">
+        <div className="flex justify-center mt-6">
           <Button
             variant="outline"
             size="sm"
@@ -286,7 +215,7 @@ export function ActivitiesPreview() {
       </div>
 
       {/* Call to Action */}
-      <div className="text-center mt-20 ">
+      <div className="text-center mt-20">
         <Button
           size="lg"
           className="text-lg px-8 py-4 rounded-full animate-bounce-gentle !cursor-pointer"
