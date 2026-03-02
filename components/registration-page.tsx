@@ -178,6 +178,16 @@ export function RegistrationPage() {
           title: "تم الإرسال بنجاح",
           description: "طلب تسجيل جمعيتك قيد المراجعة الآن",
         })
+
+        // Auto-login persistence
+        localStorage.setItem("almanar_assoc_session", JSON.stringify({
+          name: result.data?.associationName ?? "",
+          email: result.data?.email ?? "",
+          status: result.data?.status ?? "",
+        }))
+        window.dispatchEvent(new Event("storage"))
+        setIsLoggedIn(true)
+        setLoggedInName(result.data?.associationName ?? "")
         setFormData({
           associationName: "", organizationName: "", presidentName: "", presidentPhone: "",
           secretaryName: "", secretaryPhone: "", clerkName: "", clerkPhone: "",

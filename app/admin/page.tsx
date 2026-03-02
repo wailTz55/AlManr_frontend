@@ -1,12 +1,13 @@
 import { AdminDashboard } from "@/components/admin-dashboard"
 import { getServiceRoleClient } from "@/lib/supabase/admin"
+import { getAllRegistrations } from "@/services/RegistrationService"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminPage() {
   const db = getServiceRoleClient()
 
-  const [rawActivities, rawNews, rawAssociations] = await Promise.all([
+  const [rawActivities, rawNews, rawAssociations, rawRegistrations] = await Promise.all([
     db.from("activities")
       .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya")
       .order("date", { ascending: false })
@@ -19,6 +20,10 @@ export default async function AdminPage() {
       .select("id, name, email, phone, city, wilaya, status, description, logo_url, rejection_reason, approved_by, approved_at, created_at, updated_at")
       .order("created_at", { ascending: false })
       .then(r => r.data ?? []),
+    getAllRegistrations().catch(err => {
+      console.error("Failed to fetch registrations", err)
+      return []
+    })
   ])
 
   const activities = rawActivities.map((a: any) => ({
@@ -58,11 +63,30 @@ export default async function AdminPage() {
     notes: a.rejection_reason || undefined
   }))
 
+  const registrations = rawRegistrations.map((r: any) => ({
+    id: r.id,
+    activityId: r.activities?.id,
+    associationName: r.associations?.name || "غير معروف",
+    associationEmail: r.associations?.email || "غير معروف",
+    associationPhone: r.associations?.phone || "غير معروف",
+    status: r.status,
+    registrationDate: r.created_at,
+    notes: r.notes || undefined,
+    participants: (r.activity_participants || []).map((p: any) => ({
+      id: p.id,
+      registrationId: r.id,
+      name: p.name,
+      birthdate: p.birthdate,
+      category: p.category || undefined
+    }))
+  }))
+
   return (
     <AdminDashboard
       initialActivities={activities as any}
       initialNews={news as any}
       initialAssociations={associations as any}
+      initialRegistrations={registrations as any}
     />
   )
 }

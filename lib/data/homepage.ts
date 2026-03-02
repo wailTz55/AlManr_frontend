@@ -93,3 +93,43 @@ export async function fetchHomepageData(): Promise<{
 
     return { activities, news, members }
 }
+
+/**
+ * Server-side dedicated news fetcher.
+ * Used by app/news/page.tsx to provide SSR caching for the news page.
+ */
+export async function fetchServerNewsData(): Promise<News[]> {
+    const db = await createSupabaseServerClient()
+
+    const { data, error } = await db
+        .from("news")
+        .select(
+            "id, title, excerpt, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at"
+        )
+        .not("published_at", "is", null)
+        .order("published_at", { ascending: false })
+
+    if (error) {
+        console.error("Error fetching server news list:", error)
+        return []
+    }
+
+    return (data ?? []).map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        excerpt: n.excerpt ?? "",
+        content: "", // loaded on demand
+        date: n.published_at ?? n.created_at,
+        time: "",
+        author: n.author,
+        category: n.category ?? "عام",
+        type: n.type ?? "news",
+        icon: n.icon ?? "newspaper",
+        color: n.color ?? "#3B82F6",
+        bgColor: n.bg_color ?? "#EFF6FF",
+        image: n.image ?? "",
+        views: n.views ?? 0,
+        likes: n.likes ?? 0,
+        featured: n.featured ?? false,
+    }))
+}

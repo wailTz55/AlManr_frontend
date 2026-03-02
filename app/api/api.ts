@@ -1,13 +1,13 @@
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
-import type { AllDataResponse } from "./type"
+import type { AllDataResponse, News } from "./type"
 
 /**
  * Limits for homepage sections.
  * Change these values to adjust how many items appear on the homepage.
  */
 export const HOMEPAGE_LIMITS = {
-    activities: 10,
-    news: 10,
+    activities: 5,
+    news: 5,
     members: 20,
 } as const
 
@@ -88,4 +88,61 @@ export async function fetchAllData(): Promise<AllDataResponse> {
     }))
 
     return { activities, news, members }
+}
+
+/**
+ * Fetches ONLY the news data for the dedicated News Page.
+ * Eliminates redundant payload from the activities and members tables.
+ */
+export async function fetchNewsData(): Promise<News[]> {
+    const db = getSupabaseBrowserClient()
+
+    const { data, error } = await db
+        .from("news")
+        .select("id, title, excerpt, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at")
+        .not("published_at", "is", null)
+        .order("published_at", { ascending: false })
+
+    if (error) {
+        console.error("Error fetching news list:", error)
+        return []
+    }
+
+    return (data ?? []).map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        excerpt: n.excerpt ?? "",
+        content: "", // loaded on demand
+        date: n.published_at ?? n.created_at,
+        time: "",
+        author: n.author,
+        category: n.category ?? "عام",
+        type: n.type ?? "news",
+        icon: n.icon ?? "newspaper",
+        color: n.color ?? "#3B82F6",
+        bgColor: n.bg_color ?? "#EFF6FF",
+        image: n.image ?? "",
+        views: n.views ?? 0,
+        likes: n.likes ?? 0,
+        featured: n.featured ?? false,
+    }))
+}
+
+/**
+ * Lazy loads the full content for a single news article.
+ * Used when a user clicks on an article to open the modal.
+ */
+export async function fetchNewsContent(id: number): Promise<string> {
+    const db = getSupabaseBrowserClient()
+    const { data, error } = await db
+        .from("news")
+        .select("content")
+        .eq("id", id)
+        .single()
+
+    if (error) {
+        console.error("Error fetching news content:", error)
+        return ""
+    }
+    return (data as any)?.content ?? ""
 }

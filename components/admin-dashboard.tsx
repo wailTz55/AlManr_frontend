@@ -188,7 +188,7 @@ interface ActivityParticipant {
   id: string
   registrationId: string
   name: string
-  age: number
+  birthdate: string
   category?: string
 }
 
@@ -257,11 +257,13 @@ interface Member {
 export function AdminDashboard({
   initialActivities = [],
   initialNews = [],
-  initialAssociations = []
+  initialAssociations = [],
+  initialRegistrations = []
 }: {
   initialActivities?: Activity[]
   initialNews?: NewsArticle[]
   initialAssociations?: AssociationPartnership[]
+  initialRegistrations?: ActivityRegistration[]
 }) {
   const { toast } = useToast()
 
@@ -301,7 +303,7 @@ export function AdminDashboard({
   const [activities, setActivities] = useState<Activity[]>(initialActivities)
 
   // --- New Activity Registration State ---
-  const [activityRegistrations, setActivityRegistrations] = useState<ActivityRegistration[]>([])
+  const [activityRegistrations, setActivityRegistrations] = useState<ActivityRegistration[]>(initialRegistrations)
 
   // --- UI state for new features ---
   const [activityDeleteConfirmId, setActivityDeleteConfirmId] = useState<string | null>(null)
@@ -547,8 +549,8 @@ export function AdminDashboard({
 
         // Ensure UI types match DB types
         const activity: Activity = {
-          ...createdData,
-          id: createdData.id,
+          ...(createdData as any),
+          id: (createdData as any).id,
           type: newActivity.type || "عام",
           capacity: newActivity.capacity || 0,
           image: newActivity.image || "/placeholder.svg",
@@ -769,8 +771,8 @@ export function AdminDashboard({
         } as any)
 
         const article: NewsArticle = {
-          ...createdData,
-          id: createdData.id,
+          ...(createdData as any),
+          id: (createdData as any).id,
           status: isPublished ? "published" : "draft",
           tags: [],
           views: 0
@@ -820,7 +822,7 @@ export function AdminDashboard({
             article.id === editingNews.id ? ({
               ...article,
               ...newNews,
-              publishDate: updatedData.published_at || article.publishDate
+              publishDate: (updatedData as any).published_at || article.publishDate
             } as NewsArticle) : article,
           ),
         )
@@ -997,21 +999,23 @@ export function AdminDashboard({
 
   const filteredMessages = messages.filter((message) => {
     const matchesFilter = messageFilter === "all" || message.status === messageFilter
+    const term = searchTerm.toLowerCase()
     const matchesSearch =
-      message.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      message.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      message.email.toLowerCase().includes(searchTerm.toLowerCase())
+      (message.name || "").toLowerCase().includes(term) ||
+      (message.subject || "").toLowerCase().includes(term) ||
+      (message.email || "").toLowerCase().includes(term)
     return matchesFilter && matchesSearch
   })
 
   const filteredPartnerships = partnerships.filter((p) => {
     if (p.status === "rejected") return false // rejected entries shown separately
     const matchesFilter = partnershipFilter === "all" || p.status === partnershipFilter
+    const term = partnershipSearchTerm.toLowerCase()
     const matchesSearch =
-      p.associationName.toLowerCase().includes(partnershipSearchTerm.toLowerCase()) ||
-      p.institutionName.toLowerCase().includes(partnershipSearchTerm.toLowerCase()) ||
-      p.presidentName.toLowerCase().includes(partnershipSearchTerm.toLowerCase()) ||
-      p.email.toLowerCase().includes(partnershipSearchTerm.toLowerCase())
+      (p.associationName || "").toLowerCase().includes(term) ||
+      (p.institutionName || "").toLowerCase().includes(term) ||
+      (p.presidentName || "").toLowerCase().includes(term) ||
+      (p.email || "").toLowerCase().includes(term)
     return matchesFilter && matchesSearch
   })
 
@@ -1026,10 +1030,11 @@ export function AdminDashboard({
 
   const filteredNews = newsArticles.filter((article) => {
     const matchesFilter = newsFilter === "all" || article.status === newsFilter
+    const term = newsSearchTerm.toLowerCase()
     const matchesSearch =
-      article.title.toLowerCase().includes(newsSearchTerm.toLowerCase()) ||
-      article.content.toLowerCase().includes(newsSearchTerm.toLowerCase()) ||
-      article.category.toLowerCase().includes(newsSearchTerm.toLowerCase())
+      (article.title || "").toLowerCase().includes(term) ||
+      (article.content || "").toLowerCase().includes(term) ||
+      (article.category || "").toLowerCase().includes(term)
     return matchesFilter && matchesSearch
   })
 
@@ -1826,7 +1831,7 @@ export function AdminDashboard({
                                 <thead>
                                   <tr className="text-right text-gray-500 border-b">
                                     <th className="pb-2 font-medium">الاسم</th>
-                                    <th className="pb-2 font-medium">العمر</th>
+                                    <th className="pb-2 font-medium">تاريخ الميلاد</th>
                                     {viewingRegistrationsActivity.activityTemplate === "special" && <th className="pb-2 font-medium">الفئة</th>}
                                   </tr>
                                 </thead>
@@ -1834,7 +1839,7 @@ export function AdminDashboard({
                                   {reg.participants.map((p) => (
                                     <tr key={p.id} className="border-b last:border-0">
                                       <td className="py-2 font-medium">{p.name}</td>
-                                      <td className="py-2 text-gray-600">{p.age} سنة</td>
+                                      <td className="py-2 text-gray-600">{p.birthdate}</td>
                                       {viewingRegistrationsActivity.activityTemplate === "special" && (
                                         <td className="py-2">
                                           <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs">{p.category || "—"}</span>
@@ -2182,7 +2187,7 @@ export function AdminDashboard({
                           const approved = partnerships.filter((p) => p.status === "approved")
                           // Build printable HTML
                           const rows = approved.map((p) => `
-  < div style = "page-break-inside:avoid;margin-bottom:32px;border:1px solid #e5e7eb;border-radius:8px;padding:20px" >
+<div style="page-break-inside:avoid;margin-bottom:32px;border:1px solid #e5e7eb;border-radius:8px;padding:20px">
                               <h2 style="font-size:18px;font-weight:700;color:#d97706;margin-bottom:12px;border-bottom:2px solid #d97706;padding-bottom:6px">${p.associationName}</h2>
                               <table style="width:100%;border-collapse:collapse;font-size:13px">
                                 <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;width:35%;border:1px solid #e5e7eb">المؤسسة المشرفة</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.institutionName}</td></tr>
@@ -2196,7 +2201,7 @@ export function AdminDashboard({
                                 <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">رقم الهاتف</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.phone}</td></tr>
                                 <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">تاريخ الموافقة</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.reviewDate ? new Date(p.reviewDate).toLocaleDateString("ar-DZ") : "-"}</td></tr>
                               </table>
-                            </div >
+                            </div>
   `).join("")
                           const printWin = window.open("", "_blank", "width=900,height=700")
                           if (printWin) {
@@ -2217,7 +2222,7 @@ export function AdminDashboard({
                           setExportFormatOpen(false)
                           const approved = partnerships.filter((p) => p.status === "approved")
                           const tableRows = approved.map((p) => `
-  < h2 > ${p.associationName}</h2 >
+  <h2>${p.associationName}</h2>
                             <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%">
                               <tr style="background:#fef9f0"><td><b>المؤسسة المشرفة</b></td><td>${p.institutionName}</td></tr>
                               <tr><td><b>رئيس الجمعية</b></td><td>${p.presidentName}</td></tr>
@@ -2231,7 +2236,7 @@ export function AdminDashboard({
                               <tr><td><b>تاريخ الموافقة</b></td><td>${p.reviewDate ? new Date(p.reviewDate).toLocaleDateString("ar-DZ") : "-"}</td></tr>
                             </table><br/>
 `).join("")
-                          const html = `< html xmlns: o = "urn:schemas-microsoft-com:office:office" xmlns: w = "urn:schemas-microsoft-com:office:word" xmlns = "http://www.w3.org/TR/REC-html40" ><head><meta charset="utf-8"><title>شراكات</title><style>body{font-family:Arial;direction:rtl} table{border-collapse:collapse;width:100%} td{padding:6px 10px} h2{color:#d97706}</style></head><body><h1 style="text-align:center;color:#d97706">جمعية المنار للشباب — الشراكات المعتمدة</h1><p style="text-align:center;color:#6b7280">${new Date().toLocaleDateString("ar-DZ")}</p><hr/>${tableRows}</body></html > `
+                          const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>شراكات</title><style>body{font-family:Arial;direction:rtl} table{border-collapse:collapse;width:100%} td{padding:6px 10px} h2{color:#d97706}</style></head><body><h1 style="text-align:center;color:#d97706">جمعية المنار للشباب — الشراكات المعتمدة</h1><p style="text-align:center;color:#6b7280">${new Date().toLocaleDateString("ar-DZ")}</p><hr/>${tableRows}</body></html>`
                           const blob = new Blob(["\ufeff" + html], { type: "application/msword" })
                           const url = URL.createObjectURL(blob)
                           const a = document.createElement("a")
@@ -3784,37 +3789,17 @@ export function AdminDashboard({
                 إعدادات الحساب الإداري
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              <div className="max-w-md space-y-4" dir="rtl">
-                <div className="space-y-2">
-                  <Label htmlFor="admin-username">اسم المستخدم</Label>
-                  <Input
-                    id="admin-username"
-                    value={adminSettings.username}
-                    onChange={(e) => setAdminSettings({ ...adminSettings, username: e.target.value })}
-                  />
+            <CardContent className="p-6 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mb-4">
+                  <Settings className="w-8 h-8 text-amber-600" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="admin-email">البريد الإلكتروني</Label>
-                  <Input
-                    id="admin-email"
-                    type="email"
-                    value={adminSettings.email}
-                    onChange={(e) => setAdminSettings({ ...adminSettings, email: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="admin-password">كلمة المرور</Label>
-                  <Input
-                    id="admin-password"
-                    type="text"
-                    value={adminSettings.password}
-                    onChange={(e) => setAdminSettings({ ...adminSettings, password: e.target.value })}
-                  />
-                </div>
-                <Button onClick={handleSaveSettings} className="w-full mt-4 bg-amber-600 hover:bg-amber-700">
-                  <Check className="ml-2 h-4 w-4" />
-                  حفظ الإعدادات
+                <h3 className="text-xl font-bold">تم نقل الإعدادات</h3>
+                <p className="text-muted-foreground max-w-md">
+                  تتم الآن إدارة حسابات المسؤولين وإعدادات الوصول من خلال لوحة تحكم Supabase مباشرة لضمان أقصى درجات الأمان.
+                </p>
+                <Button variant="outline" onClick={() => window.open('https://app.supabase.com', '_blank')}>
+                  الانتقال إلى Supabase
                 </Button>
               </div>
             </CardContent>

@@ -1,5 +1,5 @@
 "use client"
-import { fetchAllData } from "../app/api/api";
+import { fetchNewsData, fetchNewsContent } from "../app/api/api";
 import { News } from "../app/api/type";
 import { useState, useEffect, useRef } from "react"
 import { Card } from "@/components/ui/card"
@@ -55,17 +55,32 @@ const bgColorOptions = [
 
 const iconOptions = [Megaphone, Users, Star, Bell, Trophy];
 
-// دوال للحصول على قيم عشوائية
-const getRandomColor = () => colorOptions[Math.floor(Math.random() * colorOptions.length)];
-const getRandomBgColor = () => bgColorOptions[Math.floor(Math.random() * bgColorOptions.length)];
-const getRandomIcon = () => iconOptions[Math.floor(Math.random() * iconOptions.length)];
+// دوال حتمية بدلاً من العشوائية للحفاظ على استقرار الواجهة (Issue 2)
+// نضيف دعم للـ strings في حال كان الـ id من نوع UUID
+const getDeterministicIndex = (id: any, length: number) => {
+  if (typeof id === 'number' && !isNaN(id)) {
+    return Math.abs(id) % length;
+  }
+  if (typeof id === 'string') {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return Math.abs(hash) % length;
+  }
+  return 0; // fallback العودة لرقم ثابت في حال لم يكن id متوفرا
+};
 
-// دالة لتوليد خصائص عشوائية للخبر
+const getDeterministicColor = (id: any) => colorOptions[getDeterministicIndex(id, colorOptions.length)];
+const getDeterministicBgColor = (id: any) => bgColorOptions[getDeterministicIndex(id, bgColorOptions.length)];
+const getDeterministicIcon = (id: any) => iconOptions[getDeterministicIndex(id, iconOptions.length)];
+
+// دالة لتوليد خصائص مستقرة للخبر
 const generateRandomProps = (newsItem: News) => ({
   ...newsItem,
-  randomColor: getRandomColor(),
-  randomBgColor: getRandomBgColor(),
-  randomIcon: getRandomIcon()
+  randomColor: getDeterministicColor(newsItem.id),
+  randomBgColor: getDeterministicBgColor(newsItem.id),
+  randomIcon: getDeterministicIcon(newsItem.id)
 });
 
 // نوع محدث للأخبار مع الخصائص العشوائية
@@ -75,15 +90,22 @@ type NewsWithRandomProps = News & {
   randomIcon: React.ComponentType<{ className?: string }>;
 };
 
-export function NewsPage() {
+interface NewsPageProps {
+  initialNews?: News[];
+}
+
+export function NewsPage({ initialNews }: NewsPageProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   // حالات البيانات من API
-  const [news, setNews] = useState<NewsWithRandomProps[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [news, setNews] = useState<NewsWithRandomProps[]>(
+    initialNews ? initialNews.map(n => generateRandomProps(n)) : []
+  );
+  const [isLoading, setIsLoading] = useState(!initialNews || initialNews.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [isContentLoading, setIsContentLoading] = useState(false);
 
   // حالات واجهة المستخدم
   const [selectedArticle, setSelectedArticle] = useState<NewsWithRandomProps | null>(null)
@@ -110,14 +132,18 @@ export function NewsPage() {
   // جلب البيانات من API
   useEffect(() => {
     const loadNews = async () => {
+      if (initialNews && initialNews.length > 0) {
+        setMounted(true);
+        return; // تجاوز الجلب من العميل لأن البيانات موجودة بالفعل من الخادم
+      }
       try {
         setIsLoading(true);
         setError(null);
-        const data = await fetchAllData();
+        const data = await fetchNewsData();
 
-        if (data && data.news && Array.isArray(data.news)) {
+        if (data && Array.isArray(data)) {
           // إضافة الخصائص العشوائية لكل خبر
-          const newsWithRandomProps = data.news.map(newsItem => generateRandomProps(newsItem));
+          const newsWithRandomProps = data.map(newsItem => generateRandomProps(newsItem));
           setNews(newsWithRandomProps);
         } else {
           throw new Error('البيانات المستلمة غير صحيحة');
@@ -214,6 +240,21 @@ export function NewsPage() {
     setDisplayedRegularNews(REGULAR_NEWS_PER_LOAD);
   }, [searchTerm, selectedCategory]);
 
+  const handleArticleClick = async (article: NewsWithRandomProps) => {
+    setSelectedArticle(article)
+    if (!article.content) {
+      setIsContentLoading(true)
+      try {
+        const content = await fetchNewsContent(article.id)
+        setSelectedArticle(prev => prev?.id === article.id ? { ...prev, content } : prev)
+      } catch (e) {
+        console.error("Failed to fetch news content", e)
+      } finally {
+        setIsContentLoading(false)
+      }
+    }
+  }
+
   if (!mounted) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -298,7 +339,7 @@ export function NewsPage() {
                   key={article.id}
                   className="overflow-hidden cursor-pointer transition-all duration-500 hover:scale-105 hover:shadow-2xl group animate-fade-in"
                   style={{ animationDelay: `${index * 0.1}s` }}
-                  onClick={() => setSelectedArticle(article)}
+                  onClick={() => handleArticleClick(article)}
                 >
                   <div className="relative">
                     <img
@@ -361,7 +402,7 @@ export function NewsPage() {
                   key={article.id}
                   className="overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer animate-fade-in"
                   style={{ animationDelay: `${index * 0.05}s` }}
-                  onClick={() => setSelectedArticle(article)}
+                  onClick={() => handleArticleClick(article)}
                 >
                   <div className="flex flex-col md:flex-row">
                     <img
@@ -486,12 +527,20 @@ export function NewsPage() {
                   className="w-full h-64 object-cover rounded-lg"
                 />
 
-                <div className="prose prose-lg max-w-none text-right" dir="rtl">
-                  {selectedArticle.content?.split("\n").map((paragraph, index) => (
-                    <p key={index} className="mb-4 leading-relaxed text-foreground">
-                      {paragraph}
-                    </p>
-                  )) || <p>لا يوجد محتوى متاح</p>}
+                <div className="prose prose-lg max-w-none text-right min-h-[100px]" dir="rtl">
+                  {isContentLoading ? (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  ) : selectedArticle.content ? (
+                    selectedArticle.content.split("\n").map((paragraph, index) => (
+                      <p key={index} className="mb-4 leading-relaxed text-foreground">
+                        {paragraph}
+                      </p>
+                    ))
+                  ) : (
+                    <p>لا يوجد محتوى متاح</p>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between pt-6 border-t border-border">

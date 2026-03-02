@@ -2,6 +2,8 @@
 
 import { fetchAllData } from "../app/api/api";
 import { Activity } from "../app/api/type";
+import type { AssociationSession } from "@/types/auth"
+import { registerWithParticipants } from "@/services/RegistrationService"
 import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card } from "@/components/ui/card"
@@ -29,7 +31,11 @@ const filterCategories = [
 // حالة تحديد شكل البطاقة بناءً على حصة التحميل
 const CARDS_PER_LOAD = 9
 
-export function TreasureMapActivities() {
+interface Props {
+  session?: AssociationSession | null;
+}
+
+export function TreasureMapActivities({ session }: Props = {}) {
   const { toast } = useToast()
   const searchParams = useSearchParams()
   const [activities, setActivities] = useState<Activity[]>([])
@@ -50,14 +56,26 @@ export function TreasureMapActivities() {
   const loadMoreRef = useRef<HTMLDivElement>(null)
 
   // تسجيل الجمعية
-  const [isLoggedIn] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [registeredActivityIds, setRegisteredActivityIds] = useState<Set<number>>(new Set())
   const [showRegisterDialog, setShowRegisterDialog] = useState(false)
   const [registeringActivity, setRegisteringActivity] = useState<Activity | null>(null)
   const [regFormData, setRegFormData] = useState({ assocName: "", email: "", phone: "" })
   const [regSuccess, setRegSuccess] = useState(false)
-  const [participantsList, setParticipantsList] = useState<{ id: string; name: string; age: string; category: string }[]>([])
-  const [currentParticipant, setCurrentParticipant] = useState({ name: "", age: "", category: "" })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [participantsList, setParticipantsList] = useState<{ id: string; name: string; birthdate: string; category: string }[]>([])
+  const [currentParticipant, setCurrentParticipant] = useState({ name: "", birthdate: "", category: "" })
+
+  useEffect(() => {
+    if (session) {
+      setIsLoggedIn(true)
+      setRegFormData(prev => ({
+        ...prev,
+        assocName: session.associationName,
+        email: session.email
+      }))
+    }
+  }, [session])
 
   // جلب البيانات
   useEffect(() => {
@@ -583,10 +601,10 @@ export function TreasureMapActivities() {
 
                   {selectedActivity.activityTemplate && selectedActivity.activityTemplate !== "announcement" && (
                     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium w-fit ${selectedActivity.activityTemplate === "announcement_reg"
-                        ? "bg-blue-50 text-blue-700 border border-blue-200"
-                        : selectedActivity.activityTemplate === "announcement_reg_participants"
-                          ? "bg-purple-50 text-purple-700 border border-purple-200"
-                          : "bg-orange-50 text-orange-700 border border-orange-200"
+                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : selectedActivity.activityTemplate === "announcement_reg_participants"
+                        ? "bg-purple-50 text-purple-700 border border-purple-200"
+                        : "bg-orange-50 text-orange-700 border border-orange-200"
                       }`}>
                       <Users className="w-4 h-4" />
                       {selectedActivity.activityTemplate === "announcement_reg" && "التسجيل متاح للجمعيات"}
@@ -627,9 +645,13 @@ export function TreasureMapActivities() {
                             className="w-full bg-amber-600 hover:bg-amber-700 text-white"
                             onClick={() => {
                               setRegisteringActivity(selectedActivity)
-                              setRegFormData({ assocName: "", email: "", phone: "" })
+                              if (session) {
+                                setRegFormData({ assocName: session.associationName, email: session.email, phone: "" })
+                              } else {
+                                setRegFormData({ assocName: "", email: "", phone: "" })
+                              }
                               setParticipantsList([])
-                              setCurrentParticipant({ name: "", age: "", category: "" })
+                              setCurrentParticipant({ name: "", birthdate: "", category: "" })
                               setRegSuccess(false)
                               setShowRegisterDialog(true)
                             }}
@@ -673,33 +695,8 @@ export function TreasureMapActivities() {
             </div>
           ) : (
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto px-1">
-              <div className="space-y-2">
-                <Label>اسم الجمعية</Label>
-                <input
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                  placeholder="اسم جمعيتك"
-                  value={regFormData.assocName}
-                  onChange={(e) => setRegFormData({ ...regFormData, assocName: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>البريد الإلكتروني</Label>
-                <input
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                  placeholder="email@example.com"
-                  type="email"
-                  value={regFormData.email}
-                  onChange={(e) => setRegFormData({ ...regFormData, email: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>رقم الهاتف</Label>
-                <input
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                  placeholder="0550000000"
-                  value={regFormData.phone}
-                  onChange={(e) => setRegFormData({ ...regFormData, phone: e.target.value })}
-                />
+              <div className="bg-amber-50 rounded-lg p-3 border border-amber-200 text-amber-800 text-sm">
+                سيتم إرسال طلب التسجيل باسم جمعيتكم المعتمدة: <strong className="font-bold">{regFormData.assocName}</strong>
               </div>
 
               {registeringActivity &&
@@ -716,7 +713,7 @@ export function TreasureMapActivities() {
                           <div key={p.id} className="flex items-center justify-between bg-muted p-2 rounded-lg text-sm">
                             <div className="flex gap-3">
                               <span className="font-medium">{p.name}</span>
-                              <span className="text-muted-foreground">العمر: {p.age}</span>
+                              <span className="text-muted-foreground">تاريخ الميلاد: {p.birthdate}</span>
                               {p.category && (
                                 <span className="text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full text-xs">
                                   {p.category}
@@ -749,14 +746,13 @@ export function TreasureMapActivities() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs">العمر</Label>
+                          <Label className="text-xs">تاريخ الميلاد</Label>
                           <input
                             className="w-full border rounded-md px-2 py-1.5 text-sm"
-                            placeholder="العمر"
-                            type="number"
-                            value={currentParticipant.age}
+                            type="date"
+                            value={currentParticipant.birthdate}
                             onChange={(e) =>
-                              setCurrentParticipant({ ...currentParticipant, age: e.target.value })
+                              setCurrentParticipant({ ...currentParticipant, birthdate: e.target.value })
                             }
                           />
                         </div>
@@ -785,7 +781,15 @@ export function TreasureMapActivities() {
                         size="sm"
                         className="w-full"
                         onClick={() => {
-                          if (currentParticipant.name && currentParticipant.age) {
+                          if (currentParticipant.name && currentParticipant.birthdate) {
+                            if (registeringActivity.participants && participantsList.length >= registeringActivity.participants) {
+                              toast({
+                                title: "الحد الأقصى",
+                                description: `لقد وصلت للحد الأقصى المسموح به للمشاركين (${registeringActivity.participants})`,
+                                variant: "destructive",
+                              })
+                              return
+                            }
                             if (
                               registeringActivity.activityTemplate === "special" &&
                               !currentParticipant.category
@@ -801,11 +805,11 @@ export function TreasureMapActivities() {
                               ...participantsList,
                               { ...currentParticipant, id: Date.now().toString() },
                             ])
-                            setCurrentParticipant({ name: "", age: "", category: "" })
+                            setCurrentParticipant({ name: "", birthdate: "", category: "" })
                           } else {
                             toast({
                               title: "معلومات ناقصة",
-                              description: "يرجى إدخال الاسم والعمر",
+                              description: "يرجى إدخال الاسم وتاريخ الميلاد",
                               variant: "destructive",
                             })
                           }
@@ -824,8 +828,13 @@ export function TreasureMapActivities() {
                 </Button>
                 <Button
                   className="flex-1 bg-amber-600 hover:bg-amber-700"
-                  onClick={() => {
-                    if (regFormData.assocName && regFormData.email && registeringActivity) {
+                  disabled={isSubmitting}
+                  onClick={async () => {
+                    if (!session?.associationId) {
+                      toast({ title: "خطأ", description: "جلسة المستخدم مفقودة", variant: "destructive" })
+                      return
+                    }
+                    if (registeringActivity) {
                       if (
                         (registeringActivity.activityTemplate === "announcement_reg_participants" ||
                           registeringActivity.activityTemplate === "special") &&
@@ -838,18 +847,31 @@ export function TreasureMapActivities() {
                         })
                         return
                       }
-                      setRegisteredActivityIds((prev) => new Set([...prev, registeringActivity.id]))
-                      setRegSuccess(true)
-                    } else {
-                      toast({
-                        title: "معلومات ناقصة",
-                        description: "يرجى تعبئة جميع معلومات الجمعية",
-                        variant: "destructive",
-                      })
+
+                      setIsSubmitting(true)
+                      try {
+                        await registerWithParticipants(
+                          {
+                            activity_id: registeringActivity.id.toString(),
+                            participants: participantsList.length > 0 ? participantsList : undefined
+                          },
+                          session.associationId
+                        )
+                        setRegisteredActivityIds((prev) => new Set([...prev, registeringActivity.id]))
+                        setRegSuccess(true)
+                      } catch (err: any) {
+                        toast({
+                          title: "خطأ في التسجيل",
+                          description: err.message || "حدث خطأ غير متوقع",
+                          variant: "destructive",
+                        })
+                      } finally {
+                        setIsSubmitting(false)
+                      }
                     }
                   }}
                 >
-                  إرسال طلب التسجيل
+                  {isSubmitting ? "جاري الإرسال..." : "إرسال طلب التسجيل"}
                 </Button>
               </div>
             </div>

@@ -47,7 +47,7 @@ export interface ActivityParticipant {
   id: string
   registrationId: string
   name: string
-  age: number
+  birthdate: string
   category?: string   // e.g. "U12", "U16", "Senior"
 }
 

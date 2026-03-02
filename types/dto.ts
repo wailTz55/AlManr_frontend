@@ -13,7 +13,13 @@ export type AdminLoginDTO = z.infer<typeof AdminLoginSchema>
 export const RegisterAssociationSchema = z.object({
     name: z.string().min(3, "اسم الجمعية مطلوب (3 أحرف على الأقل)"),
     email: z.string().email("البريد الإلكتروني غير صالح"),
-    password: z.string().min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل"),
+    password: z
+        .string()
+        .min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل")
+        .regex(/[A-Z]/, "يجب أن تحتوي على حرف كبير واحد على الأقل")
+        .regex(/[a-z]/, "يجب أن تحتوي على حرف صغير واحد على الأقل")
+        .regex(/[0-9]/, "يجب أن تحتوي على رقم واحد على الأقل")
+        .regex(/[\W_]/, "يجب أن تحتوي على رمز خاص واحد على الأقل"),
     phone: z.string().optional(),
     address: z.string().optional(),
     city: z.string().optional(),
@@ -95,13 +101,24 @@ export const CreateRegistrationSchema = z.object({
 export type CreateRegistrationDTO = z.infer<typeof CreateRegistrationSchema>
 
 export const AddParticipantSchema = z.object({
-    registration_id: z.string().uuid(),
+    registration_id: z.string().uuid().optional(),
     name: z.string().min(2, "الاسم مطلوب"),
-    age: z.number().int().min(1).max(120).optional(),
+    birthdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ ميلاد غير صالح").optional(),
     category: z.string().optional(),
     notes: z.string().optional(),
 })
 export type AddParticipantDTO = z.infer<typeof AddParticipantSchema>
+
+export const RegisterWithParticipantsSchema = z.object({
+    activity_id: z.string(), // Allowing string for parsing, will cast to int/uuid depending on DB
+    notes: z.string().optional(),
+    participants: z.array(z.object({
+        name: z.string().min(2, "الاسم مطلوب"),
+        birthdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ ميلاد غير صالح").optional(),
+        category: z.string().optional(),
+    })).optional(),
+})
+export type RegisterWithParticipantsDTO = z.infer<typeof RegisterWithParticipantsSchema>
 
 export const UpdateRegistrationStatusSchema = z.object({
     id: z.string().uuid(),

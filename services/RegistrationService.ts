@@ -1,7 +1,7 @@
 "use server"
 
 import { getServiceRoleClient } from "@/lib/supabase/admin"
-import { CreateRegistrationSchema, AddParticipantSchema, UpdateRegistrationStatusSchema } from "@/types/dto"
+import { CreateRegistrationSchema, AddParticipantSchema, UpdateRegistrationStatusSchema, RegisterWithParticipantsSchema } from "@/types/dto"
 
 // ============================================================
 // Register for Activity (association)
@@ -19,11 +19,16 @@ export async function registerForActivity(
     // Check activity allows registration
     const { data: activity } = await db
         .from("activities")
-        .select("allow_association_registration, max_associations")
+        .select("allow_association_registration, max_associations, template")
         .eq("id", activityId)
         .single()
 
-    if (!activity?.allow_association_registration) {
+    if (!activity) {
+        throw new Error("النشاط غير موجود")
+    }
+
+    const isTemplateReg = ["announcement_reg", "announcement_reg_participants", "special"].includes(activity.template || "")
+    if (!activity.allow_association_registration && !isTemplateReg) {
         throw new Error("هذا النشاط لا يقبل التسجيل")
     }
 
@@ -69,7 +74,7 @@ export async function getRegistrationsForActivity(activityId: string) {
         .select(`
       id, status, notes, rejection_reason, created_at, updated_at,
       associations (id, name, email, phone, wilaya, city),
-      activity_participants (id, name, age, category, notes)
+      activity_participants (id, name, birthdate, category, notes)
     `)
         .eq("activity_id", activityId)
         .order("created_at", { ascending: false })
@@ -89,7 +94,7 @@ export async function getAllRegistrations() {
       id, status, notes, rejection_reason, created_at, updated_at,
       associations (id, name, email, phone),
       activities (id, title, date),
-      activity_participants (id, name, age, category)
+      activity_participants (id, name, birthdate, category)
     `)
         .order("created_at", { ascending: false })
 
@@ -107,7 +112,7 @@ export async function getMyRegistrations(associationId: string) {
         .select(`
       id, status, notes, rejection_reason, created_at, updated_at,
       activities (id, title, date, location),
-      activity_participants (id, name, age, category)
+      activity_participants (id, name, birthdate, category)
     `)
         .eq("association_id", associationId)
         .order("created_at", { ascending: false })
@@ -145,7 +150,7 @@ export async function updateRegistrationStatus(
 // Add Participants to Registration (association)
 // ============================================================
 export async function addParticipants(
-    participants: Array<{ registration_id: string; name: string; age?: number; category?: string; notes?: string }>,
+    participants: Array<{ registration_id: string; name: string; birthdate?: string; category?: string; notes?: string }>,
     associationId: string
 ) {
     const db = getServiceRoleClient()
@@ -172,8 +177,101 @@ export async function addParticipants(
     const { data, error } = await db
         .from("activity_participants")
         .insert(participants)
-        .select("id, name, age, category")
+        .select("id, name, birthdate, category")
 
     if (error) throw new Error("[RegistrationService] Failed to add participants: " + error.message)
     return data
+}
+
+// ============================================================
+// Register for Activity with Participants (Atomic)
+// ============================================================
+export async function registerWithParticipants(
+    input: { activity_id: string; notes?: string; participants?: any[] },
+    associationId: string
+) {
+    const parsed = RegisterWithParticipantsSchema.safeParse(input)
+    if (!parsed.success) throw new Error(parsed.error.errors[0].message)
+
+    const db = getServiceRoleClient()
+
+    // 1. Check activity limits
+    const { data: activity } = await db
+        .from("activities")
+        .select("allow_association_registration, max_associations, max_participants, template")
+        .eq("id", parsed.data.activity_id)
+        .single()
+
+    if (!activity) {
+        throw new Error("النشاط غير موجود")
+    }
+
+    const isTemplateReg = ["announcement_reg", "announcement_reg_participants", "special"].includes(activity.template || "")
+    if (!activity.allow_association_registration && !isTemplateReg) {
+        throw new Error("هذا النشاط لا يقبل التسجيل")
+    }
+
+    if (activity.max_associations) {
+        const { count } = await db
+            .from("activity_registrations")
+            .select("id", { count: "exact" })
+            .eq("activity_id", parsed.data.activity_id)
+            .in("status", ["pending", "approved"])
+
+        if ((count ?? 0) >= activity.max_associations) {
+            throw new Error("اكتمل عدد الجمعيات المسجلة في هذا النشاط")
+        }
+    }
+
+    if (activity.max_participants && parsed.data.participants) {
+        if (parsed.data.participants.length > activity.max_participants) {
+            throw new Error(`الحد الأقصى للمشاركين هو ${activity.max_participants} مشارك(ين)`)
+        }
+    }
+
+    // 2. Insert Registration
+    const { data: regData, error: regError } = await db
+        .from("activity_registrations")
+        .insert({
+            activity_id: parsed.data.activity_id,
+            association_id: associationId,
+            notes: parsed.data.notes,
+            status: "pending",
+        })
+        .select("id")
+        .single()
+
+    if (regError) {
+        if (regError.code === "23505") throw new Error("لقد قمت بالتسجيل في هذا النشاط مسبقاً")
+        throw new Error("[RegistrationService] Registration failed: " + regError.message)
+    }
+
+    // 3. Insert Participants if provided
+    if (parsed.data.participants && parsed.data.participants.length > 0) {
+        // Map participants to the generated registration_id
+        const participantsToInsert = parsed.data.participants.map(p => ({
+            registration_id: regData.id,
+            name: p.name,
+            birthdate: p.birthdate,
+            category: p.category,
+        }))
+
+        // Verify with schema
+        for (const p of participantsToInsert) {
+            const partParsed = AddParticipantSchema.safeParse(p)
+            if (!partParsed.success) throw new Error(partParsed.error.errors[0].message)
+        }
+
+        const { error: partError } = await db
+            .from("activity_participants")
+            .insert(participantsToInsert)
+
+        if (partError) {
+            // Manual rollback
+            await db.from("activity_registrations").delete().eq("id", regData.id)
+            throw new Error("[RegistrationService] Failed to add participants: " + partError.message)
+        }
+    }
+
+    return true
 }

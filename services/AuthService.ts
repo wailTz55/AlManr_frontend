@@ -21,13 +21,15 @@ export async function associationRegister(
     const adminDb = getServiceRoleClient()
 
     try {
-        // 1. Create auth user
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        // 1. Create auth user using Admin API to bypass email rate limits
+        // We set email_confirm: true so they can login immediately once approved
+        const { data: authData, error: authError } = await adminDb.auth.admin.createUser({
             email,
             password,
-            options: {
-                emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback`,
-            },
+            email_confirm: true,
+            user_metadata: {
+                name,
+            }
         })
 
         if (authError) {
@@ -65,6 +67,16 @@ export async function associationRegister(
             return { success: false, error: "فشل إنشاء ملف الجمعية", code: "PROFILE_ERROR" }
         }
 
+        // 3. Auto-login the user so they don't have to manually log in immediately after registration
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        })
+        if (signInError) {
+            console.error("[AuthService] Auto login after registration failed:", signInError)
+            // We don't fail the registration if auto-login fails, they can just manually log in.
+        }
+
         return {
             success: true,
             data: {
@@ -97,15 +109,43 @@ export async function associationLogin(
     const adminDb = getServiceRoleClient()
 
     try {
+        // --- RATE LIMITING CHECK ---
+        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString()
+        const { count, error: countError } = await adminDb
+            .from("login_attempts")
+            .select("*", { count: 'exact', head: true })
+            .eq("email", email)
+            .gte("attempted_at", fifteenMinutesAgo)
+
+        if (countError) {
+            console.error("[AuthService] Rate limit count error:", countError)
+            return { success: false, error: "خطأ في التحقق من الحماية", code: "SERVER_ERROR" }
+        }
+
+        if (count && count >= 5) {
+            return {
+                success: false,
+                error: "لقد تجاوزت عدد محاولات الدخول المسموح بها، يرجى الانتظار 15 دقيقة",
+                code: "RATE_LIMITED"
+            }
+        }
+        // ---------------------------
+
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
         if (error) {
+            // Log the failed attempt
+            await adminDb.from("login_attempts").insert({ email })
             return { success: false, error: "البريد الإلكتروني أو كلمة المرور غير صحيحة", code: "INVALID_CREDENTIALS" }
         }
 
         if (!data.user) {
             return { success: false, error: "فشل تسجيل الدخول", code: "AUTH_ERROR" }
         }
+
+        // --- CLEAR RATE LIMITS ON SUCCESS ---
+        await adminDb.from("login_attempts").delete().eq("email", email)
+        // ------------------------------------
 
         // Get association profile
         const { data: assoc } = await adminDb
