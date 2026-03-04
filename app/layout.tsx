@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { Amiri, Cairo } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
-
+import { SupabaseAuthProvider } from "@/components/supabase-auth-provider"
 const amiri = Amiri({
   subsets: ["arabic"],
   weight: ["400", "700"],
@@ -41,7 +41,9 @@ html {
         `}</style>
       </head>
       <body className="font-sans antialiased">
-        {children}
+        <SupabaseAuthProvider>
+          {children}
+        </SupabaseAuthProvider>
         <Toaster />
       </body>
     </html>

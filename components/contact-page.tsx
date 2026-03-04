@@ -209,11 +209,17 @@ export function ContactPage() {
     formDataToSend.append("contactReason", formData.contactReason)
 
     try {
-      /* API Disconnected for testing - simulate a success response */
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const { createContactMessageAction } = await import("@/app/actions/contact")
+      await createContactMessageAction({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        subject: formData.subject,
+        message: formData.message,
+        contactReason: formData.contactReason,
+      })
 
       setSuccessMessage("تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.")
-      console.log("Simulated server request with formData:", Object.fromEntries(formDataToSend))
 
       // Reset form after successful submission
       setFormData({
@@ -437,8 +443,8 @@ export function ContactPage() {
                   <Button
                     onClick={handleSubmit}
                     className={`w-full transition-all duration-300 ${!isFormValid && !isSubmitting
-                        ? 'opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400'
-                        : 'opacity-100 cursor-pointer'
+                      ? 'opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400'
+                      : 'opacity-100 cursor-pointer'
                       }`}
                     disabled={!isFormValid || isSubmitting}
                   >

@@ -11,11 +11,13 @@ import { Upload, Star, Users, Calendar, Award, ArrowRight, CheckCircle, AlertTri
 import { registerAssociationAction, loginAssociationAction, logoutAssociationAction } from "@/app/register/actions"
 import { useToast } from "@/hooks/use-toast"
 
-export function RegistrationPage() {
+import type { AssociationSession } from "@/types/auth"
+
+export function RegistrationPage({ initialSession = null }: { initialSession?: AssociationSession | null }) {
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("register")
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [loggedInName, setLoggedInName] = useState("")
+  const [isLoggedIn, setIsLoggedIn] = useState(!!initialSession)
+  const [loggedInName, setLoggedInName] = useState(initialSession?.associationName || "")
   const [showPassword, setShowPassword] = useState(false)
   const [showRegPassword, setShowRegPassword] = useState(false)
   const [isPendingReg, startRegTransition] = useTransition()
@@ -51,16 +53,24 @@ export function RegistrationPage() {
   const [loginData, setLoginData] = useState({ email: "", password: "" })
   const [loginError, setLoginError] = useState("")
 
-  // Check if a Supabase session exists (stored by SSR cookies) via localStorage fallback
+  // Sync with localStorage across tabs if needed, but rely on SSR for initial render to avoid flicker
   useEffect(() => {
-    const session = localStorage.getItem("almanar_assoc_session")
-    if (session) {
-      try {
-        const parsed = JSON.parse(session)
-        setIsLoggedIn(true)
-        setLoggedInName(parsed.name || "")
-      } catch { }
+    const handleStorageChange = () => {
+      const session = localStorage.getItem("almanar_assoc_session")
+      if (session) {
+        try {
+          const parsed = JSON.parse(session)
+          setIsLoggedIn(true)
+          setLoggedInName(parsed.name || "")
+        } catch { }
+      } else {
+        setIsLoggedIn(false)
+        setLoggedInName("")
+      }
     }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   const isFormValid = useMemo(() => {

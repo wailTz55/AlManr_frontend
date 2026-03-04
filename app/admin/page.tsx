@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic"
 export default async function AdminPage() {
   const db = getServiceRoleClient()
 
-  const [rawActivities, rawNews, rawAssociations, rawRegistrations] = await Promise.all([
+  const [rawActivities, rawNews, rawAssociations, rawRegistrations, rawMessages] = await Promise.all([
     db.from("activities")
       .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya")
       .order("date", { ascending: false })
@@ -23,7 +23,11 @@ export default async function AdminPage() {
     getAllRegistrations().catch(err => {
       console.error("Failed to fetch registrations", err)
       return []
-    })
+    }),
+    db.from("contact_messages")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then(r => r.data ?? [])
   ])
 
   const activities = rawActivities.map((a: any) => ({
@@ -81,12 +85,26 @@ export default async function AdminPage() {
     }))
   }))
 
+  const messages = rawMessages.map((m: any) => ({
+    id: m.id,
+    name: m.name,
+    email: m.email || "غير محدد",
+    phone: m.phone,
+    subject: m.subject,
+    message: m.message,
+    department: m.contactReason,
+    date: m.created_at,
+    status: m.status,
+    priority: "medium"
+  }))
+
   return (
     <AdminDashboard
       initialActivities={activities as any}
       initialNews={news as any}
       initialAssociations={associations as any}
       initialRegistrations={registrations as any}
+      initialMessages={messages as any}
     />
   )
 }

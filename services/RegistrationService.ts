@@ -1,7 +1,33 @@
 "use server"
 
 import { getServiceRoleClient } from "@/lib/supabase/admin"
+import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { CreateRegistrationSchema, AddParticipantSchema, UpdateRegistrationStatusSchema, RegisterWithParticipantsSchema } from "@/types/dto"
+
+// ============================================================
+// Verify Association Session
+// ============================================================
+async function verifyAssociationSession(associationId: string): Promise<boolean> {
+    try {
+        const supabase = await createSupabaseServerClient()
+        const { data: { user }, error } = await supabase.auth.getUser()
+
+        if (error || !user) return false
+
+        // Verify the association exists and belongs to this user
+        // Using standard supabase client relies on RLS (Row Level Security)
+        const { data: assoc } = await supabase
+            .from("associations")
+            .select("id, user_id")
+            .eq("id", associationId)
+            .eq("user_id", user.id)
+            .single()
+
+        return !!assoc
+    } catch {
+        return false
+    }
+}
 
 // ============================================================
 // Register for Activity (association)
@@ -11,13 +37,18 @@ export async function registerForActivity(
     associationId: string,
     notes?: string
 ) {
+    // Verify session first
+    const isSessionValid = await verifyAssociationSession(associationId)
+    if (!isSessionValid) {
+        throw new Error("جلسة المستخدم منتهية الصلاحية. يرجى تسجيل الدخول مجدداً")
+    }
     const parsed = CreateRegistrationSchema.safeParse({ activity_id: activityId, notes })
     if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 
-    const db = getServiceRoleClient()
+    const supabase = await createSupabaseServerClient()
 
     // Check activity allows registration
-    const { data: activity } = await db
+    const { data: activity } = await supabase
         .from("activities")
         .select("allow_association_registration, max_associations, template")
         .eq("id", activityId)
@@ -34,7 +65,7 @@ export async function registerForActivity(
 
     // Check max associations limit
     if (activity.max_associations) {
-        const { count } = await db
+        const { count } = await supabase
             .from("activity_registrations")
             .select("id", { count: "exact" })
             .eq("activity_id", activityId)
@@ -45,7 +76,7 @@ export async function registerForActivity(
         }
     }
 
-    const { data, error } = await db
+    const { data, error } = await supabase
         .from("activity_registrations")
         .insert({
             activity_id: activityId,
@@ -106,8 +137,8 @@ export async function getAllRegistrations() {
 // Get My Registrations (association)
 // ============================================================
 export async function getMyRegistrations(associationId: string) {
-    const db = getServiceRoleClient()
-    const { data, error } = await db
+    const supabase = await createSupabaseServerClient()
+    const { data, error } = await supabase
         .from("activity_registrations")
         .select(`
       id, status, notes, rejection_reason, created_at, updated_at,
@@ -153,11 +184,17 @@ export async function addParticipants(
     participants: Array<{ registration_id: string; name: string; birthdate?: string; category?: string; notes?: string }>,
     associationId: string
 ) {
-    const db = getServiceRoleClient()
+    // Verify session first
+    const isSessionValid = await verifyAssociationSession(associationId)
+    if (!isSessionValid) {
+        throw new Error("جلسة المستخدم منتهية الصلاحية. يرجى تسجيل الدخول مجدداً")
+    }
+
+    const supabase = await createSupabaseServerClient()
 
     // Verify all registrations belong to this association in a single bulk query
     const regIds = [...new Set(participants.map(p => p.registration_id))]
-    const { data: regs } = await db
+    const { data: regs } = await supabase
         .from("activity_registrations")
         .select("id, status")
         .in("id", regIds)
@@ -174,7 +211,7 @@ export async function addParticipants(
         if (reg.status !== "approved") throw new Error("يجب أن تكون حالة التسجيل 'مقبول' لإضافة المشاركين")
     }
 
-    const { data, error } = await db
+    const { data, error } = await supabase
         .from("activity_participants")
         .insert(participants)
         .select("id, name, birthdate, category")
@@ -190,13 +227,19 @@ export async function registerWithParticipants(
     input: { activity_id: string; notes?: string; participants?: any[] },
     associationId: string
 ) {
+    // Verify session first
+    const isSessionValid = await verifyAssociationSession(associationId)
+    if (!isSessionValid) {
+        throw new Error("جلسة المستخدم منتهية الصلاحية. يرجى تسجيل الدخول مجدداً")
+    }
+
     const parsed = RegisterWithParticipantsSchema.safeParse(input)
     if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 
-    const db = getServiceRoleClient()
+    const supabase = await createSupabaseServerClient()
 
     // 1. Check activity limits
-    const { data: activity } = await db
+    const { data: activity } = await supabase
         .from("activities")
         .select("allow_association_registration, max_associations, max_participants, template")
         .eq("id", parsed.data.activity_id)
@@ -212,7 +255,7 @@ export async function registerWithParticipants(
     }
 
     if (activity.max_associations) {
-        const { count } = await db
+        const { count } = await supabase
             .from("activity_registrations")
             .select("id", { count: "exact" })
             .eq("activity_id", parsed.data.activity_id)
@@ -230,7 +273,7 @@ export async function registerWithParticipants(
     }
 
     // 2. Insert Registration
-    const { data: regData, error: regError } = await db
+    const { data: regData, error: regError } = await supabase
         .from("activity_registrations")
         .insert({
             activity_id: parsed.data.activity_id,
@@ -262,13 +305,13 @@ export async function registerWithParticipants(
             if (!partParsed.success) throw new Error(partParsed.error.errors[0].message)
         }
 
-        const { error: partError } = await db
+        const { error: partError } = await supabase
             .from("activity_participants")
             .insert(participantsToInsert)
 
         if (partError) {
             // Manual rollback
-            await db.from("activity_registrations").delete().eq("id", regData.id)
+            await supabase.from("activity_registrations").delete().eq("id", regData.id)
             throw new Error("[RegistrationService] Failed to add participants: " + partError.message)
         }
     }

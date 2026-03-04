@@ -88,3 +88,28 @@ export async function deleteAssociationAction(id: string) {
     await verifyAdminAction()
     return deleteAssociation(id)
 }
+
+// ============================================================
+// Contact / Message Actions
+// ============================================================
+import { ContactService } from "@/services/ContactService"
+
+export async function getMessagesAction() {
+    await verifyAdminAction()
+    return ContactService.getAllContactMessages()
+}
+
+export async function replyMessageAction(id: string, replyText: string) {
+    await verifyAdminAction()
+    return ContactService.replyToContactMessage(id, replyText)
+}
+
+export async function markMessageReadAction(id: string) {
+    await verifyAdminAction()
+    return ContactService.markMessageRead(id)
+}
+
+export async function deleteMessageAction(id: string) {
+    await verifyAdminAction()
+    return ContactService.deleteContactMessage(id)
+}

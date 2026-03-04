@@ -258,12 +258,14 @@ export function AdminDashboard({
   initialActivities = [],
   initialNews = [],
   initialAssociations = [],
-  initialRegistrations = []
+  initialRegistrations = [],
+  initialMessages = []
 }: {
   initialActivities?: Activity[]
   initialNews?: NewsArticle[]
   initialAssociations?: AssociationPartnership[]
   initialRegistrations?: ActivityRegistration[]
+  initialMessages?: Message[]
 }) {
   const { toast } = useToast()
 
@@ -327,7 +329,7 @@ export function AdminDashboard({
     categories: [],
   })
 
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>(initialMessages)
 
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
   const [replyText, setReplyText] = useState("")
@@ -649,31 +651,49 @@ export function AdminDashboard({
     }
   }
 
-  const handleMarkAsRead = (messageId: string) => {
-    setMessages(messages.map((msg) => (msg.id === messageId ? { ...msg, status: "read" } : msg)))
+  const handleMarkAsRead = async (messageId: string) => {
+    try {
+      const { markMessageReadAction } = await import('@/app/admin/actions')
+      await markMessageReadAction(messageId)
+      setMessages(messages.map((msg) => (msg.id === messageId ? { ...msg, status: "read" } : msg)))
+    } catch (error) {
+      toast({ title: "خطأ", description: "تعذر تحديث حالة الرسالة", variant: "destructive" })
+    }
   }
 
   const handleDeleteMessage = (messageId: string) => {
     setMessageDeleteConfirmId(messageId)
   }
 
-  const handleDeleteMessageConfirmed = () => {
+  const handleDeleteMessageConfirmed = async () => {
     if (messageDeleteConfirmId) {
-      setMessages(messages.filter((msg) => msg.id !== messageDeleteConfirmId))
-      setMessageDeleteConfirmId(null)
+      try {
+        const { deleteMessageAction } = await import('@/app/admin/actions')
+        await deleteMessageAction(messageDeleteConfirmId)
+        setMessages(messages.filter((msg) => msg.id !== messageDeleteConfirmId))
+        setMessageDeleteConfirmId(null)
+        toast({ title: "تم الحذف", description: "تم حذف الرسالة بنجاح" })
+      } catch (error) {
+        toast({ title: "خطأ", description: "تعذر حذف الرسالة", variant: "destructive" })
+      }
     }
   }
 
-  const handleReplyMessage = (messageId: string) => {
+  const handleReplyMessage = async (messageId: string) => {
     if (replyText.trim()) {
-      setMessages(messages.map((msg) => (msg.id === messageId ? { ...msg, status: "replied" } : msg)))
-      setReplyText("")
-      setSelectedMessage(null)
-      // In a real app, this would send an email
-      toast({
-        title: "تم الإرسال",
-        description: "تم إرسال الرد بنجاح",
-      })
+      try {
+        const { replyMessageAction } = await import('@/app/admin/actions')
+        await replyMessageAction(messageId, replyText)
+        setMessages(messages.map((msg) => (msg.id === messageId ? { ...msg, status: "replied" } : msg)))
+        setReplyText("")
+        setSelectedMessage(null)
+        toast({
+          title: "تم الإرسال",
+          description: "تم إرسال الرد بنجاح",
+        })
+      } catch (error) {
+        toast({ title: "خطأ", description: "تعذر إرسال الرد", variant: "destructive" })
+      }
     }
   }
 

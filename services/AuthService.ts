@@ -193,8 +193,7 @@ export async function getAssociationSession(): Promise<AssociationSession | null
 
         if (!user) return null
 
-        const adminDb = getServiceRoleClient()
-        const { data: assoc } = await adminDb
+        const { data: assoc } = await supabase
             .from("associations")
             .select("id, name, email, status")
             .eq("user_id", user.id)
