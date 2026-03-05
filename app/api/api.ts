@@ -6,8 +6,8 @@ import type { AllDataResponse, News } from "./type"
  * Change these values to adjust how many items appear on the homepage.
  */
 export const HOMEPAGE_LIMITS = {
-    activities: 5,
-    news: 5,
+    activities: 7,
+    news: 10,
     members: 20,
 } as const
 

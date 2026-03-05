@@ -37,20 +37,6 @@ export function HeroSection() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10">
-        <div className="absolute top-20 right-20 w-32 h-32 bg-primary/20 rounded-full animate-float" />
-        <div className="absolute bottom-32 left-16 w-24 h-24 bg-secondary/20 rounded-full animate-bounce-gentle" />
-        <div
-          className="absolute top-1/2 left-1/4 w-16 h-16 bg-accent/20 rounded-full animate-float"
-          style={{ animationDelay: "1s" }}
-        />
-        <div
-          className="absolute bottom-20 right-1/3 w-20 h-20 bg-primary/15 rounded-full animate-bounce-gentle"
-          style={{ animationDelay: "2s" }}
-        />
-      </div>
-
       <div className="container mx-auto px-4 text-center relative z-10">
         <div className="max-w-4xl mx-auto">
           {/* Logo/Icon */}
@@ -73,9 +59,9 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button size="lg" 
-            className="text-lg px-8 py-4 rounded-full animate-pulse-glow !cursor-pointer"
-            onClick={() => router.push("/register")}
+            <Button size="lg"
+              className="text-lg px-8 py-4 rounded-full animate-pulse-glow !cursor-pointer"
+              onClick={() => router.push("/register")}
             >
               انضم الآن
               <ArrowLeft className="w-5 h-5 mr-2" />
@@ -110,9 +96,8 @@ export function HeroSection() {
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentSlide ? "bg-primary scale-125" : "bg-muted-foreground/30"
-                }`}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide ? "bg-primary scale-125" : "bg-muted-foreground/30"
+                  }`}
               />
             ))}
           </div>

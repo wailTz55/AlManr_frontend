@@ -183,8 +183,9 @@ export function NewsPage({ initialNews }: NewsPageProps) {
       article.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.excerpt?.toLowerCase().includes(searchTerm.toLowerCase())
 
-    // مقارنة القيم الإنجليزية مباشرة
-    const matchesCategory = selectedCategory === "all" || article.category === selectedCategory
+    // مقارنة القيم الإنجليزية مباشرة وكذلك العربية
+    const arabicCategoryName = categoryTranslation[selectedCategory as keyof typeof categoryTranslation] || selectedCategory;
+    const matchesCategory = selectedCategory === "all" || article.category === selectedCategory || article.category === arabicCategoryName;
 
     return matchesSearch && matchesCategory
   })
@@ -345,7 +346,7 @@ export function NewsPage({ initialNews }: NewsPageProps) {
                     <img
                       src={article.image && article.image.trim() !== "" && !article.image.startsWith("/") ? article.image : article.image || "/placeholder.svg"}
                       alt={article.title}
-                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
+                      className="w-full h-72 sm:h-80 md:h-96 object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <Badge className={`absolute top-4 right-4 ${article.randomBgColor} ${article.randomColor} border-0`}>
@@ -353,7 +354,7 @@ export function NewsPage({ initialNews }: NewsPageProps) {
                       {getCategoryDisplayText(article.category)}
                     </Badge>
                     <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <h3 className="text-xl font-bold mb-2 line-clamp-2">{article.title}</h3>
+                      <h3 className="text-2xl md:text-3xl font-bold mb-2 md:mb-4 line-clamp-2">{article.title}</h3>
                       <div className="flex items-center gap-4 text-sm opacity-90">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
@@ -400,18 +401,18 @@ export function NewsPage({ initialNews }: NewsPageProps) {
               return (
                 <Card
                   key={article.id}
-                  className="overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer animate-fade-in"
+                  className="overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer animate-fade-in flex flex-col h-full !pb-0 border-0"
                   style={{ animationDelay: `${index * 0.05}s` }}
                   onClick={() => handleArticleClick(article)}
                 >
-                  <div className="flex flex-col md:flex-row">
+                  <div className="flex flex-col md:flex-row h-full">
                     <img
                       src={article.image && article.image.trim() !== "" && !article.image.startsWith("/") ? article.image : article.image || "/placeholder.svg"}
                       alt={article.title}
-                      className="w-full md:w-48 h-32 md:h-auto object-cover"
+                      className="w-full md:w-64 lg:w-72 h-48 md:h-auto object-cover shrink-0"
                       loading={index < news_number_show ? "eager" : "lazy"}
                     />
-                    <div className="flex-1 p-6">
+                    <div className="flex-1 p-4 sm:p-5 flex flex-col">
                       <div className="flex items-start justify-between mb-3">
                         <Badge className={`${article.randomBgColor} ${article.randomColor} border-0`}>
                           <Icon className="w-4 h-4 ml-1" />
@@ -429,12 +430,12 @@ export function NewsPage({ initialNews }: NewsPageProps) {
                         </div>
                       </div>
 
-                      <h3 className="text-xl font-bold text-foreground mb-3 hover:text-primary transition-colors">
+                      <h3 className="text-xl font-bold text-foreground mb-3 hover:text-primary transition-colors mt-2">
                         {article.title}
                       </h3>
-                      <p className="text-muted-foreground mb-4 line-clamp-2">{article.excerpt}</p>
+                      <p className="text-muted-foreground mb-6 line-clamp-2">{article.excerpt}</p>
 
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <button className="flex items-center gap-1 hover:text-primary transition-colors">
                             <Share2 className="w-4 h-4" />
@@ -442,7 +443,7 @@ export function NewsPage({ initialNews }: NewsPageProps) {
                           </button>
                         </div>
 
-                        <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 !cursor-pointer">
+                        <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 !cursor-pointer -mr-2">
                           اقرأ المزيد
                           <ArrowLeft className="w-4 h-4 mr-1" />
                         </Button>

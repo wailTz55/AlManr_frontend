@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast"
 import {
   Calendar, MapPin, Users, Camera, Video, Award, Clock, Star,
   ChevronLeft, ChevronRight, Play, CheckCircle, Building2, X, Plus,
-  Search, Filter,
+  Search, Filter, Share
 } from "lucide-react"
 
 // فئات الفلتر
@@ -199,6 +199,35 @@ export function TreasureMapActivities({ session }: Props = {}) {
     window.history.pushState({}, "", url.toString())
   }
 
+  const handleShare = async () => {
+    if (!selectedActivity) return
+
+    const url = window.location.href
+    const shareData = {
+      title: selectedActivity.title,
+      text: selectedActivity.description || "اكتشف هذا النشاط من جمعية المنار",
+      url: url
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData)
+      } catch (err) {
+        console.error("Error sharing:", err)
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url)
+        toast({
+          title: "تم النسخ",
+          description: "تم نسخ رابط النشاط بنجاح",
+        })
+      } catch (err) {
+        console.error("Failed to copy:", err)
+      }
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "upcoming": return { label: "قادم", cls: "bg-primary text-primary-foreground" }
@@ -314,102 +343,63 @@ export function TreasureMapActivities({ session }: Props = {}) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6">
               {currentActivities.map((activity, index) => {
                 const statusBadge = getStatusBadge(activity.status)
                 const imageUrl = activity.images && activity.images[0]
                   ? activity.images[0]
                   : "/placeholder.svg"
 
+                const heights = ['h-64', 'h-80', 'h-96', 'h-72', 'h-60', 'h-88']
+                const randomHeight = heights[index % heights.length]
+
                 return (
-                  <Card
-                    key={activity.id}
-                    className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl group animate-fade-in rounded-2xl"
-                    style={{ animationDelay: `${(index % CARDS_PER_LOAD) * 0.05}s` }}
-                    onClick={() => handleActivityCardClick(activity)}
-                  >
-                    {/* صورة البطاقة */}
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={imageUrl}
-                        alt={activity.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        loading={index < CARDS_PER_LOAD ? "eager" : "lazy"}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div key={activity.id} className="break-inside-avoid mb-6">
+                    <Card
+                      className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl group animate-fade-in rounded-2xl !pb-0 border-0"
+                      style={{ animationDelay: `${(index % CARDS_PER_LOAD) * 0.05}s` }}
+                      onClick={() => handleActivityCardClick(activity)}
+                    >
+                      {/* صورة البطاقة */}
+                      <div className={`relative ${randomHeight} w-full overflow-hidden`}>
+                        <img
+                          src={imageUrl}
+                          alt={activity.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          loading={index < CARDS_PER_LOAD ? "eager" : "lazy"}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                      {/* شارة الحالة */}
-                      <Badge className={`absolute top-3 right-3 text-xs px-2 py-1 ${statusBadge.cls}`}>
-                        {statusBadge.label}
-                      </Badge>
+                        {/* شارة الحالة */}
+                        <Badge className={`absolute top-3 right-3 text-xs px-2 py-1 ${statusBadge.cls}`}>
+                          {statusBadge.label}
+                        </Badge>
 
-                      {/* أيقونات وسائط */}
-                      {(activity.images && activity.images.length > 1 || activity.videos && activity.videos.length > 0) && (
-                        <div className="absolute top-3 left-3 flex gap-1">
-                          {activity.images && activity.images.length > 1 && (
-                            <div className="bg-black/50 backdrop-blur-sm rounded-full p-1.5">
-                              <Camera className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          {activity.videos && activity.videos.length > 0 && (
-                            <div className="bg-black/50 backdrop-blur-sm rounded-full p-1.5">
-                              <Video className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* زر "اكتشف" عند التمرير */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <Button size="sm" className="text-sm !cursor-pointer animate-bounce-gentle">
-                          عرض التفاصيل
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* محتوى البطاقة */}
-                    <div className="p-5">
-                      <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                        {activity.title}
-                      </h3>
-                      {activity.description && (
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                          {activity.description}
-                        </p>
-                      )}
-
-                      {/* معلومات */}
-                      <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
-                          <span>{activity.date}</span>
-                        </div>
-                        {activity.location && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-secondary flex-shrink-0" />
-                            <span className="truncate">{activity.location}</span>
+                        {/* أيقونات وسائط */}
+                        {(activity.images && activity.images.length > 1 || activity.videos && activity.videos.length > 0) && (
+                          <div className="absolute top-3 left-3 flex gap-1">
+                            {activity.images && activity.images.length > 1 && (
+                              <div className="bg-black/50 backdrop-blur-sm rounded-full p-1.5">
+                                <Camera className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                            {activity.videos && activity.videos.length > 0 && (
+                              <div className="bg-black/50 backdrop-blur-sm rounded-full p-1.5">
+                                <Video className="w-3 h-3 text-white" />
+                              </div>
+                            )}
                           </div>
                         )}
-                        {activity.participants > 0 && (
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-accent flex-shrink-0" />
-                            <span>{activity.participants} مشارك</span>
-                          </div>
-                        )}
-                      </div>
 
-                      {/* شارة النوع */}
-                      {activity.activityTemplate && activity.activityTemplate !== "announcement" && (
-                        <div className="mt-3">
-                          <Badge variant="outline" className="text-xs">
-                            {activity.activityTemplate === "announcement_reg" && "مع تسجيل جمعيات"}
-                            {activity.activityTemplate === "announcement_reg_participants" && "مع مشاركين"}
-                            {activity.activityTemplate === "special" && "نشاط خاص"}
-                          </Badge>
+                        {/* زر "اكتشف" عند التمرير */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <Button size="sm" className="text-sm !cursor-pointer animate-bounce-gentle">
+                            عرض التفاصيل
+                          </Button>
                         </div>
-                      )}
-                    </div>
-                  </Card>
+                      </div>
+                    </Card>
+                  </div>
                 )
               })}
             </div>
@@ -451,19 +441,29 @@ export function TreasureMapActivities({ session }: Props = {}) {
             </div>
           )}
         </div>
-      </div>
+      </div >
 
       {/* Activity Detail Modal */}
-      <Dialog open={!!selectedActivity} onOpenChange={handleCloseDialog}>
+      < Dialog open={!!selectedActivity
+      } onOpenChange={handleCloseDialog} >
         <DialogContent className="w-[98vw] sm:max-w-[95vw] md:max-w-[85vw] lg:max-w-[75vw] xl:max-w-[1200px] max-h-[98vh] overflow-y-auto overflow-x-hidden px-2 sm:px-6">
           {selectedActivity && (
             <>
-              <DialogHeader className="px-1 sm:px-0">
-                <DialogTitle className="text-xl xs:text-2xl sm:text-3xl font-bold text-right break-words">
+              <DialogHeader className="px-1 sm:px-0 flex flex-row items-start justify-between gap-4 w-full pr-8">
+                <DialogTitle className="text-xl xs:text-2xl sm:text-3xl font-bold text-right break-words flex-1 leading-tight">
                   {selectedActivity.title}
                 </DialogTitle>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                  onClick={handleShare}
+                  title="مشاركة النشاط"
+                >
+                  <Share className="w-4 h-4" />
+                </Button>
               </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 px-1 sm:px-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 px-1 sm:px-0 mt-4">
                 {/* معرض الصور */}
                 <div className="space-y-4 sm:space-y-6">
                   <div className="relative aspect-video rounded-lg sm:rounded-xl overflow-hidden shadow-lg">
@@ -667,10 +667,10 @@ export function TreasureMapActivities({ session }: Props = {}) {
             </>
           )}
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       {/* نافذة التسجيل */}
-      <Dialog
+      < Dialog
         open={showRegisterDialog}
         onOpenChange={(open) => {
           if (!open) setShowRegisterDialog(false)
@@ -877,7 +877,7 @@ export function TreasureMapActivities({ session }: Props = {}) {
             </div>
           )}
         </DialogContent>
-      </Dialog>
-    </div>
+      </Dialog >
+    </div >
   )
 }

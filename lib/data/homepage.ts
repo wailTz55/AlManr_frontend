@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { HOMEPAGE_LIMITS } from "@/app/api/api"
-import type { Activity, News, Member } from "@/app/api/type"
+import type { Activity, News } from "@/app/api/type"
 
 /**
  * Server-side homepage data fetcher.
@@ -13,11 +13,10 @@ import type { Activity, News, Member } from "@/app/api/type"
 export async function fetchHomepageData(): Promise<{
     activities: Activity[]
     news: News[]
-    members: Member[]
 }> {
     const db = await createSupabaseServerClient()
 
-    const [activitiesResult, newsResult, membersResult] = await Promise.all([
+    const [activitiesResult, newsResult] = await Promise.all([
         db
             .from("activities")
             .select(
@@ -34,13 +33,6 @@ export async function fetchHomepageData(): Promise<{
             .not("published_at", "is", null)
             .order("published_at", { ascending: false })
             .limit(HOMEPAGE_LIMITS.news),
-
-        db
-            .from("associations")
-            .select("id, name, description, logo_url")
-            .eq("status", "approved")
-            .order("created_at", { ascending: false })
-            .limit(HOMEPAGE_LIMITS.members),
     ])
 
     const activities: Activity[] = (activitiesResult.data ?? []).map((a: any) => ({
@@ -81,17 +73,7 @@ export async function fetchHomepageData(): Promise<{
         featured: n.featured ?? false,
     }))
 
-    const members: Member[] = (membersResult.data ?? []).map((m: any) => ({
-        id: m.id,
-        name: m.name,
-        role: "جمعية",
-        image: m.logo_url ?? "/placeholder.svg",
-        bio: m.description ?? "",
-        memberType: "association" as const,
-        status: "approved" as const,
-    }))
-
-    return { activities, news, members }
+    return { activities, news }
 }
 
 /**
