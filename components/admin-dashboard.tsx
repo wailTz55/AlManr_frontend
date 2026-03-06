@@ -1192,7 +1192,7 @@ export function AdminDashboard({
       <div className="fixed right-0 top-0 h-full w-64 bg-white shadow-lg border-l border-gray-200 z-40">
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-xl font-bold text-amber-600">لوحة التحكم</h1>
-          <p className="text-sm text-gray-600">جمعية المنار للشباب</p>
+          <p className="text-sm text-gray-600">الرابطة الولائية</p>
         </div>
 
         <nav className="p-4 space-y-2">
@@ -1301,7 +1301,7 @@ export function AdminDashboard({
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   {sidebarItems.find((item) => item.id === activeSection)?.label}
                 </h2>
-                <p className="text-black-600">مرحباً بك في النظام الإداري لجمعية المنار للشباب</p>
+                <p className="text-black-600">مرحباً بك في النظام الإداري لالرابطة الولائية</p>
               </div>
               <Dialog open={isAddingActivity} onOpenChange={(open) => { setIsAddingActivity(open); if (!open) resetNewActivity() }}>
                 <DialogTrigger asChild>
@@ -2167,7 +2167,7 @@ export function AdminDashboard({
   `).join("")
                           const printWin = window.open("", "_blank", "width=900,height=700")
                           if (printWin) {
-                            printWin.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>شراكات الجمعية المنار</title><style>body{font-family:Arial,sans-serif;padding:30px;direction:rtl} h1{color:#d97706;text-align:center;margin-bottom:6px} .subtitle{text-align:center;color:#6b7280;margin-bottom:24px}</style></head><body><h1>جمعية المنار للشباب</h1><p class="subtitle">قائمة الشراكات المعتمدة — ${new Date().toLocaleDateString("ar-DZ")}</p>${rows}</body></html>`)
+                            printWin.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>شراكات الرابطة الولائية</title><style>body{font-family:Arial,sans-serif;padding:30px;direction:rtl} h1{color:#d97706;text-align:center;margin-bottom:6px} .subtitle{text-align:center;color:#6b7280;margin-bottom:24px}</style></head><body><h1>الرابطة الولائية</h1><p class="subtitle">قائمة الشراكات المعتمدة — ${new Date().toLocaleDateString("ar-DZ")}</p>${rows}</body></html>`)
                             printWin.document.close()
                             printWin.focus()
                             setTimeout(() => printWin.print(), 500)
@@ -2198,12 +2198,12 @@ export function AdminDashboard({
                               <tr><td><b>تاريخ الموافقة</b></td><td>${p.reviewDate ? new Date(p.reviewDate).toLocaleDateString("ar-DZ") : "-"}</td></tr>
                             </table><br/>
 `).join("")
-                          const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>شراكات</title><style>body{font-family:Arial;direction:rtl} table{border-collapse:collapse;width:100%} td{padding:6px 10px} h2{color:#d97706}</style></head><body><h1 style="text-align:center;color:#d97706">جمعية المنار للشباب — الشراكات المعتمدة</h1><p style="text-align:center;color:#6b7280">${new Date().toLocaleDateString("ar-DZ")}</p><hr/>${tableRows}</body></html>`
+                          const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>شراكات</title><style>body{font-family:Arial;direction:rtl} table{border-collapse:collapse;width:100%} td{padding:6px 10px} h2{color:#d97706}</style></head><body><h1 style="text-align:center;color:#d97706">الرابطة الولائية — الشراكات المعتمدة</h1><p style="text-align:center;color:#6b7280">${new Date().toLocaleDateString("ar-DZ")}</p><hr/>${tableRows}</body></html>`
                           const blob = new Blob(["\ufeff" + html], { type: "application/msword" })
                           const url = URL.createObjectURL(blob)
                           const a = document.createElement("a")
                           a.href = url
-                          a.download = `شراكات_المنار_${new Date().toISOString().slice(0, 10)}.doc`
+                          a.download = `شراكات_الرابطة_${new Date().toISOString().slice(0, 10)}.doc`
                           a.click()
                           URL.revokeObjectURL(url)
                         }}

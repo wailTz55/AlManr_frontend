@@ -281,7 +281,7 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              يمكنك إدارة بيانات جمعيتك والوصول إلى الخدمات الحصرية لأعضاء المنار.
+              يمكنك إدارة بيانات جمعيتك والوصول إلى الخدمات الحصرية لأعضاء الرابطة.
             </p>
           </CardContent>
           <CardFooter className="flex justify-center">
@@ -303,10 +303,10 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-4">
-            بوابة الجمعيات المنار
+            بوابة الرابطة الولائية
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            انضم إلى شبكة الجمعيات المنار أو قم بتسجيل الدخول لإدارة حسابك
+            انضم إلى شبكة الرابطة الولائية أو قم بتسجيل الدخول لإدارة حسابك
           </p>
         </div>
 
@@ -520,7 +520,7 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                       {/* Motivation */}
                       <div className="space-y-2">
                         <Label htmlFor="motivation" className="text-right block">لماذا تريدون الانضمام؟</Label>
-                        <Textarea id="motivation" name="motivation" value={formData.motivation} onChange={handleInputChange} placeholder="اذكر دوافع الجمعية للانضمام إلى شبكة المنار..." className="text-right min-h-24" />
+                        <Textarea id="motivation" name="motivation" value={formData.motivation} onChange={handleInputChange} placeholder="اذكر دوافع الجمعية للانضمام إلى شبكة الرابطة..." className="text-right min-h-24" />
                       </div>
 
                       <Button

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Star, Users, Calendar, Award } from "lucide-react"
+import { ArrowLeft, Users, Calendar, Award } from "lucide-react"
 import { useRouter } from "next/navigation";
 
 export function HeroSection() {
@@ -12,9 +12,9 @@ export function HeroSection() {
 
   const slides = [
     {
-      title: "مرحباً بكم في جمعية المنار للشباب",
-      subtitle: "نحو مستقبل أفضل للشباب العربي",
-      description: "انضموا إلينا في رحلة التطوير والإبداع والتميز",
+      title: "مرحباً بكم في الرابطة الولائية",
+      subtitle: "لانشطة الهواء الطلق والترفيه",
+      description: "ومبادلات الشباب لولاية سطيف",
     },
     {
       title: "أنشطة متنوعة وفعاليات مميزة",
@@ -24,7 +24,7 @@ export function HeroSection() {
     {
       title: "مجتمع شبابي نشط ومتفاعل",
       subtitle: "صداقات حقيقية وشراكات مثمرة",
-      description: "كونوا جزءاً من عائلة المنار الكبيرة",
+      description: "كونوا جزءاً من عائلة الرابطة الكبيرة",
     },
   ]
 
@@ -41,8 +41,8 @@ export function HeroSection() {
         <div className="max-w-4xl mx-auto">
           {/* Logo/Icon */}
           <div className="mb-8 animate-bounce-gentle">
-            <div className="w-24 h-24 mx-auto bg-primary rounded-full flex items-center justify-center shadow-lg animate-pulse-glow">
-              <Star className="w-12 h-12 text-primary-foreground" />
+            <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto flex items-center justify-center animate-pulse-glow rounded-full shadow-2xl ring-4 ring-primary/20 bg-white/10 backdrop-blur-sm p-2 overflow-hidden">
+              <img src="/logo.webp" alt="الرابطة الولائية" className="w-full h-full object-cover rounded-full" />
             </div>
           </div>
 

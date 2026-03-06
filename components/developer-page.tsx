@@ -21,7 +21,7 @@ export function DeveloperPage() {
 
   const projects = [
     {
-      name: "موقع جمعية المنار للشباب",
+      name: "موقع الرابطة الولائية",
       description: "موقع تفاعلي بتصميم RTL مع خريطة كنوز الأنشطة",
       tech: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
       status: "مكتمل",
@@ -238,7 +238,7 @@ export function DeveloperPage() {
           </div>
           <h3 className="text-2xl font-bold text-foreground mb-4">شكراً لك</h3>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            شكراً لزيارتك موقع جمعية المنار للشباب. آمل أن تكون قد استمتعت بالتجربة التفاعلية والتصميم المبتكر. هذا
+            شكراً لزيارتك موقع الرابطة الولائية. آمل أن تكون قد استمتعت بالتجربة التفاعلية والتصميم المبتكر. هذا
             الموقع صُنع بحب وشغف لخدمة المجتمع الشبابي.
           </p>
         </div>

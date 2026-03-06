@@ -44,7 +44,7 @@ export function RegistrationSection() {
   return (
     <div className="container mx-auto px-4">
       <div className="text-center mb-16">
-        <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">تعرف على جمعية المنار</h2>
+        <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">تعرف على الرابطة الولائية</h2>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
           منارة الشباب للتنمية والتطوير - جمعية شبابية تهدف إلى بناء جيل واعي ومبدع يساهم في نهضة المجتمع
         </p>
@@ -116,10 +116,10 @@ export function RegistrationSection() {
 
           {/* نبذة مختصرة */}
           <div className="space-y-6">
-            <h3 className="text-3xl font-bold text-foreground">نبذة عن جمعية المنار</h3>
+            <h3 className="text-3xl font-bold text-foreground">نبذة عن الرابطة الولائية</h3>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
-                تأسست جمعية المنار للشباب في عام 2023 بهدف خلق بيئة محفزة للشباب لتطوير قدراتهم 
+                تأسست الرابطة الولائية في عام 2023 بهدف خلق بيئة محفزة للشباب لتطوير قدراتهم 
                 وإمكانياتهم في شتى المجالات. نؤمن بأن الشباب هم عماد المستقبل وقادة التغيير.
               </p>
               <p>

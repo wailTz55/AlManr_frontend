@@ -205,7 +205,7 @@ export function TreasureMapActivities({ session }: Props = {}) {
     const url = window.location.href
     const shareData = {
       title: selectedActivity.title,
-      text: selectedActivity.description || "اكتشف هذا النشاط من جمعية المنار",
+      text: selectedActivity.description || "اكتشف هذا النشاط من الرابطة الولائية",
       url: url
     }
 
@@ -272,7 +272,7 @@ export function TreasureMapActivities({ session }: Props = {}) {
             الأنشطة والفعاليات
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            اكتشف مجموعة رائعة من الأنشطة والتجارب التي تنظّمها جمعية المنار للشباب
+            اكتشف مجموعة رائعة من الأنشطة والتجارب التي تنظّمها الرابطة الولائية
           </p>
           <div className="w-24 h-1 bg-primary mx-auto rounded-full" />
         </div>

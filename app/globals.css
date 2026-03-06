@@ -4,75 +4,82 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Modern Youth Association Theme (Blue Edition) */
-  --background: oklch(0.99 0.01 85); /* Warm white */
-  --foreground: oklch(0.23 0.01 260); /* Standard text */
-  --card: oklch(0.97 0.02 90); /* Soft light card */
-  --card-foreground: oklch(0.23 0.01 260);
-  --popover: oklch(0.99 0.01 85);
-  --popover-foreground: oklch(0.23 0.01 260);
-  --primary: oklch(0.62 0.19 250); /* Electric Blue */
-  --primary-foreground: oklch(1 0 0); /* Pure White for contrast */
-  --secondary: oklch(0.60 0.20 155); /* Emerald Green */
+  /* Updated color palette for vibrant youth association theme */
+  --background: oklch(1 0 0);
+  /* Pure white */
+  --foreground: oklch(0.25 0 0);
+  /* Dark gray for text */
+  --card: oklch(0.98 0.02 85);
+  /* Warm light yellow for cards */
+  --card-foreground: oklch(0.25 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.25 0 0);
+  --primary: oklch(0.65 0.15 45);
+  /* Vibrant amber */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.55 0.15 160);
+  /* Emerald green */
   --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.94 0.01 90);
+  --muted: oklch(0.96 0.01 85);
   --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.60 0.20 155); /* Emerald accent */
+  --accent: oklch(0.55 0.15 160);
+  /* Emerald accent */
   --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.60 0.25 25); /* Action Red */
+  --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.94 0.01 90);
-  --input: oklch(0.94 0.01 90);
-  --ring: oklch(0.62 0.19 250 / 0.3); /* Electric Blue ring */
-  --chart-1: oklch(0.62 0.19 250); /* Electric Blue */
-  --chart-2: oklch(0.60 0.20 155); /* Emerald Green */
-  --chart-3: oklch(0.70 0.18 220); /* Bright Cyan */
-  --chart-4: oklch(0.63 0.26 300); /* Creative Violet */
-  --chart-5: oklch(0.60 0.25 25); /* Action Red */
+  --border: oklch(0.9 0.01 85);
+  --input: oklch(0.95 0.01 85);
+  --ring: oklch(0.65 0.15 45 / 0.3);
+  --chart-1: oklch(0.65 0.15 45);
+  --chart-2: oklch(0.55 0.15 160);
+  --chart-3: oklch(0.6 0.2 250);
+  --chart-4: oklch(0.55 0.25 300);
+  --chart-5: oklch(0.55 0.22 25);
   --radius: 0.75rem;
-  --sidebar: oklch(0.97 0.02 90);
-  --sidebar-foreground: oklch(0.23 0.01 260);
-  --sidebar-primary: oklch(0.62 0.19 250);
+  /* Increased for friendlier feel */
+  --sidebar: oklch(0.98 0.02 85);
+  --sidebar-foreground: oklch(0.25 0 0);
+  --sidebar-primary: oklch(0.65 0.15 45);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.60 0.20 155);
+  --sidebar-accent: oklch(0.55 0.15 160);
   --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.94 0.01 90);
-  --sidebar-ring: oklch(0.62 0.19 250 / 0.3);
+  --sidebar-border: oklch(0.9 0.01 85);
+  --sidebar-ring: oklch(0.65 0.15 45 / 0.3);
 }
 
 .dark {
-  --background: oklch(0.11 0.01 260); /* Deep modern dark tone */
-  --foreground: oklch(0.96 0.01 260);
-  --card: oklch(0.15 0.02 260); /* Smooth dark slate */
-  --card-foreground: oklch(0.96 0.01 260);
-  --popover: oklch(0.11 0.01 260);
-  --popover-foreground: oklch(0.96 0.01 260);
-  --primary: oklch(0.68 0.19 250); /* Dark mode Electric Blue */
+  --background: oklch(0.1 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.12 0.02 45);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.1 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.7 0.15 45);
   --primary-foreground: oklch(0.1 0 0);
-  --secondary: oklch(0.66 0.20 155); /* Dark mode Emerald */
+  --secondary: oklch(0.6 0.15 160);
   --secondary-foreground: oklch(0.1 0 0);
-  --muted: oklch(0.22 0.01 260);
+  --muted: oklch(0.15 0.01 45);
   --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.66 0.20 155);
+  --accent: oklch(0.6 0.15 160);
   --accent-foreground: oklch(0.1 0 0);
-  --destructive: oklch(0.66 0.25 25);
+  --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.95 0 0);
-  --border: oklch(0.22 0.01 260);
-  --input: oklch(0.22 0.01 260);
-  --ring: oklch(0.68 0.19 250 / 0.3);
-  --chart-1: oklch(0.62 0.19 250); /* Electric Blue */
-  --chart-2: oklch(0.60 0.20 155); /* Emerald Green */
-  --chart-3: oklch(0.70 0.18 220); /* Bright Cyan */
-  --chart-4: oklch(0.63 0.26 300); /* Creative Violet */
-  --chart-5: oklch(0.60 0.25 25); /* Action Red */
-  --sidebar: oklch(0.15 0.02 260);
-  --sidebar-foreground: oklch(0.96 0.01 260);
-  --sidebar-primary: oklch(0.68 0.19 250);
+  --border: oklch(0.2 0.01 45);
+  --input: oklch(0.18 0.01 45);
+  --ring: oklch(0.7 0.15 45 / 0.3);
+  --chart-1: oklch(0.7 0.15 45);
+  --chart-2: oklch(0.6 0.15 160);
+  --chart-3: oklch(0.65 0.2 250);
+  --chart-4: oklch(0.6 0.25 300);
+  --chart-5: oklch(0.6 0.22 25);
+  --sidebar: oklch(0.08 0 0);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.7 0.15 45);
   --sidebar-primary-foreground: oklch(0.1 0 0);
-  --sidebar-accent: oklch(0.66 0.20 155);
+  --sidebar-accent: oklch(0.6 0.15 160);
   --sidebar-accent-foreground: oklch(0.1 0 0);
-  --sidebar-border: oklch(0.22 0.01 260);
-  --sidebar-ring: oklch(0.68 0.19 250 / 0.3);
+  --sidebar-border: oklch(0.2 0.01 45);
+  --sidebar-ring: oklch(0.7 0.15 45 / 0.3);
 }
 
 @theme inline {

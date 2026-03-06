@@ -4,7 +4,7 @@ import { ContactPage } from "@/components/contact-page"
 import { EnhancedFloatingNavbar } from "@/components/enhanced-floating-navbar"
 
 export const metadata: Metadata = {
-  title: "اتصل بنا - جمعية المنار للشباب",
+  title: "اتصل بنا - الرابطة الولائية",
   description: "تواصل معنا للاستفسارات والمقترحات أو للحصول على مزيد من المعلومات",
 }
 

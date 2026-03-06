@@ -6,8 +6,8 @@ import { EnhancedFloatingNavbar } from "@/components/enhanced-floating-navbar"
 import { getAssociationSession } from "@/services/AuthService"
 
 export const metadata: Metadata = {
-  title: "التسجيل - جمعية المنار للشباب",
-  description: "انضم إلى جمعية المنار للشباب واكتشف عالماً من الفرص والأنشطة المثيرة",
+  title: "التسجيل - الرابطة الولائية",
+  description: "انضم إلى الرابطة الولائية واكتشف عالماً من الفرص والأنشطة المثيرة",
 }
 
 export default async function RegisterPage() {

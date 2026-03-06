@@ -19,8 +19,8 @@ const cairo = Cairo({
 })
 
 export const metadata: Metadata = {
-  title: "جمعية المنار للشباب | Al-Manar Youth Association",
-  description: "موقع جمعية المنار للشباب - نحو مستقبل أفضل للشباب العربي",
+  title: "الرابطة الولائية لانشطة الهواء الطلق | Setif Youth Association",
+  description: "موقع الرابطة الولائية - نحو مستقبل أفضل للشباب",
   generator: "v0.app",
 }
 

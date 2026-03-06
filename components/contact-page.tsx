@@ -288,7 +288,7 @@ export function ContactPage() {
             تواصل معنا
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            نحن هنا للإجابة على استفساراتك ومساعدتك في رحلتك مع جمعية المنار
+            نحن هنا للإجابة على استفساراتك ومساعدتك في رحلتك مع الرابطة الولائية
           </p>
         </div>
 

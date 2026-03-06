@@ -63,16 +63,22 @@ export default async function HomePage() {
         </section>
       </ScrollAnimation>
 
-      <footer className="relative z-10 py-12 text-center bg-background/50 backdrop-blur-md border-t border-border/50">
+      <footer className="relative z-10 py-16 text-center bg-[#fff8ea] text-foreground rounded-t-[3rem] md:rounded-t-[5rem] overflow-hidden mt-12 mx-auto shadow-[0_-10px_40px_-15px_rgba(217,119,6,0.15)] border-t border-primary/10 w-full max-w-[2000px]">
         <div className="container mx-auto px-4">
-          <h3 className="text-2xl font-bold text-primary mb-4 animate-bounce-gentle">جمعية المنار للشباب</h3>
-          <p className="text-muted-foreground mb-6">نحو مستقبل أفضل للشباب العربي</p>
-          <p className="text-sm text-muted-foreground">
-            صمم بواسطة{" "}
-            <a href="/developer" className="text-primary hover:underline animate-shimmer">
+          <h3 className="text-3xl font-bold mb-4 text-primary drop-shadow-sm">الرابطة الولائية</h3>
+          <p className="text-muted-foreground mb-8 max-w-xl mx-auto text-lg">نحو مستقبل أفضل للشباب</p>
+
+          <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full mb-8"></div>
+
+          <div className="flex flex-col items-center justify-center gap-3">
+            <p className="text-base text-muted-foreground">صمم بواسطة</p>
+            <a
+              href="/developer"
+              className="inline-flex items-center justify-center bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-bold shadow-md hover:bg-primary/90 hover:scale-105 hover:shadow-lg transition-all"
+            >
               فريق التطوير المتميز
             </a>
-          </p>
+          </div>
         </div>
       </footer>
     </main>

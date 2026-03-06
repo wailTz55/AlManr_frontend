@@ -109,7 +109,7 @@ export const ContactService = {
             await sendReplyEmail(
                 message.email,
                 `رد على رسالتك: ${message.subject}`,
-                `مرحباً ${message.name}،\n\n${replyText}\n\nمع تحيات إدارة جمعية المنار للشباب.`
+                `مرحباً ${message.name}،\n\n${replyText}\n\nمع تحيات إدارة الرابطة الولائية.`
             )
         }
 
