@@ -76,7 +76,7 @@ export function HeroSection() {
             <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border/50 hover:scale-105 transition-transform duration-300">
               <Users className="w-8 h-8 text-primary mx-auto mb-3" />
               <div className="text-3xl font-bold text-foreground mb-2">45+</div>
-              <div className="text-muted-foreground">عضو نشط</div>
+              <div className="text-muted-foreground">جمعية نشطة</div>
             </div>
             <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border/50 hover:scale-105 transition-transform duration-300">
               <Calendar className="w-8 h-8 text-secondary mx-auto mb-3" />
@@ -89,7 +89,6 @@ export function HeroSection() {
               <div className="text-muted-foreground">جائزة وإنجاز</div>
             </div>
           </div>
-
           {/* Slide Indicators */}
           <div className="flex justify-center gap-2 mt-12">
             {slides.map((_, index) => (

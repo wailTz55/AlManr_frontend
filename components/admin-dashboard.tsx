@@ -1002,7 +1002,12 @@ export function AdminDashboard({
   })
 
   const stats = [
-    { title: "إجمالي الأعضاء", value: "156", icon: Users, color: "text-blue-600" },
+    {
+      title: "إجمالي الأعضاء",
+      value: partnerships.filter((p) => p.status === "approved").length.toString(),
+      icon: Users,
+      color: "text-blue-600"
+    },
     {
       title: "الأنشطة النشطة",
       value: activities.filter((a) => a.status === "active").length.toString(),
@@ -1247,46 +1252,93 @@ export function AdminDashboard({
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4">
-                  {[
-                    { action: "تم إضافة عضو جديد", user: "أحمد محمد", time: "منذ 5 دقائق", type: "member" },
-                    {
-                      action: "رسالة جديدة من نموذج الاتصال",
-                      user: "فاطمة علي",
-                      time: "منذ 15 دقيقة",
-                      type: "message",
-                    },
-                    { action: "تم تحديث نشاط المخيم الصيفي", user: "المدير", time: "منذ ساعة", type: "activity" },
-                    { action: "طلب عضوية جديد", user: "محمد حسن", time: "منذ ساعتين", type: "membership" },
-                  ].map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3 space-x-reverse">
-                        <Badge
-                          variant={
-                            activity.type === "member"
-                              ? "default"
+                  {(() => {
+                    const timeline: { action: string; user: string; time: string; type: "member" | "message" | "activity" | "membership"; date: Date }[] = []
+
+                    // 1. Members/Partnerships
+                    partnerships.forEach(p => {
+                      timeline.push({
+                        action: p.status === 'approved' ? 'تم قبول جمعية' : 'طلب انضمام جمعية',
+                        user: p.associationName,
+                        type: p.status === 'approved' ? 'member' : 'membership',
+                        date: new Date(p.submissionDate),
+                        time: new Date(p.submissionDate).toLocaleDateString('ar-DZ')
+                      })
+                    })
+
+                    // 2. Messages
+                    messages.forEach(m => {
+                      timeline.push({
+                        action: "رسالة اتصال جديدة",
+                        user: m.name,
+                        type: "message",
+                        date: new Date(m.date),
+                        time: new Date(m.date).toLocaleDateString('ar-DZ')
+                      })
+                    })
+
+                    // 3. Activity Registrations
+                    activityRegistrations.forEach(r => {
+                      timeline.push({
+                        action: "تسجيل في نشاط",
+                        user: r.associationName,
+                        type: "activity",
+                        date: new Date(r.registrationDate),
+                        time: new Date(r.registrationDate).toLocaleDateString('ar-DZ')
+                      })
+                    })
+
+                    // 4. New Activities created
+                    activities.forEach(a => {
+                      if ((a as any).createdAt) {
+                        timeline.push({
+                          action: "إضافة نشاط جديد",
+                          user: a.title,
+                          type: "activity",
+                          date: new Date((a as any).createdAt),
+                          time: new Date((a as any).createdAt).toLocaleDateString('ar-DZ')
+                        })
+                      }
+                    })
+
+                    // Sort descending and take top 5
+                    const sortedTimeline = timeline.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5)
+
+                    if (sortedTimeline.length === 0) {
+                      return <p className="text-gray-500 text-sm text-center py-4">لا توجد سجلات حديثة</p>
+                    }
+
+                    return sortedTimeline.map((activity, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3 space-x-reverse">
+                          <Badge
+                            variant={
+                              activity.type === "member"
+                                ? "default"
+                                : activity.type === "message"
+                                  ? "secondary"
+                                  : activity.type === "activity"
+                                    ? "outline"
+                                    : "destructive"
+                            }
+                          >
+                            {activity.type === "member"
+                              ? "عضو"
                               : activity.type === "message"
-                                ? "secondary"
+                                ? "رسالة"
                                 : activity.type === "activity"
-                                  ? "outline"
-                                  : "destructive"
-                          }
-                        >
-                          {activity.type === "member"
-                            ? "عضو"
-                            : activity.type === "message"
-                              ? "رسالة"
-                              : activity.type === "activity"
-                                ? "نشاط"
-                                : "طلب"}
-                        </Badge>
-                        <div className="mr-2">
-                          <p className="font-medium text-gray-900">{activity.action}</p>
-                          <p className="text-sm text-gray-600">{activity.user}</p>
+                                  ? "نشاط"
+                                  : "طلب"}
+                          </Badge>
+                          <div className="mr-2">
+                            <p className="font-medium text-gray-900">{activity.action}</p>
+                            <p className="text-sm text-gray-600">{activity.user}</p>
+                          </div>
                         </div>
+                        <span className="text-sm text-gray-500">{activity.time}</span>
                       </div>
-                      <span className="text-sm text-gray-500">{activity.time}</span>
-                    </div>
-                  ))}
+                    ))
+                  })()}
                 </div>
               </CardContent>
             </Card>

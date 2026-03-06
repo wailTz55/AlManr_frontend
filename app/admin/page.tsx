@@ -9,7 +9,7 @@ export default async function AdminPage() {
 
   const [rawActivities, rawNews, rawAssociations, rawRegistrations, rawMessages] = await Promise.all([
     db.from("activities")
-      .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya")
+      .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya, created_at")
       .order("date", { ascending: false })
       .then(r => r.data ?? []),
     db.from("news")
@@ -36,7 +36,8 @@ export default async function AdminPage() {
     capacity: a.max_participants || 0,
     image: (a.images && a.images.length > 0) ? a.images[0] : "/placeholder.svg",
     activityTemplate: a.template || "announcement",
-    registered: 0
+    registered: 0,
+    createdAt: a.created_at
   }))
 
   const news = rawNews.map((n: any) => ({

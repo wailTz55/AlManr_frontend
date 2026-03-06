@@ -644,6 +644,22 @@ export function TreasureMapActivities({ session }: Props = {}) {
                           <Button
                             className="w-full bg-amber-600 hover:bg-amber-700 text-white"
                             onClick={() => {
+                              // ── Status Guard ──────────────────────────────────
+                              // Only associations with 'approved' status may register.
+                              if (session && session.status !== "approved") {
+                                const messages: Record<string, string> = {
+                                  pending: "لا يمكنك التسجيل في الأنشطة. طلب انضمام جمعيتك لا يزال قيد المراجعة من قِبل الإدارة.",
+                                  rejected: "لا يمكنك التسجيل في الأنشطة. طلب جمعيتك تم رفضه من قِبل الإدارة.",
+                                  suspended: "لا يمكنك التسجيل في الأنشطة. حساب جمعيتك موقوف حالياً.",
+                                }
+                                toast({
+                                  title: "التسجيل غير متاح",
+                                  description: messages[session.status] ?? "حساب جمعيتك غير مؤهل للتسجيل في الأنشطة.",
+                                  variant: "destructive",
+                                })
+                                return
+                              }
+                              // ─────────────────────────────────────────────────
                               setRegisteringActivity(selectedActivity)
                               if (session) {
                                 setRegFormData({ assocName: session.associationName, email: session.email, phone: "" })
