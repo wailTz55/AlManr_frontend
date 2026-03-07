@@ -67,9 +67,12 @@ export async function middleware(request: NextRequest) {
         if (isLoginPage) {
             if (isAdmin) {
                 // Already logged in as admin → skip the login page, go to dashboard
-                return applySecurityHeaders(
-                    NextResponse.redirect(new URL("/admin", request.url))
-                )
+                // Copy refreshed session cookies onto the redirect so tokens are not lost
+                const redirectResponse = NextResponse.redirect(new URL("/admin", request.url))
+                supabaseResponse.cookies.getAll().forEach((cookie) => {
+                    redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+                })
+                return applySecurityHeaders(redirectResponse)
             }
             // Not logged in → show login page (no redirect — this is the key fix)
             return applySecurityHeaders(supabaseResponse)
@@ -79,7 +82,12 @@ export async function middleware(request: NextRequest) {
         if (!isAdmin) {
             const loginUrl = new URL(ADMIN_LOGIN_PATH, request.url)
             loginUrl.searchParams.set("redirectTo", pathname)
-            return applySecurityHeaders(NextResponse.redirect(loginUrl))
+            // Copy refreshed session cookies onto the redirect so tokens are not lost
+            const redirectResponse = NextResponse.redirect(loginUrl)
+            supabaseResponse.cookies.getAll().forEach((cookie) => {
+                redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+            })
+            return applySecurityHeaders(redirectResponse)
         }
     }
 

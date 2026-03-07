@@ -1,13 +1,14 @@
 "use client"
 import type React from "react"
-import { useState, useMemo, useEffect, useTransition } from "react"
+import { useState, useMemo, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Upload, Star, Users, Calendar, Award, ArrowRight, CheckCircle, AlertTriangle, Check, X, FileText, LogIn, LogOut, Loader2, Eye, EyeOff } from "lucide-react"
+import { Upload, Star, Users, Calendar, Award, ArrowRight, CheckCircle, AlertTriangle, X, FileText, LogIn, LogOut, Loader2, Eye, EyeOff } from "lucide-react"
 import { registerAssociationAction, loginAssociationAction, logoutAssociationAction } from "@/app/register/actions"
 import { useToast } from "@/hooks/use-toast"
 
@@ -15,9 +16,12 @@ import type { AssociationSession } from "@/types/auth"
 
 export function RegistrationPage({ initialSession = null }: { initialSession?: AssociationSession | null }) {
   const { toast } = useToast()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("register")
-  const [isLoggedIn, setIsLoggedIn] = useState(!!initialSession)
-  const [loggedInName, setLoggedInName] = useState(initialSession?.associationName || "")
+  // Session state is always sourced from SSR (initialSession from Supabase cookies).
+  // Never read from or write to localStorage for auth state.
+  const isLoggedIn = !!initialSession
+  const loggedInName = initialSession?.associationName || ""
   const [showPassword, setShowPassword] = useState(false)
   const [showRegPassword, setShowRegPassword] = useState(false)
   const [isPendingReg, startRegTransition] = useTransition()
@@ -39,13 +43,11 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     associationPhone: "",
     wilaya: "",
     city: "",
-    registrationNumber: "",
     motivation: "",
     officeApproval: null as File | null,
   })
 
   const [regErrors, setRegErrors] = useState<Record<string, string>>({})
-  const [regSuccess, setRegSuccess] = useState("")
   const [regGeneralError, setRegGeneralError] = useState("")
   const [showRegValidation, setShowRegValidation] = useState(false)
 
@@ -53,25 +55,6 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
   const [loginData, setLoginData] = useState({ email: "", password: "" })
   const [loginError, setLoginError] = useState("")
 
-  // Sync with localStorage across tabs if needed, but rely on SSR for initial render to avoid flicker
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const session = localStorage.getItem("almanar_assoc_session")
-      if (session) {
-        try {
-          const parsed = JSON.parse(session)
-          setIsLoggedIn(true)
-          setLoggedInName(parsed.name || "")
-        } catch { }
-      } else {
-        setIsLoggedIn(false)
-        setLoggedInName("")
-      }
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
-  }, [])
 
   const isFormValid = useMemo(() => {
     const emailOk = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email.trim())
@@ -153,7 +136,6 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     }
 
     setRegGeneralError("")
-    setRegSuccess("")
 
     // Build description from extra fields
     const descriptionParts = [
@@ -173,7 +155,6 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
           phone: formData.associationPhone,
           city: formData.city || undefined,
           wilaya: formData.wilaya || undefined,
-          registration_number: formData.registrationNumber || undefined,
           description: descriptionParts,
         })
 
@@ -182,29 +163,15 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
           return
         }
 
-        // Success
-        setRegSuccess("تم إرسال طلب التسجيل بنجاح! سيتم مراجعته من قِبل الإدارة وسيتم التواصل معكم.")
+        // Success — toast then trigger a full Server Component re-render so
+        // getAssociationSession() re-runs and session state comes from Supabase cookies.
         toast({
           title: "تم الإرسال بنجاح",
           description: "طلب تسجيل جمعيتك قيد المراجعة الآن",
         })
-
-        // Auto-login persistence
-        localStorage.setItem("almanar_assoc_session", JSON.stringify({
-          name: result.data?.associationName ?? "",
-          email: result.data?.email ?? "",
-          status: result.data?.status ?? "",
-        }))
-        window.dispatchEvent(new Event("storage"))
-        setIsLoggedIn(true)
-        setLoggedInName(result.data?.associationName ?? "")
-        setFormData({
-          associationName: "", organizationName: "", presidentName: "", presidentPhone: "",
-          secretaryName: "", secretaryPhone: "", clerkName: "", clerkPhone: "",
-          email: "", password: "", confirmPassword: "", associationPhone: "",
-          wilaya: "", city: "", registrationNumber: "", motivation: "", officeApproval: null,
-        })
-        setShowRegValidation(false)
+        // router.refresh() causes the Server Component to re-fetch the session from cookies.
+        // No localStorage needed — Supabase already wrote the session cookie on signIn.
+        router.refresh()
       } catch (err: any) {
         setRegGeneralError(err.message || "خطأ في الخادم. يرجى المحاولة لاحقاً.")
       }
@@ -233,20 +200,15 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
           return
         }
 
-        // Store session info in localStorage for UI state
-        localStorage.setItem("almanar_assoc_session", JSON.stringify({
-          name: result.data?.associationName ?? "",
-          email: result.data?.email ?? "",
-          status: result.data?.status ?? "",
-        }))
-        window.dispatchEvent(new Event("storage"))
-        setIsLoggedIn(true)
-        setLoggedInName(result.data?.associationName ?? "")
-        setLoginData({ email: "", password: "" })
+        // Session is stored in HTTP-only Supabase cookies (handled server-side).
+        // Refresh the Server Component so getAssociationSession() re-runs and
+        // initialSession prop updates — no localStorage required.
         toast({
           title: "مرحباً بك!",
           description: `تم تسجيل دخول ${result.data?.associationName ?? "الجمعية"} بنجاح`,
         })
+        setLoginData({ email: "", password: "" })
+        router.refresh()
       } catch (err: any) {
         setLoginError(err.message || "خطأ في الخادم. يرجى المحاولة لاحقاً.")
       }
@@ -254,10 +216,9 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
   }
 
   const handleLogout = async () => {
-    localStorage.removeItem("almanar_assoc_session")
-    window.dispatchEvent(new Event("storage"))
-    setIsLoggedIn(false)
-    setLoggedInName("")
+    // logoutAssociationAction() calls supabase.auth.signOut() then redirect("/register")
+    // The redirect triggers a full page reload which re-runs getAssociationSession() → null.
+    // No manual state update or localStorage removal is needed.
     await logoutAssociationAction()
   }
 
@@ -468,11 +429,7 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                         </div>
                       </div>
 
-                      {/* Registration Number */}
-                      <div className="space-y-2">
-                        <Label htmlFor="registrationNumber" className="text-right block">رقم تسجيل الجمعية</Label>
-                        <Input id="registrationNumber" name="registrationNumber" value={formData.registrationNumber} onChange={handleInputChange} placeholder="رقم الإعتماد الرسمي" className="text-right" />
-                      </div>
+
 
                       {/* Password */}
                       <div className="grid md:grid-cols-2 gap-4 pt-2 border-t">
@@ -545,12 +502,6 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                       )}
                     </div>
 
-                    {regSuccess && (
-                      <div className="m-6 p-4 border border-green-200 bg-green-50 text-green-800 rounded-lg flex items-start gap-3">
-                        <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm font-medium text-right flex-1">{regSuccess}</p>
-                      </div>
-                    )}
 
                     {regGeneralError && (
                       <div className="m-6 p-4 border border-red-200 bg-red-50 text-red-800 rounded-lg flex items-start gap-3">
