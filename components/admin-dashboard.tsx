@@ -265,13 +265,15 @@ export function AdminDashboard({
   initialNews = [],
   initialAssociations = [],
   initialRegistrations = [],
-  initialMessages = []
+  initialMessages = [],
+  pageSize = 10,
 }: {
   initialActivities?: Activity[]
   initialNews?: NewsArticle[]
   initialAssociations?: AssociationPartnership[]
   initialRegistrations?: ActivityRegistration[]
   initialMessages?: Message[]
+  pageSize?: number
 }) {
   const { toast } = useToast()
   const router = useRouter()
@@ -379,6 +381,83 @@ export function AdminDashboard({
   const [isAssociationActionLoading, setIsAssociationActionLoading] = useState(false)
   const [isMessageActionLoading, setIsMessageActionLoading] = useState(false)
   const [isMemberActionLoading, setIsMemberActionLoading] = useState(false)
+
+  // --- Load More state ---
+  const [activitiesOffset, setActivitiesOffset] = useState(initialActivities.length)
+  const [hasMoreActivities, setHasMoreActivities] = useState(initialActivities.length === pageSize)
+  const [isLoadingMoreActivities, setIsLoadingMoreActivities] = useState(false)
+
+  const [newsOffset, setNewsOffset] = useState(initialNews.length)
+  const [hasMoreNews, setHasMoreNews] = useState(initialNews.length === pageSize)
+  const [isLoadingMoreNews, setIsLoadingMoreNews] = useState(false)
+
+  const [assocOffset, setAssocOffset] = useState(initialAssociations.length)
+  const [hasMoreAssoc, setHasMoreAssoc] = useState(initialAssociations.length === pageSize)
+  const [isLoadingMoreAssoc, setIsLoadingMoreAssoc] = useState(false)
+
+  const [messagesOffset, setMessagesOffset] = useState(initialMessages.length)
+  const [hasMoreMessages, setHasMoreMessages] = useState(initialMessages.length === pageSize)
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
+
+  const handleLoadMoreActivities = async () => {
+    setIsLoadingMoreActivities(true)
+    try {
+      const { loadMoreActivitiesAction } = await import("@/app/admin/actions")
+      const batch = await loadMoreActivitiesAction(activitiesOffset)
+      setActivities(prev => [...prev, ...batch as any])
+      setActivitiesOffset(prev => prev + batch.length)
+      if (batch.length < pageSize) setHasMoreActivities(false)
+    } catch {
+      toast({ title: "خطأ", description: "تعذّر تحميل المزيد من الأنشطة", variant: "destructive" })
+    } finally {
+      setIsLoadingMoreActivities(false)
+    }
+  }
+
+  const handleLoadMoreNews = async () => {
+    setIsLoadingMoreNews(true)
+    try {
+      const { loadMoreNewsAction } = await import("@/app/admin/actions")
+      const batch = await loadMoreNewsAction(newsOffset)
+      setNewsArticles(prev => [...prev, ...batch as any])
+      setNewsOffset(prev => prev + batch.length)
+      if (batch.length < pageSize) setHasMoreNews(false)
+    } catch {
+      toast({ title: "خطأ", description: "تعذّر تحميل المزيد من الأخبار", variant: "destructive" })
+    } finally {
+      setIsLoadingMoreNews(false)
+    }
+  }
+
+  const handleLoadMoreAssoc = async () => {
+    setIsLoadingMoreAssoc(true)
+    try {
+      const { loadMoreAssociationsAction } = await import("@/app/admin/actions")
+      const batch = await loadMoreAssociationsAction(assocOffset)
+      setPartnerships(prev => [...prev, ...batch as any])
+      setAssocOffset(prev => prev + batch.length)
+      if (batch.length < pageSize) setHasMoreAssoc(false)
+    } catch {
+      toast({ title: "خطأ", description: "تعذّر تحميل المزيد من الجمعيات", variant: "destructive" })
+    } finally {
+      setIsLoadingMoreAssoc(false)
+    }
+  }
+
+  const handleLoadMoreMessages = async () => {
+    setIsLoadingMoreMessages(true)
+    try {
+      const { loadMoreMessagesAction } = await import("@/app/admin/actions")
+      const batch = await loadMoreMessagesAction(messagesOffset)
+      setMessages(prev => [...prev, ...batch as any])
+      setMessagesOffset(prev => prev + batch.length)
+      if (batch.length < pageSize) setHasMoreMessages(false)
+    } catch {
+      toast({ title: "خطأ", description: "تعذّر تحميل المزيد من الرسائل", variant: "destructive" })
+    } finally {
+      setIsLoadingMoreMessages(false)
+    }
+  }
   const [newNews, setNewNews] = useState<Partial<NewsArticle>>({
     title: "",
     content: "",
@@ -1967,6 +2046,15 @@ export function AdminDashboard({
                 </div>
               </DialogContent>
             </Dialog>
+
+            {/* Load More — Activities */}
+            {hasMoreActivities && (
+              <div className="flex justify-center pt-4">
+                <Button variant="outline" onClick={handleLoadMoreActivities} isLoading={isLoadingMoreActivities} className="gap-2">
+                  تحميل المزيد من الأنشطة
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -2226,6 +2314,15 @@ export function AdminDashboard({
                 </div>
               </DialogContent>
             </Dialog>
+
+            {/* Load More — Messages */}
+            {hasMoreMessages && (
+              <div className="flex justify-center pt-4">
+                <Button variant="outline" onClick={handleLoadMoreMessages} isLoading={isLoadingMoreMessages} className="gap-2">
+                  تحميل المزيد من الرسائل
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -2762,6 +2859,15 @@ export function AdminDashboard({
                 </div>
               </DialogContent>
             </Dialog>
+
+            {/* Load More — Associations */}
+            {hasMoreAssoc && (
+              <div className="flex justify-center pt-4">
+                <Button variant="outline" onClick={handleLoadMoreAssoc} isLoading={isLoadingMoreAssoc} className="gap-2">
+                  تحميل المزيد من الجمعيات
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -3309,6 +3415,15 @@ export function AdminDashboard({
                 )}
               </DialogContent>
             </Dialog>
+
+            {/* Load More — News */}
+            {hasMoreNews && (
+              <div className="flex justify-center pt-4">
+                <Button variant="outline" onClick={handleLoadMoreNews} isLoading={isLoadingMoreNews} className="gap-2">
+                  تحميل المزيد من الأخبار
+                </Button>
+              </div>
+            )}
           </div>
         )}
 

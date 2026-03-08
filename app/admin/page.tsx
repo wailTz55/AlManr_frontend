@@ -4,6 +4,8 @@ import { getAllRegistrations } from "@/services/RegistrationService"
 
 export const dynamic = "force-dynamic"
 
+const PAGE_SIZE = 10
+
 export default async function AdminPage() {
   const db = getServiceRoleClient()
 
@@ -11,14 +13,17 @@ export default async function AdminPage() {
     db.from("activities")
       .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya, created_at")
       .order("date", { ascending: false })
+      .range(0, PAGE_SIZE - 1)
       .then(r => r.data ?? []),
     db.from("news")
       .select("id, title, excerpt, content, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at, updated_at")
       .order("created_at", { ascending: false })
+      .range(0, PAGE_SIZE - 1)
       .then(r => r.data ?? []),
     db.from("associations")
       .select("id, name, email, phone, city, wilaya, status, description, logo_url, rejection_reason, approved_by, approved_at, created_at, updated_at, institution_name, president_name, president_phone, secretary_name, secretary_phone, clerk_name, clerk_phone, office_approval_url")
       .order("created_at", { ascending: false })
+      .range(0, PAGE_SIZE - 1)
       .then(r => r.data ?? []),
     getAllRegistrations().catch(err => {
       console.error("Failed to fetch registrations", err)
@@ -26,7 +31,9 @@ export default async function AdminPage() {
     }),
     db.from("contact_messages")
       .select("*")
+      .neq("status", "replied")
       .order("created_at", { ascending: false })
+      .range(0, PAGE_SIZE - 1)
       .then(r => r.data ?? [])
   ])
 
@@ -107,6 +114,7 @@ export default async function AdminPage() {
       initialAssociations={associations as any}
       initialRegistrations={registrations as any}
       initialMessages={messages as any}
+      pageSize={PAGE_SIZE}
     />
   )
 }
