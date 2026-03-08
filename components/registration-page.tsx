@@ -271,6 +271,43 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     { icon: Star, title: "تطوير المهارات", description: "برامج تدريبية لتطوير قدراتك الشخصية والمهنية" },
   ]
 
+  // ── Branch 1: Logged in but NOT yet approved ──────────────────────────────
+  if (isLoggedIn && initialSession?.status !== "approved") {
+    const isRejected = initialSession?.status === "rejected"
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center bg-gray-50 py-16 px-4" dir="rtl">
+        <div className="w-full max-w-lg space-y-6">
+          <div className="bg-white border border-amber-200 rounded-2xl p-8 shadow-sm text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
+              <Clock className="w-8 h-8 text-amber-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">{isRejected ? "تم رفض الطلب" : "طلبك قيد المراجعة"}</h2>
+            <p className="text-gray-600 leading-relaxed">
+              طلب تسجيل جمعيتك <span className="font-semibold text-amber-700">{loggedInName}</span>{" "}
+              {isRejected ? "تم رفضه من قِبَل الإدارة." : "لا يزال قيد المراجعة من قِبَل الإدارة."}
+            </p>
+            {!isRejected && (
+              <p className="text-sm text-gray-500">ستتلقون إشعاراً فور مراجعة الطلب والبت فيه. شكراً لتسجيلكم معنا.</p>
+            )}
+            <div className="pt-2 flex justify-center">
+              <Badge variant={isRejected ? "destructive" : "secondary"} className="text-sm px-4 py-1.5 gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {isRejected ? "مرفوض" : "قيد المراجعة"}
+              </Badge>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <Button onClick={handleLogout} variant="outline" className="gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
+              <LogOut className="w-4 h-4" />
+              تسجيل الخروج
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Branch 2: Logged in AND approved → Mini Dashboard ─────────────────────
   if (isLoggedIn) {
     const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
       pending: { label: "قيد المراجعة", variant: "secondary" },
