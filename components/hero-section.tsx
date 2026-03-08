@@ -75,7 +75,7 @@ export function HeroSection() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
             <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border/50 hover:scale-105 transition-transform duration-300">
               <Users className="w-8 h-8 text-primary mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground mb-2">45+</div>
+              <div className="text-3xl font-bold text-foreground mb-2">70+</div>
               <div className="text-muted-foreground">جمعية نشطة</div>
             </div>
             <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border/50 hover:scale-105 transition-transform duration-300">

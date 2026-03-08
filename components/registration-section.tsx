@@ -101,7 +101,7 @@ export function RegistrationSection() {
                   <h4 className="text-white text-xl font-semibold mb-2">فيديو تعريفي بالجمعية</h4>
                   <p className="text-white/80">شاهد رحلتنا وإنجازاتنا</p>
                 </div>
-                <Button 
+                <Button
                   className="absolute inset-0 bg-transparent hover:bg-black/20 transition-colors duration-300"
                   onClick={() => {
                     // يمكن إضافة رابط الفيديو هنا
@@ -119,21 +119,21 @@ export function RegistrationSection() {
             <h3 className="text-3xl font-bold text-foreground">نبذة عن الرابطة الولائية</h3>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
-                تأسست الرابطة الولائية في عام 2023 بهدف خلق بيئة محفزة للشباب لتطوير قدراتهم 
+                تأسست الرابطة الولائية بهدف خلق بيئة محفزة للشباب لتطوير قدراتهم
                 وإمكانياتهم في شتى المجالات. نؤمن بأن الشباب هم عماد المستقبل وقادة التغيير.
               </p>
               <p>
-                نقدم برامج متنوعة تشمل التدريب المهني، ورش تطوير الذات، الأنشطة الثقافية والرياضية، 
+                نقدم برامج متنوعة تشمل التدريب المهني، ورش تطوير الذات، الأنشطة الثقافية والرياضية،
                 بالإضافة إلى المشاريع التطوعية التي تخدم المجتمع المحلي.
               </p>
               <p>
                 انضم إلى عائلتنا الكبيرة واكتشف إمكانياتك الحقيقية مع مجتمع من الشباب المتحمس والطموح.
               </p>
             </div>
-            
+
             <div className="flex flex-wrap gap-4 pt-4">
               <Button className="bg-primary hover:bg-primary/90 !cursor-pointer"
-              onClick={() => router.push("/register")}
+                onClick={() => router.push("/register")}
               >
                 انضم إلينا الآن
               </Button>
@@ -167,7 +167,7 @@ export function RegistrationSection() {
         </div>
 
         {/* إحصائيات سريعة */}
-        <div className="mt-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-8">
+        {/* <div className="mt-16 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
               <h4 className="text-3xl font-bold text-primary mb-2">45+</h4>
@@ -186,7 +186,7 @@ export function RegistrationSection() {
               <p className="text-muted-foreground">سنوات من العطاء</p>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   )
