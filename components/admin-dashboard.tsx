@@ -10,6 +10,9 @@ import {
   approveAssociationAction, deleteAssociationAction, rejectAssociationAction, undoRejectAssociationAction
 } from "@/app/admin/actions"
 
+import { useRouter } from "next/navigation"
+import { adminLogout } from "@/services/AdminAuthService"
+
 // --- Export Helpers ---
 const exportToWord = (htmlContent: string, filename: string) => {
   const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>${filename}</title></head><body>`;
@@ -121,6 +124,7 @@ import {
   Link2,
   Upload,
   ExternalLink,
+  LogOut,
 } from "lucide-react"
 
 type ActivityTemplate =
@@ -270,7 +274,22 @@ export function AdminDashboard({
   initialMessages?: Message[]
 }) {
   const { toast } = useToast()
+  const router = useRouter()
 
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await adminLogout()
+      router.push("/admin/login")
+      router.refresh()
+    } catch {
+      toast({ title: "خطأ", description: "فشل تسجيل الخروج", variant: "destructive" })
+      setIsLoggingOut(false)
+    }
+  }
 
   const handleImageOptimize = (file: File, callback: (url: string) => void) => {
     const reader = new FileReader();
@@ -1261,6 +1280,17 @@ export function AdminDashboard({
               </Button>
             )
           })}
+
+          <div className="pt-4 border-t border-gray-200 mt-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={() => setIsLogoutDialogOpen(true)}
+            >
+              <LogOut className="ml-2 h-4 w-4" />
+              تسجيل الخروج
+            </Button>
+          </div>
         </nav>
       </div>
 
@@ -3310,6 +3340,28 @@ export function AdminDashboard({
               </CardContent>
             </Card>
           )}
+
+        {/* --- Logout Confirmation Dialog --- */}
+        <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+          <DialogContent className="max-w-md w-[95vw] p-6" dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-600">
+                <LogOut className="h-5 w-5" />
+                تأكيد تسجيل الخروج
+              </DialogTitle>
+              <DialogDescription>
+                هل أنت متأكد من رغبتك في تسجيل الخروج من لوحة التحكم؟
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setIsLogoutDialogOpen(false)} disabled={isLoggingOut}>إلغاء</Button>
+              <Button variant="destructive" onClick={handleLogout} isLoading={isLoggingOut}>
+                <LogOut className="ml-2 h-4 w-4 shrink-0" />
+                تسجيل الخروج
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div >
   )
