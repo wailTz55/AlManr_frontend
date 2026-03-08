@@ -153,6 +153,25 @@ export async function getMyRegistrations(associationId: string) {
 }
 
 // ============================================================
+// Get Recent Registrations for Dashboard (association — last 5)
+// ============================================================
+export async function getRecentRegistrations(associationId: string) {
+    const supabase = await createSupabaseServerClient()
+    const { data, error } = await supabase
+        .from("activity_registrations")
+        .select(`
+      id, status, created_at,
+      activities (id, title)
+    `)
+        .eq("association_id", associationId)
+        .order("created_at", { ascending: false })
+        .limit(5)
+
+    if (error) throw new Error("[RegistrationService] Failed to fetch recent registrations: " + error.message)
+    return data ?? []
+}
+
+// ============================================================
 // Update Registration Status (admin)
 // ============================================================
 export async function updateRegistrationStatus(

@@ -1,9 +1,10 @@
 "use server"
 
-import { associationRegister, associationLogin, associationLogout } from "@/services/AuthService"
+import { associationRegister, associationLogin, associationLogout, getAssociationSession } from "@/services/AuthService"
 import { redirect } from "next/navigation"
 
 import { getServiceRoleClient } from "@/lib/supabase/admin"
+import { getRecentRegistrations } from "@/services/RegistrationService"
 
 /**
  * Server action: Register a new association.
@@ -87,4 +88,18 @@ export async function loginAssociationAction(formData: {
 export async function logoutAssociationAction() {
     await associationLogout()
     redirect("/register")
+}
+
+/**
+ * Server action: Get the 5 most recent activity registrations for the logged-in association.
+ * Used by the mini-dashboard on the /register page.
+ */
+export async function getRecentRegistrationsAction() {
+    const session = await getAssociationSession()
+    if (!session) return []
+    try {
+        return await getRecentRegistrations(session.associationId)
+    } catch {
+        return []
+    }
 }

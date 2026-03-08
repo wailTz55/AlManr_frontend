@@ -1,6 +1,6 @@
 "use client"
 import type React from "react"
-import { useState, useMemo, useTransition } from "react"
+import { useState, useMemo, useTransition, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Upload, Star, Users, Calendar, Award, ArrowRight, CheckCircle, AlertTriangle, X, FileText, LogIn, LogOut, Loader2, Eye, EyeOff } from "lucide-react"
-import { registerAssociationAction, loginAssociationAction, logoutAssociationAction } from "@/app/register/actions"
+import { Badge } from "@/components/ui/badge"
+import { Upload, Star, Users, Calendar, Award, ArrowRight, CheckCircle, AlertTriangle, X, FileText, LogIn, LogOut, Loader2, Eye, EyeOff, Clock } from "lucide-react"
+import { registerAssociationAction, loginAssociationAction, logoutAssociationAction, getRecentRegistrationsAction } from "@/app/register/actions"
 import { useToast } from "@/hooks/use-toast"
 
 import type { AssociationSession } from "@/types/auth"
@@ -26,6 +27,19 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
   const [showRegPassword, setShowRegPassword] = useState(false)
   const [isPendingReg, startRegTransition] = useTransition()
   const [isPendingLogin, startLoginTransition] = useTransition()
+
+  // Dashboard state
+  const [recentRegistrations, setRecentRegistrations] = useState<Awaited<ReturnType<typeof getRecentRegistrationsAction>>>([])
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false)
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      setIsLoadingDashboard(true)
+      getRecentRegistrationsAction()
+        .then(setRecentRegistrations)
+        .finally(() => setIsLoadingDashboard(false))
+    }
+  }, [isLoggedIn])
 
   // --- Registration State ---
   const [formData, setFormData] = useState({
@@ -258,28 +272,82 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
   ]
 
   if (isLoggedIn) {
+    const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      pending: { label: "قيد المراجعة", variant: "secondary" },
+      approved: { label: "مقبول", variant: "default" },
+      rejected: { label: "مرفوض", variant: "destructive" },
+    }
+
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-background via-accent/5 to-primary/5 py-20 px-4">
-        <Card className="max-w-md w-full text-center shadow-lg border-primary/20 animate-fade-in">
-          <CardHeader>
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-primary" />
+      <div className="min-h-[60vh] flex items-center justify-center bg-gray-50 py-16 px-4" dir="rtl">
+        <div className="w-full max-w-2xl space-y-6">
+
+          {/* Welcome Header */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <CheckCircle className="w-6 h-6 text-amber-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">مرحباً{loggedInName ? `، ${loggedInName}` : ""}!</h2>
+                <p className="text-sm text-gray-500">أنت مسجل الدخول في بوابة الجمعيات</p>
+              </div>
             </div>
-            <CardTitle className="text-2xl font-bold">مرحباً{loggedInName ? `، ${loggedInName}` : ""}!</CardTitle>
-            <CardDescription>أنت مسجل الدخول حالياً في بوابة الجمعيات</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              يمكنك إدارة بيانات جمعيتك والوصول إلى الخدمات الحصرية لأعضاء الرابطة.
-            </p>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <Button onClick={handleLogout} variant="outline" className="gap-2 !cursor-pointer">
+            <Button onClick={handleLogout} variant="outline" className="gap-2 shrink-0 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
               <LogOut className="w-4 h-4" />
-              تسجيل الخروج
+              خروج
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+
+          {/* Recent Registrations Table */}
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-amber-600" />
+              <h3 className="font-semibold text-gray-900">آخر 5 تسجيلات في الأنشطة</h3>
+            </div>
+
+            {isLoadingDashboard ? (
+              <div className="flex items-center justify-center py-12 gap-3 text-gray-500">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>جارٍ التحميل...</span>
+              </div>
+            ) : recentRegistrations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-2 text-gray-400">
+                <Calendar className="w-10 h-10" />
+                <p className="text-sm">لم تقومي بالتسجيل في أي نشاط بعد</p>
+              </div>
+            ) : (
+              <table className="w-full text-sm text-right">
+                <thead>
+                  <tr className="bg-gray-50 text-gray-500 text-xs">
+                    <th className="px-6 py-3 font-medium">اسم النشاط</th>
+                    <th className="px-6 py-3 font-medium">تاريخ التسجيل</th>
+                    <th className="px-6 py-3 font-medium">حالة الطلب</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {recentRegistrations.map((reg) => {
+                    const cfg = statusConfig[reg.status] ?? { label: reg.status, variant: "outline" as const }
+                    const activityTitle = Array.isArray(reg.activities)
+                      ? reg.activities[0]?.title
+                      : (reg.activities as any)?.title
+                    return (
+                      <tr key={reg.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-gray-900 font-medium">{activityTitle ?? "—"}</td>
+                        <td className="px-6 py-4 text-gray-600">
+                          {new Date(reg.created_at).toLocaleDateString("ar-DZ", { year: "numeric", month: "short", day: "numeric" })}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge variant={cfg.variant}>{cfg.label}</Badge>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
       </div>
     )
   }
