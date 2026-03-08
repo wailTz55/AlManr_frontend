@@ -90,6 +90,20 @@ export async function deleteAssociationAction(id: string) {
 }
 
 // ============================================================
+// Registration Status Actions (activity registrations)
+// ============================================================
+import { updateRegistrationStatus } from "@/services/RegistrationService"
+
+export async function updateRegistrationStatusAction(
+    id: string,
+    status: "pending" | "approved" | "rejected",
+    rejection_reason?: string
+) {
+    await verifyAdminAction()
+    return updateRegistrationStatus({ id, status, rejection_reason })
+}
+
+// ============================================================
 // Contact / Message Actions
 // ============================================================
 import { ContactService } from "@/services/ContactService"

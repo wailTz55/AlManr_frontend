@@ -599,15 +599,34 @@ export function AdminDashboard({
   }
 
   // --- Registration handlers ---
-  const handleApproveRegistration = (registrationId: string) => {
-    setActivityRegistrations((prev) =>
-      prev.map((r) => (r.id === registrationId ? { ...r, status: "approved" as const } : r)),
-    )
+  const handleApproveRegistration = async (registrationId: string) => {
+    setIsActivityActionLoading(true)
+    try {
+      const { updateRegistrationStatusAction } = await import("@/app/admin/actions")
+      await updateRegistrationStatusAction(registrationId, "approved")
+      setActivityRegistrations((prev) =>
+        prev.map((r) => (r.id === registrationId ? { ...r, status: "approved" as const } : r)),
+      )
+      toast({ title: "تم القبول", description: "تم قبول طلب التسجيل بنجاح" })
+    } catch {
+      toast({ title: "خطأ", description: "تعذّر قبول الطلب، يرجى المحاولة مجدداً", variant: "destructive" })
+    } finally {
+      setIsActivityActionLoading(false)
+    }
   }
 
-  const handleRejectRegistration = (registrationId: string) => {
-    // Rejection = permanent delete per spec
-    setActivityRegistrations((prev) => prev.filter((r) => r.id !== registrationId))
+  const handleRejectRegistration = async (registrationId: string) => {
+    setIsActivityActionLoading(true)
+    try {
+      const { updateRegistrationStatusAction } = await import("@/app/admin/actions")
+      await updateRegistrationStatusAction(registrationId, "rejected")
+      setActivityRegistrations((prev) => prev.filter((r) => r.id !== registrationId))
+      toast({ title: "تم الرفض", description: "تم رفض طلب التسجيل" })
+    } catch {
+      toast({ title: "خطأ", description: "تعذّر رفض الطلب، يرجى المحاولة مجدداً", variant: "destructive" })
+    } finally {
+      setIsActivityActionLoading(false)
+    }
   }
 
   const getActivityRegistrations = (activityId: string) =>
@@ -1890,10 +1909,10 @@ export function AdminDashboard({
                           <Badge className={getRegistrationStatusColor(reg.status)}>{getRegistrationStatusText(reg.status)}</Badge>
                           {reg.status === "pending" && (
                             <>
-                              <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApproveRegistration(reg.id)}>
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApproveRegistration(reg.id)} isLoading={isActivityActionLoading}>
                                 <Check className="h-4 w-4 ml-1" />قبول
                               </Button>
-                              <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleRejectRegistration(reg.id)}>
+                              <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleRejectRegistration(reg.id)} disabled={isActivityActionLoading}>
                                 <X className="h-4 w-4 ml-1" />رفض
                               </Button>
                             </>
