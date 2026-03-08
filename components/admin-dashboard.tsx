@@ -1163,12 +1163,12 @@ export function AdminDashboard({
     let counter = 1;
     approvedRegs.forEach(reg => {
       reg.participants.forEach((p: any) => {
+        const birthDisplay = p.birthdate ? new Date(p.birthdate).toLocaleDateString('ar-DZ') : '—';
         participantsRows += `
           <tr>
             <td>${counter++}</td>
-            <td>${p.firstName}</td>
-            <td>${p.lastName}</td>
-            <td>${new Date(p.dateOfBirth).toLocaleDateString('ar-DZ')}</td>
+            <td>${p.name ?? '—'}</td>
+            <td>${birthDisplay}</td>
             <td>${reg.associationName}</td>
           </tr>
         `;
@@ -1185,14 +1185,13 @@ export function AdminDashboard({
         <thead>
           <tr>
             <th>#</th>
-            <th>الاسم</th>
-            <th>اللقب</th>
+            <th>الاسم الكامل</th>
             <th>تاريخ الميلاد</th>
             <th>الجمعية</th>
           </tr>
         </thead>
         <tbody>
-          ${participantsRows || '<tr><td colspan="5" style="text-align:center;">لا يوجد مشاركين</td></tr>'}
+          ${participantsRows || '<tr><td colspan="4" style="text-align:center;">لا يوجد مشاركين</td></tr>'}
         </tbody>
       </table>
     `;
@@ -1216,12 +1215,12 @@ export function AdminDashboard({
       approvedRegs.forEach(reg => {
         const catParticipants = reg.participants.filter((p: any) => p.category === cat);
         catParticipants.forEach((p: any) => {
+          const birthDisplay = p.birthdate ? new Date(p.birthdate).toLocaleDateString('ar-DZ') : '—';
           participantsRows += `
             <tr>
               <td>${counter++}</td>
-              <td>${p.firstName}</td>
-              <td>${p.lastName}</td>
-              <td>${new Date(p.dateOfBirth).toLocaleDateString('ar-DZ')}</td>
+              <td>${p.name ?? '—'}</td>
+              <td>${birthDisplay}</td>
               <td>${reg.associationName}</td>
             </tr>
           `;
@@ -1234,14 +1233,13 @@ export function AdminDashboard({
           <thead>
             <tr>
               <th>#</th>
-              <th>الاسم</th>
-              <th>اللقب</th>
+              <th>الاسم الكامل</th>
               <th>تاريخ الميلاد</th>
               <th>الجمعية</th>
             </tr>
           </thead>
           <tbody>
-            ${participantsRows || '<tr><td colspan="5" style="text-align:center;">لا يوجد مشاركين في هذه الفئة</td></tr>'}
+            ${participantsRows || '<tr><td colspan="4" style="text-align:center;">لا يوجد مشاركين في هذه الفئة</td></tr>'}
           </tbody>
         </table>
         <br/>
