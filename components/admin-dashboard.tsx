@@ -353,6 +353,13 @@ export function AdminDashboard({
 
   const [isAddingNews, setIsAddingNews] = useState(false)
   const [editingNews, setEditingNews] = useState<NewsArticle | null>(null)
+
+  // Loading states
+  const [isActivityActionLoading, setIsActivityActionLoading] = useState(false)
+  const [isNewsActionLoading, setIsNewsActionLoading] = useState(false)
+  const [isAssociationActionLoading, setIsAssociationActionLoading] = useState(false)
+  const [isMessageActionLoading, setIsMessageActionLoading] = useState(false)
+  const [isMemberActionLoading, setIsMemberActionLoading] = useState(false)
   const [newNews, setNewNews] = useState<Partial<NewsArticle>>({
     title: "",
     content: "",
@@ -480,6 +487,7 @@ export function AdminDashboard({
 
   const handleAddActivity = async () => {
     if (newActivity.title && newActivity.description) {
+      setIsActivityActionLoading(true)
       try {
         const createdData = await addActivityAction({
           title: newActivity.title,
@@ -510,6 +518,8 @@ export function AdminDashboard({
         toast({ title: "تم الإضافة", description: "تمت إضافة النشاط بنجاح" })
       } catch (err: any) {
         toast({ title: "خطأ", description: err.message, variant: "destructive" })
+      } finally {
+        setIsActivityActionLoading(false)
       }
     }
   }
@@ -521,6 +531,7 @@ export function AdminDashboard({
 
   const handleUpdateActivity = async () => {
     if (editingActivity && newActivity.title && newActivity.description) {
+      setIsActivityActionLoading(true)
       try {
         const updatedData = await editActivityAction(editingActivity.id, {
           title: newActivity.title,
@@ -545,12 +556,15 @@ export function AdminDashboard({
         toast({ title: "تم التعديل", description: "تم تعديل النشاط بنجاح" })
       } catch (err: any) {
         toast({ title: "خطأ", description: err.message, variant: "destructive" })
+      } finally {
+        setIsActivityActionLoading(false)
       }
     }
   }
 
   const handleDeleteActivityConfirmed = async () => {
     if (activityDeleteConfirmId) {
+      setIsActivityActionLoading(true)
       try {
         await removeActivityAction(activityDeleteConfirmId)
         setActivities(activities.filter((a) => a.id !== activityDeleteConfirmId))
@@ -559,6 +573,8 @@ export function AdminDashboard({
         toast({ title: "تم الحذف", description: "تم حذف النشاط بنجاح" })
       } catch (err: any) {
         toast({ title: "خطأ", description: err.message, variant: "destructive" })
+      } finally {
+        setIsActivityActionLoading(false)
       }
     }
   }
@@ -612,6 +628,7 @@ export function AdminDashboard({
 
   const handleDeleteMessageConfirmed = async () => {
     if (messageDeleteConfirmId) {
+      setIsMessageActionLoading(true)
       try {
         const { deleteMessageAction } = await import('@/app/admin/actions')
         await deleteMessageAction(messageDeleteConfirmId)
@@ -620,12 +637,15 @@ export function AdminDashboard({
         toast({ title: "تم الحذف", description: "تم حذف الرسالة بنجاح" })
       } catch (error) {
         toast({ title: "خطأ", description: "تعذر حذف الرسالة", variant: "destructive" })
+      } finally {
+        setIsMessageActionLoading(false)
       }
     }
   }
 
   const handleReplyMessage = async (messageId: string) => {
     if (replyText.trim()) {
+      setIsMessageActionLoading(true)
       try {
         const { replyMessageAction } = await import('@/app/admin/actions')
         await replyMessageAction(messageId, replyText)
@@ -638,11 +658,14 @@ export function AdminDashboard({
         })
       } catch (error) {
         toast({ title: "خطأ", description: "تعذر إرسال الرد", variant: "destructive" })
+      } finally {
+        setIsMessageActionLoading(false)
       }
     }
   }
 
   const handleApprovePartnership = async (partnershipId: string) => {
+    setIsAssociationActionLoading(true)
     try {
       await approveAssociationAction(partnershipId)
       setPartnerships((prev) =>
@@ -664,10 +687,13 @@ export function AdminDashboard({
       toast({ title: "تم", description: "تمت الموافقة بنجاح" })
     } catch (err: any) {
       toast({ title: "خطأ", description: err.message, variant: "destructive" })
+    } finally {
+      setIsAssociationActionLoading(false)
     }
   }
 
   const handleRejectPartnership = async (partnershipId: string) => {
+    setIsAssociationActionLoading(true)
     try {
       await rejectAssociationAction(partnershipId, reviewNotes)
       setPartnerships((prev) =>
@@ -689,10 +715,13 @@ export function AdminDashboard({
       toast({ title: "تم", description: "تم رفض الشراكة" })
     } catch (err: any) {
       toast({ title: "خطأ", description: err.message, variant: "destructive" })
+    } finally {
+      setIsAssociationActionLoading(false)
     }
   }
 
   const handleUndoReject = async (partnershipId: string) => {
+    setIsAssociationActionLoading(true)
     try {
       await undoRejectAssociationAction(partnershipId)
       setPartnerships((prev) =>
@@ -705,10 +734,13 @@ export function AdminDashboard({
       toast({ title: "تم", description: "تم التراجع عن الرفض" })
     } catch (err: any) {
       toast({ title: "خطأ", description: err.message, variant: "destructive" })
+    } finally {
+      setIsAssociationActionLoading(false)
     }
   }
 
   const handleDeletePartnership = async (partnershipId: string) => {
+    setIsAssociationActionLoading(true)
     try {
       await deleteAssociationAction(partnershipId)
       setPartnerships((prev) => prev.filter((p) => p.id !== partnershipId))
@@ -717,11 +749,14 @@ export function AdminDashboard({
       toast({ title: "تم الحذف", description: "تم حذف الشراكة بنجاح" })
     } catch (err: any) {
       toast({ title: "خطأ", description: err.message, variant: "destructive" })
+    } finally {
+      setIsAssociationActionLoading(false)
     }
   }
 
   const handleAddNews = async () => {
     if (newNews.title && newNews.content) {
+      setIsNewsActionLoading(true)
       try {
         const isPublished = newNews.status === "published"
         const createdData = await addNewsAction({
@@ -758,6 +793,8 @@ export function AdminDashboard({
         toast({ title: "تم الإضافة", description: "تمت إضافة الخبر بنجاح" })
       } catch (err: any) {
         toast({ title: "خطأ", description: err.message, variant: "destructive" })
+      } finally {
+        setIsNewsActionLoading(false)
       }
     }
   }
@@ -769,6 +806,7 @@ export function AdminDashboard({
 
   const handleUpdateNews = async () => {
     if (editingNews && newNews.title && newNews.content) {
+      setIsNewsActionLoading(true)
       try {
         const isPublished = newNews.status === "published"
         const updatedData = await editNewsAction(editingNews.id, {
@@ -806,6 +844,8 @@ export function AdminDashboard({
         toast({ title: "تم التعديل", description: "تم تعديل الخبر بنجاح" })
       } catch (err: any) {
         toast({ title: "خطأ", description: err.message, variant: "destructive" })
+      } finally {
+        setIsNewsActionLoading(false)
       }
     }
   }
@@ -816,6 +856,7 @@ export function AdminDashboard({
 
   const handleDeleteNewsConfirmed = async () => {
     if (newsDeleteConfirmId) {
+      setIsNewsActionLoading(true)
       try {
         await removeNewsAction(newsDeleteConfirmId)
         setNewsArticles(newsArticles.filter((article) => article.id !== newsDeleteConfirmId))
@@ -823,6 +864,8 @@ export function AdminDashboard({
         toast({ title: "تم الحذف", description: "تم حذف الخبر بنجاح" })
       } catch (err: any) {
         toast({ title: "خطأ", description: err.message, variant: "destructive" })
+      } finally {
+        setIsNewsActionLoading(false)
       }
     }
   }
@@ -1509,8 +1552,8 @@ export function AdminDashboard({
                     )}
                   </div>
                   <div className="flex justify-end space-x-2 space-x-reverse">
-                    <Button variant="outline" onClick={() => { resetNewActivity(); setIsAddingActivity(false) }}>إلغاء</Button>
-                    <Button onClick={handleAddActivity} className="mr-2 bg-amber-600 hover:bg-amber-700">إضافة النشاط</Button>
+                    <Button variant="outline" onClick={() => { resetNewActivity(); setIsAddingActivity(false) }} disabled={isActivityActionLoading}>إلغاء</Button>
+                    <Button onClick={handleAddActivity} className="mr-2 bg-amber-600 hover:bg-amber-700" isLoading={isActivityActionLoading}>إضافة النشاط</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -1716,8 +1759,8 @@ export function AdminDashboard({
                   )}
                 </div>
                 <div className="flex justify-end space-x-2 space-x-reverse">
-                  <Button variant="outline" onClick={() => { setEditingActivity(null); resetNewActivity() }}>إلغاء</Button>
-                  <Button onClick={handleUpdateActivity} className="mr-2 bg-amber-600 hover:bg-amber-700">حفظ التغييرات</Button>
+                  <Button variant="outline" onClick={() => { setEditingActivity(null); resetNewActivity() }} disabled={isActivityActionLoading}>إلغاء</Button>
+                  <Button onClick={handleUpdateActivity} className="mr-2 bg-amber-600 hover:bg-amber-700" isLoading={isActivityActionLoading}>حفظ التغييرات</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -1738,8 +1781,8 @@ export function AdminDashboard({
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex justify-end gap-2 mt-4">
-                  <Button variant="outline" onClick={() => setActivityDeleteConfirmId(null)}>إلغاء</Button>
-                  <Button variant="destructive" onClick={handleDeleteActivityConfirmed}>
+                  <Button variant="outline" onClick={() => setActivityDeleteConfirmId(null)} disabled={isActivityActionLoading}>إلغاء</Button>
+                  <Button variant="destructive" onClick={handleDeleteActivityConfirmed} isLoading={isActivityActionLoading}>
                     <Trash2 className="h-4 w-4 ml-2" />
                     حذف النشاط
                   </Button>
@@ -2602,6 +2645,7 @@ export function AdminDashboard({
                             variant="outline"
                             className="text-red-600 hover:text-red-700 bg-transparent border-red-300"
                             onClick={() => handleRejectPartnership(selectedPartnership.id)}
+                            isLoading={isAssociationActionLoading}
                           >
                             <XCircle className="ml-2 h-4 w-4" />
                             رفض الطلب
@@ -2609,6 +2653,7 @@ export function AdminDashboard({
                           <Button
                             className="bg-green-600 hover:bg-green-700"
                             onClick={() => handleApprovePartnership(selectedPartnership.id)}
+                            isLoading={isAssociationActionLoading}
                           >
                             <CheckCircle className="ml-2 h-4 w-4" />
                             قبول الشراكة
