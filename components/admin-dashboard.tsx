@@ -2140,13 +2140,14 @@ export function AdminDashboard({
                     </div>
 
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setSelectedMessage(null)}>
+                      <Button variant="outline" onClick={() => setSelectedMessage(null)} disabled={isMessageActionLoading}>
                         إغلاق
                       </Button>
                       <Button
                         onClick={() => handleReplyMessage(selectedMessage.id)}
                         className="bg-amber-600 hover:bg-amber-700"
-                        disabled={!replyText.trim()}
+                        disabled={!replyText.trim() || isMessageActionLoading}
+                        isLoading={isMessageActionLoading}
                       >
                         <Reply className="ml-2 h-4 w-4" />
                         إرسال الرد
@@ -2170,8 +2171,8 @@ export function AdminDashboard({
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex justify-end gap-2 mt-4">
-                  <Button variant="outline" onClick={() => setMessageDeleteConfirmId(null)}>إلغاء</Button>
-                  <Button variant="destructive" onClick={handleDeleteMessageConfirmed}>
+                  <Button variant="outline" onClick={() => setMessageDeleteConfirmId(null)} disabled={isMessageActionLoading}>إلغاء</Button>
+                  <Button variant="destructive" onClick={handleDeleteMessageConfirmed} isLoading={isMessageActionLoading}>
                     <Trash2 className="ml-2 h-4 w-4" />
                     حذف الرسالة
                   </Button>
@@ -2872,10 +2873,10 @@ export function AdminDashboard({
                       </div>
                     </div>
                     <div className="flex justify-end space-x-2 space-x-reverse">
-                      <Button variant="outline" onClick={() => setIsAddingNews(false)}>
+                      <Button variant="outline" onClick={() => setIsAddingNews(false)} disabled={isNewsActionLoading}>
                         إلغاء
                       </Button>
-                      <Button onClick={handleAddNews} className="mr-2 bg-amber-600 hover:bg-amber-700">
+                      <Button onClick={handleAddNews} className="mr-2 bg-amber-600 hover:bg-amber-700" isLoading={isNewsActionLoading}>
                         إضافة المقال
                       </Button>
                     </div>
@@ -3034,8 +3035,8 @@ export function AdminDashboard({
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex justify-end gap-2 mt-4">
-                  <Button variant="outline" onClick={() => setNewsDeleteConfirmId(null)}>إلغاء</Button>
-                  <Button variant="destructive" onClick={handleDeleteNewsConfirmed}>
+                  <Button variant="outline" onClick={() => setNewsDeleteConfirmId(null)} disabled={isNewsActionLoading}>إلغاء</Button>
+                  <Button variant="destructive" onClick={handleDeleteNewsConfirmed} isLoading={isNewsActionLoading}>
                     <Trash2 className="ml-2 h-4 w-4" />
                     حذف المقال
                   </Button>
@@ -3177,10 +3178,10 @@ export function AdminDashboard({
                   </div>
                 </div>
                 <div className="flex justify-end space-x-2 space-x-reverse">
-                  <Button variant="outline" onClick={() => setEditingNews(null)}>
+                  <Button variant="outline" onClick={() => setEditingNews(null)} disabled={isNewsActionLoading}>
                     إلغاء
                   </Button>
-                  <Button onClick={handleUpdateNews} className="mr-2 bg-amber-600 hover:bg-amber-700">
+                  <Button onClick={handleUpdateNews} className="mr-2 bg-amber-600 hover:bg-amber-700" isLoading={isNewsActionLoading}>
                     حفظ التغييرات
                   </Button>
                 </div>
