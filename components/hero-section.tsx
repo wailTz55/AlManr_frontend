@@ -80,7 +80,7 @@ export function HeroSection() {
             </div>
             <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border/50 hover:scale-105 transition-transform duration-300">
               <Calendar className="w-8 h-8 text-secondary mx-auto mb-3" />
-              <div className="text-3xl font-bold text-foreground mb-2">60+</div>
+              <div className="text-3xl font-bold text-foreground mb-2">100+</div>
               <div className="text-muted-foreground">فعالية منظمة</div>
             </div>
             <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border/50 hover:scale-105 transition-transform duration-300">

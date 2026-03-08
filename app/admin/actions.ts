@@ -3,7 +3,7 @@
 
 import { adminLogout, verifyAdminAction, revokeAdminSessions } from "@/services/AdminAuthService"
 import { redirect } from "next/navigation"
-
+import { updateRegistrationStatus } from "@/services/RegistrationService"
 import { createActivity, updateActivity, deleteActivity } from "@/services/ActivityService"
 import { createNews, updateNews, deleteNews } from "@/services/NewsService"
 import { approveAssociation, deleteAssociation, rejectAssociation, undoRejectAssociation } from "@/services/AdminService"
@@ -92,7 +92,6 @@ export async function deleteAssociationAction(id: string) {
 // ============================================================
 // Registration Status Actions (activity registrations)
 // ============================================================
-import { updateRegistrationStatus } from "@/services/RegistrationService"
 
 export async function updateRegistrationStatusAction(
     id: string,

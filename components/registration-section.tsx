@@ -28,7 +28,7 @@ export function RegistrationSection() {
     {
       icon: Award,
       title: "إنجازاتنا",
-      description: "أكثر من 500 عضو نشط و 100+ فعالية ناجحة على مدار السنوات الماضية",
+      description: "أكثر من 70 جمعية نشط و 100+ فعالية ناجحة على مدار السنوات الماضية",
       color: "text-accent",
       bgColor: "bg-accent/10",
     },
