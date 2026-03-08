@@ -2701,12 +2701,13 @@ export function AdminDashboard({
                   </p>
                 </div>
                 <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
+                  <Button variant="outline" onClick={() => setDeleteConfirmId(null)} disabled={isAssociationActionLoading}>
                     إلغاء — ابقِ الجمعية
                   </Button>
                   <Button
                     className="bg-red-600 hover:bg-red-700 text-white"
                     onClick={() => deleteConfirmId && handleDeletePartnership(deleteConfirmId)}
+                    isLoading={isAssociationActionLoading}
                   >
                     <Trash2 className="ml-2 h-4 w-4" />
                     نعم، احذف نهائياً

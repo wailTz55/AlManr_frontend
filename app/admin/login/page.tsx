@@ -4,6 +4,7 @@ import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { adminLogin } from "@/services/AdminAuthService"
 import { Eye, EyeOff, Shield, Loader2, AlertCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 // ─── Inner form uses useSearchParams → must be wrapped in Suspense ────────────
 function AdminLoginForm() {
@@ -121,22 +122,16 @@ function AdminLoginForm() {
                         </div>
 
                         {/* Submit */}
-                        <button
+                        <Button
                             id="login-submit"
                             type="submit"
+                            isLoading={loading}
                             disabled={loading}
-                            className="w-full text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{ background: "linear-gradient(to right, #2563eb, #06b6d4)" }}
+                            className="w-full text-white font-semibold flex items-center justify-center gap-2 h-12 shadow-lg"
+                            style={{ background: "linear-gradient(to right, #2563eb, #06b6d4)", borderRadius: "var(--radius)" }}
                         >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    <span>جارٍ التحقق...</span>
-                                </>
-                            ) : (
-                                <span>تسجيل الدخول</span>
-                            )}
-                        </button>
+                            تسجيل الدخول
+                        </Button>
                     </form>
 
                     {/* Footer note */}
