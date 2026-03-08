@@ -120,6 +120,7 @@ import {
   FileDown,
   Link2,
   Upload,
+  ExternalLink,
 } from "lucide-react"
 
 type ActivityTemplate =
@@ -211,10 +212,11 @@ interface AssociationPartnership {
   institutionName: string
   presidentName: string
   presidentPhone: string
-  treasurerName: string
-  treasurerPhone: string
   secretaryName: string
   secretaryPhone: string
+  clerkName: string
+  clerkPhone: string
+  officeApprovalUrl?: string
   email: string
   phone: string
   submissionDate: string
@@ -2207,8 +2209,8 @@ export function AdminDashboard({
                                 <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;width:35%;border:1px solid #e5e7eb">المؤسسة المشرفة</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.institutionName}</td></tr>
                                 <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">رئيس الجمعية</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.presidentName}</td></tr>
                                 <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف الرئيس</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.presidentPhone}</td></tr>
-                                <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">أمين المال</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.treasurerName}</td></tr>
-                                <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف أمين المال</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.treasurerPhone}</td></tr>
+                                <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">الكاتب العام</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.clerkName}</td></tr>
+                                <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف الكاتب العام</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.clerkPhone}</td></tr>
                                 <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">الأمين العام</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.secretaryName}</td></tr>
                                 <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف الأمين العام</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.secretaryPhone}</td></tr>
                                 <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">البريد الإلكتروني</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.email}</td></tr>
@@ -2241,8 +2243,8 @@ export function AdminDashboard({
                               <tr style="background:#fef9f0"><td><b>المؤسسة المشرفة</b></td><td>${p.institutionName}</td></tr>
                               <tr><td><b>رئيس الجمعية</b></td><td>${p.presidentName}</td></tr>
                               <tr style="background:#fef9f0"><td><b>هاتف الرئيس</b></td><td>${p.presidentPhone}</td></tr>
-                              <tr><td><b>أمين المال</b></td><td>${p.treasurerName}</td></tr>
-                              <tr style="background:#fef9f0"><td><b>هاتف أمين المال</b></td><td>${p.treasurerPhone}</td></tr>
+                              <tr><td><b>الكاتب العام</b></td><td>${p.clerkName}</td></tr>
+                              <tr style="background:#fef9f0"><td><b>هاتف الكاتب العام</b></td><td>${p.clerkPhone}</td></tr>
                               <tr><td><b>الأمين العام</b></td><td>${p.secretaryName}</td></tr>
                               <tr style="background:#fef9f0"><td><b>هاتف الأمين العام</b></td><td>${p.secretaryPhone}</td></tr>
                               <tr><td><b>البريد الإلكتروني</b></td><td>${p.email}</td></tr>
@@ -2492,10 +2494,10 @@ export function AdminDashboard({
                           </p>
                         </div>
                         <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                          <Label className="text-xs font-medium text-blue-700">أمين المال</Label>
-                          <p className="text-sm font-semibold mt-1">{selectedPartnership.treasurerName}</p>
+                          <Label className="text-xs font-medium text-blue-700">الكاتب العام</Label>
+                          <p className="text-sm font-semibold mt-1">{selectedPartnership.clerkName}</p>
                           <p className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
-                            <Phone className="h-3 w-3" />{selectedPartnership.treasurerPhone}
+                            <Phone className="h-3 w-3" />{selectedPartnership.clerkPhone}
                           </p>
                         </div>
                         <div className="p-3 bg-green-50 rounded-lg border border-green-100">
@@ -2553,6 +2555,30 @@ export function AdminDashboard({
                         <Label className="text-sm font-medium text-gray-600">ملاحظات</Label>
                         <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
                           <p className="text-sm text-blue-800">{selectedPartnership.notes}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* PDF Preview Link */}
+                    {selectedPartnership.officeApprovalUrl && (
+                      <div className="flex flex-col gap-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-700">ملف اعتماد المكتب</Label>
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-8 w-8 text-red-500" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">مرفق بصيغة PDF</p>
+                            <p className="text-xs text-gray-500">تم رفع هذا الملف مع طلب الانضمام</p>
+                          </div>
+                          <a
+                            href={selectedPartnership.officeApprovalUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Button variant="outline" className="gap-2 cursor-pointer shadow-sm">
+                              <ExternalLink className="h-4 w-4" />
+                              عرض المستند
+                            </Button>
+                          </a>
                         </div>
                       </div>
                     )}

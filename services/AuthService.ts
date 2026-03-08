@@ -15,7 +15,7 @@ export async function associationRegister(
     if (!parsed.success) {
         return { success: false, error: parsed.error.errors[0].message }
     }
-    const { email, password, name, phone, address, city, wilaya, registration_number, description } = parsed.data
+    const { email, password, name, phone, address, city, wilaya, registration_number, description, institution_name, president_name, president_phone, secretary_name, secretary_phone, clerk_name, clerk_phone, office_approval_url } = parsed.data
 
     const supabase = await createSupabaseServerClient()
     const adminDb = getServiceRoleClient()
@@ -57,6 +57,14 @@ export async function associationRegister(
                 registration_number,
                 description,
                 status: "pending",
+                institution_name,
+                president_name,
+                president_phone,
+                secretary_name,
+                secretary_phone,
+                clerk_name,
+                clerk_phone,
+                office_approval_url,
             })
             .select("id, name, email, status")
             .single()

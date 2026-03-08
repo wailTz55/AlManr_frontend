@@ -17,7 +17,7 @@ export default async function AdminPage() {
       .order("created_at", { ascending: false })
       .then(r => r.data ?? []),
     db.from("associations")
-      .select("id, name, email, phone, city, wilaya, status, description, logo_url, rejection_reason, approved_by, approved_at, created_at, updated_at")
+      .select("id, name, email, phone, city, wilaya, status, description, logo_url, rejection_reason, approved_by, approved_at, created_at, updated_at, institution_name, president_name, president_phone, secretary_name, secretary_phone, clerk_name, clerk_phone, office_approval_url")
       .order("created_at", { ascending: false })
       .then(r => r.data ?? []),
     getAllRegistrations().catch(err => {
@@ -51,13 +51,14 @@ export default async function AdminPage() {
   const associations = rawAssociations.map((a: any) => ({
     id: a.id,
     associationName: a.name,
-    institutionName: a.city || "غير محدد",
-    presidentName: "غير محدد",
-    presidentPhone: a.phone || "غير محدد",
-    treasurerName: "غير محدد",
-    treasurerPhone: "غير محدد",
-    secretaryName: "غير محدد",
-    secretaryPhone: "غير محدد",
+    institutionName: a.institution_name || a.city || "غير محدد",
+    presidentName: a.president_name || "غير محدد",
+    presidentPhone: a.president_phone || a.phone || "غير محدد",
+    secretaryName: a.secretary_name || "غير محدد",
+    secretaryPhone: a.secretary_phone || "غير محدد",
+    clerkName: a.clerk_name || "غير محدد",
+    clerkPhone: a.clerk_phone || "غير محدد",
+    officeApprovalUrl: a.office_approval_url || undefined,
     email: a.email,
     phone: a.phone || "غير محدد",
     submissionDate: a.created_at,

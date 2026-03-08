@@ -61,13 +61,20 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     const phoneOk = /^\d{10}$/.test(formData.associationPhone.trim())
     const passOk = formData.password.length >= 8
     const passMatchOk = formData.password === formData.confirmPassword
+    const pdfOk = formData.officeApproval !== null && formData.officeApproval.type === "application/pdf"
     return (
       formData.associationName.trim() !== "" &&
       formData.organizationName.trim() !== "" &&
       formData.presidentName.trim() !== "" &&
+      formData.presidentPhone.trim() !== "" &&
       formData.secretaryName.trim() !== "" &&
+      formData.secretaryPhone.trim() !== "" &&
       formData.clerkName.trim() !== "" &&
-      emailOk && phoneOk && passOk && passMatchOk
+      formData.clerkPhone.trim() !== "" &&
+      formData.wilaya.trim() !== "" &&
+      formData.city.trim() !== "" &&
+      formData.motivation.trim() !== "" &&
+      emailOk && phoneOk && passOk && passMatchOk && pdfOk
     )
   }, [formData])
 
@@ -102,8 +109,14 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     if (!formData.associationName.trim()) newErrors.associationName = "اسم الجمعية مطلوب"
     if (!formData.organizationName.trim()) newErrors.organizationName = "اسم الهيئة مطلوب"
     if (!formData.presidentName.trim()) newErrors.presidentName = "اسم رئيس الجمعية مطلوب"
+    if (!formData.presidentPhone.trim()) newErrors.presidentPhone = "رقم هاتف الرئيس مطلوب"
     if (!formData.secretaryName.trim()) newErrors.secretaryName = "اسم الأمين العام مطلوب"
+    if (!formData.secretaryPhone.trim()) newErrors.secretaryPhone = "رقم هاتف الأمين العام مطلوب"
     if (!formData.clerkName.trim()) newErrors.clerkName = "اسم الكاتب العام مطلوب"
+    if (!formData.clerkPhone.trim()) newErrors.clerkPhone = "رقم هاتف الكاتب العام مطلوب"
+    if (!formData.wilaya.trim()) newErrors.wilaya = "الولاية مطلوبة"
+    if (!formData.city.trim()) newErrors.city = "البلدية مطلوبة"
+    if (!formData.motivation.trim()) newErrors.motivation = "الدافع لإنشاء الجمعية مطلوب"
     if (!formData.email.trim()) {
       newErrors.email = "البريد الإلكتروني مطلوب"
     } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email.trim())) {
@@ -121,6 +134,11 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "كلمتا المرور غير متطابقتين"
+    }
+    if (!formData.officeApproval) {
+      newErrors.officeApproval = "ملف الاعتماد مطلوب"
+    } else if (formData.officeApproval.type !== "application/pdf") {
+      newErrors.officeApproval = "يجب أن يكون الملف بصيغة PDF فقط"
     }
     setRegErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -148,15 +166,25 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
 
     startRegTransition(async () => {
       try {
-        const result = await registerAssociationAction({
-          name: formData.associationName,
-          email: formData.email,
-          password: formData.password,
-          phone: formData.associationPhone,
-          city: formData.city || undefined,
-          wilaya: formData.wilaya || undefined,
-          description: descriptionParts,
-        })
+        const submitData = new FormData();
+        submitData.append("name", formData.associationName);
+        submitData.append("email", formData.email);
+        submitData.append("password", formData.password);
+        submitData.append("phone", formData.associationPhone);
+        if (formData.city) submitData.append("city", formData.city);
+        if (formData.wilaya) submitData.append("wilaya", formData.wilaya);
+        submitData.append("description", descriptionParts);
+
+        submitData.append("institution_name", formData.organizationName);
+        submitData.append("president_name", formData.presidentName);
+        if (formData.presidentPhone) submitData.append("president_phone", formData.presidentPhone);
+        submitData.append("secretary_name", formData.secretaryName);
+        if (formData.secretaryPhone) submitData.append("secretary_phone", formData.secretaryPhone);
+        submitData.append("clerk_name", formData.clerkName);
+        if (formData.clerkPhone) submitData.append("clerk_phone", formData.clerkPhone);
+        if (formData.officeApproval) submitData.append("officeApproval", formData.officeApproval);
+
+        const result = await registerAssociationAction(submitData);
 
         if (!result.success) {
           setRegGeneralError(result.error || "حدث خطأ غير متوقع")
@@ -372,8 +400,9 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                           {fieldError("presidentName") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("presidentName")}</p>}
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="presidentPhone" className="text-right block">رقم هاتف رئيس الجمعية</Label>
-                          <Input id="presidentPhone" name="presidentPhone" value={formData.presidentPhone} onChange={handleInputChange} placeholder="0501234567" className="text-right" maxLength={10} inputMode="numeric" />
+                          <Label htmlFor="presidentPhone" className="text-right block">رقم هاتف رئيس الجمعية <span className="text-red-500">*</span></Label>
+                          <Input id="presidentPhone" name="presidentPhone" value={formData.presidentPhone} onChange={handleInputChange} placeholder="0501234567" className={`text-right ${fieldError("presidentPhone") ? "border-red-300" : ""}`} maxLength={10} inputMode="numeric" />
+                          {fieldError("presidentPhone") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("presidentPhone")}</p>}
                         </div>
                       </div>
 
@@ -385,8 +414,9 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                           {fieldError("secretaryName") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("secretaryName")}</p>}
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="secretaryPhone" className="text-right block">رقم هاتف الأمين العام</Label>
-                          <Input id="secretaryPhone" name="secretaryPhone" value={formData.secretaryPhone} onChange={handleInputChange} placeholder="0501234567" className="text-right" maxLength={10} inputMode="numeric" />
+                          <Label htmlFor="secretaryPhone" className="text-right block">رقم هاتف الأمين العام <span className="text-red-500">*</span></Label>
+                          <Input id="secretaryPhone" name="secretaryPhone" value={formData.secretaryPhone} onChange={handleInputChange} placeholder="0501234567" className={`text-right ${fieldError("secretaryPhone") ? "border-red-300" : ""}`} maxLength={10} inputMode="numeric" />
+                          {fieldError("secretaryPhone") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("secretaryPhone")}</p>}
                         </div>
                       </div>
 
@@ -398,8 +428,9 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                           {fieldError("clerkName") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("clerkName")}</p>}
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="clerkPhone" className="text-right block">رقم هاتف الكاتب العام</Label>
-                          <Input id="clerkPhone" name="clerkPhone" value={formData.clerkPhone} onChange={handleInputChange} placeholder="0501234567" className="text-right" maxLength={10} inputMode="numeric" />
+                          <Label htmlFor="clerkPhone" className="text-right block">رقم هاتف الكاتب العام <span className="text-red-500">*</span></Label>
+                          <Input id="clerkPhone" name="clerkPhone" value={formData.clerkPhone} onChange={handleInputChange} placeholder="0501234567" className={`text-right ${fieldError("clerkPhone") ? "border-red-300" : ""}`} maxLength={10} inputMode="numeric" />
+                          {fieldError("clerkPhone") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("clerkPhone")}</p>}
                         </div>
                       </div>
 
@@ -420,12 +451,14 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                       {/* Wilaya & City */}
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="wilaya" className="text-right block">الولاية</Label>
-                          <Input id="wilaya" name="wilaya" value={formData.wilaya} onChange={handleInputChange} placeholder="ولاية سطيف مثلاً" className="text-right" />
+                          <Label htmlFor="wilaya" className="text-right block">الولاية <span className="text-red-500">*</span></Label>
+                          <Input id="wilaya" name="wilaya" value={formData.wilaya} onChange={handleInputChange} placeholder="ولاية سطيف مثلاً" className={`text-right ${fieldError("wilaya") ? "border-red-300" : ""}`} />
+                          {fieldError("wilaya") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("wilaya")}</p>}
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="city" className="text-right block">البلدية</Label>
-                          <Input id="city" name="city" value={formData.city} onChange={handleInputChange} placeholder="البلدية" className="text-right" />
+                          <Label htmlFor="city" className="text-right block">البلدية <span className="text-red-500">*</span></Label>
+                          <Input id="city" name="city" value={formData.city} onChange={handleInputChange} placeholder="البلدية" className={`text-right ${fieldError("city") ? "border-red-300" : ""}`} />
+                          {fieldError("city") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("city")}</p>}
                         </div>
                       </div>
 
@@ -461,10 +494,10 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                       {/* Office Approval Upload */}
                       <div dir="rtl" className="space-y-2">
                         <Label htmlFor="officeApproval" className="text-right block">
-                          اعتماد المكتب (PDF أو صورة)
+                          اعتماد المكتب (PDF فقط) <span className="text-red-500">*</span>
                         </Label>
                         <div className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-primary transition-colors ${regErrors.officeApproval ? "border-red-300 bg-red-50" : "border-border"}`}>
-                          <input id="officeApproval" type="file" accept="image/*,application/pdf" onChange={handleFileUpload} className="hidden" />
+                          <input id="officeApproval" type="file" accept="application/pdf" onChange={handleFileUpload} className="hidden" />
                           <Label htmlFor="officeApproval" className="cursor-pointer">
                             <FileText className={`w-8 h-8 mx-auto mb-2 ${regErrors.officeApproval ? "text-red-400" : "text-muted-foreground"}`} />
                             <p className={`text-sm ${regErrors.officeApproval ? "text-red-600" : "text-muted-foreground"}`}>
@@ -476,8 +509,9 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
 
                       {/* Motivation */}
                       <div className="space-y-2">
-                        <Label htmlFor="motivation" className="text-right block">لماذا تريدون الانضمام؟</Label>
-                        <Textarea id="motivation" name="motivation" value={formData.motivation} onChange={handleInputChange} placeholder="اذكر دوافع الجمعية للانضمام إلى شبكة الرابطة..." className="text-right min-h-24" />
+                        <Label htmlFor="motivation" className="text-right block">لماذا تريدون الانضمام؟ <span className="text-red-500">*</span></Label>
+                        <Textarea id="motivation" name="motivation" value={formData.motivation} onChange={handleInputChange} placeholder="اذكر دوافع الجمعية للانضمام إلى شبكة الرابطة..." className={`text-right min-h-24 ${fieldError("motivation") ? "border-red-300" : ""}`} />
+                        {fieldError("motivation") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("motivation")}</p>}
                       </div>
 
                       <Button

@@ -26,6 +26,14 @@ export const RegisterAssociationSchema = z.object({
     wilaya: z.string().optional(),
     registration_number: z.string().optional(),
     description: z.string().optional(),
+    institution_name: z.string().min(1, "اسم الهيئة مطلوب"),
+    president_name: z.string().min(1, "اسم رئيس الجمعية مطلوب"),
+    president_phone: z.string().optional(),
+    secretary_name: z.string().min(1, "اسم الأمين العام مطلوب"),
+    secretary_phone: z.string().optional(),
+    clerk_name: z.string().min(1, "اسم الكاتب العام مطلوب"),
+    clerk_phone: z.string().optional(),
+    office_approval_url: z.string().min(1, "ملف الاعتماد مطلوب"),
 })
 export type RegisterAssociationDTO = z.infer<typeof RegisterAssociationSchema>
 
