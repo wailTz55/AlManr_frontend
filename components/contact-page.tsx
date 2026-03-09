@@ -243,19 +243,19 @@ export function ContactPage() {
     {
       icon: Phone,
       title: "الهاتف",
-      details: ["+213 676 99 23 13"],
+      details: [""],
       color: "text-green-500",
     },
     {
       icon: Mail,
       title: "البريد الإلكتروني",
-      details: ["asso.almanar2024@gmail.com"],
+      details: ["setiflapalej@gmail.com"],
       color: "text-blue-500",
     },
     {
       icon: MapPin,
       title: "العنوان",
-      details: ["حي 300 مسكن عين الكبيرة", "سطيف - عين الكبيرة"],
+      details: ["حي 300 مسكن سطيف "],
       color: "text-red-500",
     },
     {
