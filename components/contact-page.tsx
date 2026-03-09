@@ -273,7 +273,7 @@ export function ContactPage() {
   ]
 
   const socialLinks = [
-    { name: "Facebook", icon: Facebook, url: "https://www.facebook.com/profile.php?id=61554488265556", color: "text-blue-600" },
+    { name: "Facebook", icon: Facebook, url: "https://www.facebook.com/lapalejsetif", color: "text-blue-600" },
     { name: "Twitter", icon: Twitter, url: "#", color: "text-sky-500" },
     { name: "Instagram", icon: Instagram, url: "#", color: "text-pink-500" },
     { name: "LinkedIn", icon: Linkedin, url: "#", color: "text-blue-700" },
