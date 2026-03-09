@@ -17,38 +17,36 @@ export async function registerAssociationAction(formData: FormData) {
     const file = formData.get("officeApproval") as File | null;
     let office_approval_url = "";
 
-    if (!file || file.size === 0) {
-        return { success: false, error: "ملف الاعتماد مطلوب" };
+    if (file && file.size > 0) {
+        if (file.type !== "application/pdf") {
+            return { success: false, error: "يجب أن يكون الملف بصيغة PDF فقط" };
+        }
+
+        // Upload file to Supabase Admin Client
+        const adminDb = getServiceRoleClient();
+        const fileExt = file.name.split('.').pop() || 'pdf';
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `approvals/${fileName}`;
+
+        const { error: uploadError } = await adminDb.storage
+            .from("office-approvals")
+            .upload(filePath, file, {
+                contentType: file.type,
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error("File upload error:", uploadError);
+            return { success: false, error: "فشل في رفع ملف الاعتماد" };
+        }
+
+        const { data: { publicUrl } } = adminDb.storage
+            .from("office-approvals")
+            .getPublicUrl(filePath);
+
+        office_approval_url = publicUrl;
     }
-
-    if (file.type !== "application/pdf") {
-        return { success: false, error: "يجب أن يكون الملف بصيغة PDF فقط" };
-    }
-
-    // Upload file to Supabase Admin Client
-    const adminDb = getServiceRoleClient();
-    const fileExt = file.name.split('.').pop() || 'pdf';
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `approvals/${fileName}`;
-
-    const { error: uploadError } = await adminDb.storage
-        .from("office-approvals")
-        .upload(filePath, file, {
-            contentType: file.type,
-            cacheControl: '3600',
-            upsert: false
-        });
-
-    if (uploadError) {
-        console.error("File upload error:", uploadError);
-        return { success: false, error: "فشل في رفع ملف الاعتماد" };
-    }
-
-    const { data: { publicUrl } } = adminDb.storage
-        .from("office-approvals")
-        .getPublicUrl(filePath);
-
-    office_approval_url = publicUrl;
 
     const authData = {
         name: formData.get("name") as string,

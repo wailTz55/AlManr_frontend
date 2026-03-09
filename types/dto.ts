@@ -15,11 +15,8 @@ export const RegisterAssociationSchema = z.object({
     email: z.string().email("البريد الإلكتروني غير صالح"),
     password: z
         .string()
-        .min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل")
-        .regex(/[A-Z]/, "يجب أن تحتوي على حرف كبير واحد على الأقل")
-        .regex(/[a-z]/, "يجب أن تحتوي على حرف صغير واحد على الأقل")
-        .regex(/[0-9]/, "يجب أن تحتوي على رقم واحد على الأقل")
-        .regex(/[\W_]/, "يجب أن تحتوي على رمز خاص واحد على الأقل"),
+        .min(7, "كلمة المرور يجب أن تكون 7 أحرف على الأقل")
+        .regex(/^[a-zA-Z0-9]+$/, "كلمة المرور يجب أن تحتوي على أحرف وأرقام فقط"),
     phone: z.string().optional(),
     address: z.string().optional(),
     city: z.string().optional(),
@@ -33,7 +30,7 @@ export const RegisterAssociationSchema = z.object({
     secretary_phone: z.string().optional(),
     clerk_name: z.string().min(1, "اسم الكاتب العام مطلوب"),
     clerk_phone: z.string().optional(),
-    office_approval_url: z.string().min(1, "ملف الاعتماد مطلوب"),
+    office_approval_url: z.string().optional(),
 })
 export type RegisterAssociationDTO = z.infer<typeof RegisterAssociationSchema>
 

@@ -73,9 +73,8 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
   const isFormValid = useMemo(() => {
     const emailOk = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email.trim())
     const phoneOk = /^\d{10}$/.test(formData.associationPhone.trim())
-    const passOk = formData.password.length >= 8
+    const passOk = formData.password.length >= 7 && /^[a-zA-Z0-9]+$/.test(formData.password)
     const passMatchOk = formData.password === formData.confirmPassword
-    const pdfOk = formData.officeApproval !== null && formData.officeApproval.type === "application/pdf"
     return (
       formData.associationName.trim() !== "" &&
       formData.organizationName.trim() !== "" &&
@@ -88,7 +87,7 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
       formData.wilaya.trim() !== "" &&
       formData.city.trim() !== "" &&
       formData.motivation.trim() !== "" &&
-      emailOk && phoneOk && passOk && passMatchOk && pdfOk
+      emailOk && phoneOk && passOk && passMatchOk
     )
   }, [formData])
 
@@ -143,16 +142,13 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     }
     if (!formData.password) {
       newErrors.password = "كلمة المرور مطلوبة"
-    } else if (formData.password.length < 8) {
-      newErrors.password = "كلمة المرور يجب أن تكون 8 أحرف على الأقل"
+    } else if (formData.password.length < 7) {
+      newErrors.password = "كلمة المرور يجب أن تكون 7 أحرف على الأقل"
+    } else if (!/^[a-zA-Z0-9]+$/.test(formData.password)) {
+      newErrors.password = "كلمة المرور يجب أن تحتوي على أحرف وأرقام فقط"
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "كلمتا المرور غير متطابقتين"
-    }
-    if (!formData.officeApproval) {
-      newErrors.officeApproval = "ملف الاعتماد مطلوب"
-    } else if (formData.officeApproval.type !== "application/pdf") {
-      newErrors.officeApproval = "يجب أن يكون الملف بصيغة PDF فقط"
     }
     setRegErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -196,7 +192,6 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
         if (formData.secretaryPhone) submitData.append("secretary_phone", formData.secretaryPhone);
         submitData.append("clerk_name", formData.clerkName);
         if (formData.clerkPhone) submitData.append("clerk_phone", formData.clerkPhone);
-        if (formData.officeApproval) submitData.append("officeApproval", formData.officeApproval);
 
         const result = await registerAssociationAction(submitData);
 
@@ -577,7 +572,7 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                             <Input
                               id="password" name="password" type={showRegPassword ? "text" : "password"}
                               value={formData.password} onChange={handleInputChange}
-                              placeholder="8 أحرف على الأقل" className={`text-right pr-10 ${regErrors.password ? "border-red-300" : ""}`} dir="ltr"
+                              placeholder="7 أحرف على الأقل (أرقام وحروف)" className={`text-right pr-10 ${regErrors.password ? "border-red-300" : ""}`} dir="ltr"
                             />
                             <button type="button" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowRegPassword(!showRegPassword)}>
                               {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -593,22 +588,6 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                             placeholder="••••••••" className={`text-right ${regErrors.confirmPassword ? "border-red-300" : ""}`} dir="ltr"
                           />
                           {regErrors.confirmPassword && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{regErrors.confirmPassword}</p>}
-                        </div>
-                      </div>
-
-                      {/* Office Approval Upload */}
-                      <div dir="rtl" className="space-y-2">
-                        <Label htmlFor="officeApproval" className="text-right block">
-                          اعتماد المكتب (PDF فقط) <span className="text-red-500">*</span>
-                        </Label>
-                        <div className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-primary transition-colors ${regErrors.officeApproval ? "border-red-300 bg-red-50" : "border-border"}`}>
-                          <input id="officeApproval" type="file" accept="application/pdf" onChange={handleFileUpload} className="hidden" />
-                          <Label htmlFor="officeApproval" className="cursor-pointer">
-                            <FileText className={`w-8 h-8 mx-auto mb-2 ${regErrors.officeApproval ? "text-red-400" : "text-muted-foreground"}`} />
-                            <p className={`text-sm ${regErrors.officeApproval ? "text-red-600" : "text-muted-foreground"}`}>
-                              {formData.officeApproval ? formData.officeApproval.name : "اضغط لرفع اعتماد المكتب"}
-                            </p>
-                          </Label>
                         </div>
                       </div>
 
