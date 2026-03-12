@@ -2399,8 +2399,8 @@ export function AdminDashboard({
                                 <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف الرئيس</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.presidentPhone}</td></tr>
                                 <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">الكاتب العام</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.clerkName}</td></tr>
                                 <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف الكاتب العام</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.clerkPhone}</td></tr>
-                                <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">الأمين العام</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.secretaryName}</td></tr>
-                                <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف الأمين العام</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.secretaryPhone}</td></tr>
+                                <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">أمين المال</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.secretaryName}</td></tr>
+                                <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">هاتف أمين المال</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.secretaryPhone}</td></tr>
                                 <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">البريد الإلكتروني</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.email}</td></tr>
                                 <tr style="background:#fef9f0"><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">رقم الهاتف</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.phone}</td></tr>
                                 <tr><td style="padding:6px 10px;font-weight:600;border:1px solid #e5e7eb">تاريخ الموافقة</td><td style="padding:6px 10px;border:1px solid #e5e7eb">${p.reviewDate ? new Date(p.reviewDate).toLocaleDateString("ar-DZ") : "-"}</td></tr>
@@ -2433,8 +2433,8 @@ export function AdminDashboard({
                               <tr style="background:#fef9f0"><td><b>هاتف الرئيس</b></td><td>${p.presidentPhone}</td></tr>
                               <tr><td><b>الكاتب العام</b></td><td>${p.clerkName}</td></tr>
                               <tr style="background:#fef9f0"><td><b>هاتف الكاتب العام</b></td><td>${p.clerkPhone}</td></tr>
-                              <tr><td><b>الأمين العام</b></td><td>${p.secretaryName}</td></tr>
-                              <tr style="background:#fef9f0"><td><b>هاتف الأمين العام</b></td><td>${p.secretaryPhone}</td></tr>
+                              <tr><td><b>أمين المال</b></td><td>${p.secretaryName}</td></tr>
+                              <tr style="background:#fef9f0"><td><b>هاتف أمين المال</b></td><td>${p.secretaryPhone}</td></tr>
                               <tr><td><b>البريد الإلكتروني</b></td><td>${p.email}</td></tr>
                               <tr style="background:#fef9f0"><td><b>رقم الهاتف</b></td><td>${p.phone}</td></tr>
                               <tr><td><b>تاريخ الموافقة</b></td><td>${p.reviewDate ? new Date(p.reviewDate).toLocaleDateString("ar-DZ") : "-"}</td></tr>
@@ -2689,7 +2689,7 @@ export function AdminDashboard({
                           </p>
                         </div>
                         <div className="p-3 bg-green-50 rounded-lg border border-green-100">
-                          <Label className="text-xs font-medium text-green-700">الأمين العام</Label>
+                          <Label className="text-xs font-medium text-green-700">أمين المال</Label>
                           <p className="text-sm font-semibold mt-1">{selectedPartnership.secretaryName}</p>
                           <p className="text-sm text-gray-600 flex items-center gap-1 mt-0.5">
                             <Phone className="h-3 w-3" />{selectedPartnership.secretaryPhone}

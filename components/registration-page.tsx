@@ -123,8 +123,8 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     if (!formData.organizationName.trim()) newErrors.organizationName = "اسم الهيئة مطلوب"
     if (!formData.presidentName.trim()) newErrors.presidentName = "اسم رئيس الجمعية مطلوب"
     if (!formData.presidentPhone.trim()) newErrors.presidentPhone = "رقم هاتف الرئيس مطلوب"
-    if (!formData.secretaryName.trim()) newErrors.secretaryName = "اسم الأمين العام مطلوب"
-    if (!formData.secretaryPhone.trim()) newErrors.secretaryPhone = "رقم هاتف الأمين العام مطلوب"
+    if (!formData.secretaryName.trim()) newErrors.secretaryName = "اسم أمين المال مطلوب"
+    if (!formData.secretaryPhone.trim()) newErrors.secretaryPhone = "رقم هاتف أمين المال مطلوب"
     if (!formData.clerkName.trim()) newErrors.clerkName = "اسم الكاتب العام مطلوب"
     if (!formData.clerkPhone.trim()) newErrors.clerkPhone = "رقم هاتف الكاتب العام مطلوب"
     if (!formData.wilaya.trim()) newErrors.wilaya = "الولاية مطلوبة"
@@ -169,7 +169,7 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     const descriptionParts = [
       `الهيئة: ${formData.organizationName}`,
       `رئيس الجمعية: ${formData.presidentName}${formData.presidentPhone ? ` (${formData.presidentPhone})` : ""}`,
-      `الأمين العام: ${formData.secretaryName}${formData.secretaryPhone ? ` (${formData.secretaryPhone})` : ""}`,
+      `أمين المال: ${formData.secretaryName}${formData.secretaryPhone ? ` (${formData.secretaryPhone})` : ""}`,
       `الكاتب العام: ${formData.clerkName}${formData.clerkPhone ? ` (${formData.clerkPhone})` : ""}`,
       formData.motivation ? `الدوافع: ${formData.motivation}` : "",
     ].filter(Boolean).join("\n")
@@ -509,12 +509,12 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                       {/* Secretary */}
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="secretaryName" className="text-right block">اسم الأمين العام <span className="text-red-500">*</span></Label>
-                          <Input id="secretaryName" name="secretaryName" value={formData.secretaryName} onChange={handleInputChange} placeholder="اسم الأمين العام" className={`text-right ${fieldError("secretaryName") ? "border-red-300" : ""}`} />
+                          <Label htmlFor="secretaryName" className="text-right block">اسم أمين المال <span className="text-red-500">*</span></Label>
+                          <Input id="secretaryName" name="secretaryName" value={formData.secretaryName} onChange={handleInputChange} placeholder="اسم أمين المال" className={`text-right ${fieldError("secretaryName") ? "border-red-300" : ""}`} />
                           {fieldError("secretaryName") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("secretaryName")}</p>}
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="secretaryPhone" className="text-right block">رقم هاتف الأمين العام <span className="text-red-500">*</span></Label>
+                          <Label htmlFor="secretaryPhone" className="text-right block">رقم هاتف أمين المال <span className="text-red-500">*</span></Label>
                           <Input id="secretaryPhone" name="secretaryPhone" value={formData.secretaryPhone} onChange={handleInputChange} placeholder="0501234567" className={`text-right ${fieldError("secretaryPhone") ? "border-red-300" : ""}`} maxLength={10} inputMode="numeric" />
                           {fieldError("secretaryPhone") && <p className="text-sm text-red-600 text-right mt-1 flex items-center gap-1 justify-end"><X className="w-4 h-4" />{fieldError("secretaryPhone")}</p>}
                         </div>
