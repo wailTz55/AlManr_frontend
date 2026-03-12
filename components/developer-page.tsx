@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollAnimation } from "@/components/scroll-animations"
-import { Code, Palette, Zap, Heart, Github, Linkedin, Mail, Globe, Coffee, Star, Award, Lightbulb } from "lucide-react"
+import { Code, Palette, Zap, Heart, Mail, Coffee, Star, Award, Lightbulb, Send } from "lucide-react"
 
 export function DeveloperPage() {
   const [isHeartAnimating, setIsHeartAnimating] = useState(false)
@@ -210,21 +210,17 @@ export function DeveloperPage() {
             هل لديك مشروع مثير أو فكرة إبداعية؟ أحب العمل على المشاريع التي تحدث فرقاً حقيقياً في المجتمع
           </p>
           <div className="flex justify-center gap-4 flex-wrap">
-            <Button variant="outline" className="hover-lift bg-transparent">
-              <Github className="w-4 h-4 ml-2" />
-              GitHub
+            <Button variant="outline" className="hover-lift bg-transparent" asChild>
+              <a href="https://t.me/WailTZ19" target="_blank" rel="noopener noreferrer">
+                <Send className="w-4 h-4 ml-2" />
+                تليجرام
+              </a>
             </Button>
-            <Button variant="outline" className="hover-lift bg-transparent">
-              <Linkedin className="w-4 h-4 ml-2" />
-              LinkedIn
-            </Button>
-            <Button variant="outline" className="hover-lift bg-transparent">
-              <Mail className="w-4 h-4 ml-2" />
-              البريد الإلكتروني
-            </Button>
-            <Button variant="outline" className="hover-lift bg-transparent">
-              <Globe className="w-4 h-4 ml-2" />
-              الموقع الشخصي
+            <Button variant="outline" className="hover-lift bg-transparent" asChild>
+              <a href="mailto:ziadwt18@gmail.com">
+                <Mail className="w-4 h-4 ml-2" />
+                البريد الإلكتروني
+              </a>
             </Button>
           </div>
         </Card>
