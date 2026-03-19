@@ -140,7 +140,7 @@ export async function loadMoreActivitiesAction(offset: number) {
     const { data } = await db
         .from("activities")
         .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya, created_at")
-        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1)
     return (data ?? []).map((a: any) => ({
         ...a,

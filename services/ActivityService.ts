@@ -12,8 +12,8 @@ export async function getActivities() {
     const db = getSupabaseBrowserClient()
     const { data, error } = await db
         .from("activities")
-        .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya")
-        .order("date", { ascending: false })
+        .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya, created_at")
+        .order("created_at", { ascending: false })
 
     if (error) throw new Error("[ActivityService] Failed to fetch activities: " + error.message)
     return data ?? []

@@ -23,7 +23,7 @@ export async function fetchAllData(): Promise<AllDataResponse> {
         db
             .from("activities")
             .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants")
-            .order("date", { ascending: false })
+            .order("created_at", { ascending: false })
             .limit(HOMEPAGE_LIMITS.activities),
         db
             .from("news")
