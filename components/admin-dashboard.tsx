@@ -1717,10 +1717,6 @@ export function AdminDashboard({
                           <div className="flex items-center"><Clock className="h-4 w-4 ml-2 flex-shrink-0" />{activity.duration}</div>
                         </div>
                         <div className="flex justify-between items-center pt-2 border-t">
-                          <div className="text-sm">
-                            <span className="font-medium">{activity.registered}</span>
-                            <span className="text-gray-500">/{activity.capacity} مسجل</span>
-                          </div>
                           {templateNeedsReg(activity.activityTemplate) && (
                             <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
                               <Users className="h-3 w-3" />{regs.length} جمعية
@@ -3120,9 +3116,6 @@ export function AdminDashboard({
                       <div className="space-y-3">
                         <div>
                           <h4 className="font-semibold text-lg text-gray-900 line-clamp-2">{article.title}</h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-gray-500">{article.views} مشاهدة</span>
-                          </div>
                         </div>
                         <p className="text-sm text-gray-600 line-clamp-3">{article.excerpt}</p>
 
